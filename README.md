@@ -15,6 +15,16 @@ Install PowerCLI on PowerShell with this command
 $ Install-Module -Name VMware.PowerCLI
 ```
 
+### Temporary Fix: If running on Windows that has Windows PowerShell (version 5) and PowerShell Core (version 6)
+Open Shell.js and edit this line
+```javascript
+_this._proc = spawn('powershell' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
+```
+to
+```javascript
+_this._proc = spawn('pwsh' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
+```
+
 ### Testing
 This command will connect to vCenter and pull all virtual machine data to console, needed to edit your vCenter details on core.js file before run this command.
 ```sh
