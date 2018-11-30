@@ -25,6 +25,10 @@ to
 _this._proc = spawn('pwsh' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
 ```
 
+### Temporary Fix: Some modules is not currently supported on Core edition of PowerShell
+Follow this guide
+https://cloudhat.eu/powercli-10-0-0-linux-error-vmware-vimautomation-srm/
+
 ### Testing
 This command will connect to vCenter and pull all virtual machine data to console, needed to edit your vCenter details on core.js file before run this command.
 ```sh
