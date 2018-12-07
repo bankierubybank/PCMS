@@ -90,7 +90,7 @@ class Core {
     Get virtual machine data by name
     */
     let vm;
-    this.PS.addCommand('$vm = Get-VM @Name | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}}', [
+    this.PS.addCommand('$vm = Get-VM -Name @Name | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}}', [
       {Name: vmName}
       ]);
     await this.PS.invoke()
