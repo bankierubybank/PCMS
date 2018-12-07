@@ -90,7 +90,7 @@ class Core {
     Get virtual machine data by name
     */
     let vm;
-    this.PS.addCommand('$vm = Get-VM -Name @Name | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}}', [
+    this.PS.addCommand('$vm = Get-VM @Name | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}}', [
       {Name: vmName}
       ]);
     await this.PS.invoke()
@@ -148,8 +148,19 @@ class Server {
       console.log(`Server running at http://${this.hostname}:${this.port}/`);
     });
   }
+}
 
+class ExpressServer {
+  constructor(port){
+    this.port = port;
+  }
 
+  createServer(JSONdata) {
+    let express = require('express');
+    let app = express();
+    app.get('/', (req, res) => res.send(JSON.stringify(JSONdata)));
+    app.listen(this.port, () => console.log(`Example app listening on port ${this.port}!`));
+  }
 }
 
 async function main() {
@@ -159,11 +170,14 @@ async function main() {
   const core = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
   await core.createPS();
   await core.importPowerCLI();
-  await core.ParticipateInCEIP();
   await core.connectVIServer();
   let vm = await core.getVM("Ubuntu Server");
   await core.disconnectVIServer();
+  /*
   const server = new Server('127.0.0.1', '3000');
+  server.createServer(vm);
+  */
+  const server = new ExpressServer(3000);
   server.createServer(vm);
 }
 
