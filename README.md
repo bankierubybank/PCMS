@@ -4,7 +4,7 @@
 PCMS is developing for get/set data in VMware private cloud environment.
 
 ### Prerequisite
-PCMS requires [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
+PCMS requires [Vue.js], [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
 
 Run PowerShell with this command.
 ```sh
@@ -51,11 +51,13 @@ $ node core.js
  - Integration test with UI
 
 ### PCMS is builded by:
+* [Vue.js]
 * [PowerShell Core] version 6
 * [PowerCLI] version 11
 * [Node.js] version 11
 * [node-powershell] - use PowerShell on Node.js
 
+   [Vue.js]: <https://vuejs.org/>
    [PowerShell Core]: <https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell?view=powershell-6>
    [PowerCLI]: <https://blogs.vmware.com/PowerCLI/2017/04/powercli-install-process-powershell-gallery.html>
    [node.js]: <http://nodejs.org>
