@@ -85,7 +85,7 @@ class Core {
     return vms;
   }
 
-  async getVM(vmName) {
+  async getVMbyName(vmName) {
     /*
     Get virtual machine data by name
     */
@@ -128,67 +128,4 @@ class Core {
   }
 }
 
-class Server {
-  constructor(hostname, port) {
-    this.hostname = hostname;
-    this.port = port;
-  }
-
-  createServer(JSONdata) {
-    /*
-    Create Server and bind server at given host:port for response http request
-    */
-    let http = require('http');
-    this.server = http.createServer((req, res) => {
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'text/plain');
-      res.end(JSON.stringify(JSONdata) + '\n');
-    });
-    this.server.listen(this.port, this.hostname, () => {
-      console.log(`Server running at http://${this.hostname}:${this.port}/`);
-    });
-  }
-}
-
-class ExpressServer {
-  constructor(core, port){
-    this.core = core;
-    this.port = port;
-  }
-
-  async createRoutes() {
-    let express = require('express');
-    /*
-    let app = express();
-    app.get('/', (req, res) => res.json('Home'));
-    app.listen(this.port, () => console.log(`Example app listening on port ${this.port}!`));
-    */
-  }
-
-  async createServer() {
-  }
-}
-
-async function main() {
-  /*
-  Temporary function used for testing
-  */
-  const core = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
-  await core.createPS();
-  await core.importPowerCLI();
-  await core.connectVIServer();
-  
-  /*
-  const server = new Server('127.0.0.1', '3000');
-  server.createServer(await core.getVMs());
-  */
-
-  /*
-  const server = new ExpressServer(core, 3000);
-  await server.createServer();
-  */
-
-  await core.disconnectVIServer();
-}
-
-//main();
+module.exports = Core;

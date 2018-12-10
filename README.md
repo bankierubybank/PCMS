@@ -1,16 +1,17 @@
-# Private Cloud Management System - Core
+# Private Cloud Management System
 
 ### What is this
-PCMS is developing for get/set data in VMware private cloud environment.
+PCMS is web application for get/set data in VMware private cloud environment.
 
 ### Prerequisite
 PCMS requires [Vue.js], [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
 
-Run PowerShell with this command.
+### PowerCLI Installation
+Run PowerShell Core with this command.
 ```sh
 $ pwsh
 ```
-Install PowerCLI on PowerShell with this command
+Install PowerCLI on PowerShell Core with this command
 ```sh
 $ Install-Module -Name VMware.PowerCLI
 ```
@@ -29,7 +30,7 @@ _this._proc = spawn('pwsh' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
 Follow this guide
 https://cloudhat.eu/powercli-10-0-0-linux-error-vmware-vimautomation-srm/
 
-Comment these modules
+Comment these modules (Add # in front of these modules)
 ```
 #@{"ModuleName"="VMware.VimAutomation.Srm";"ModuleVersion"="10.0.0.7893900"}
 #@{"ModuleName"="VMware.VimAutomation.License";"ModuleVersion"="10.0.0.7893904"}
@@ -42,13 +43,16 @@ Comment these modules
 ```
 
 ### Testing
-This command will connect to vCenter and pull all virtual machine data to console, needed to edit your vCenter details on core.js file before run this command.
+Before run this command, needed to edit your vCenter details on app.js file.
 ```sh
-$ node core.js
+$ node src/app.js
 ```
+Open Web Browser and go to
+localhost:8081/vms to see all virtual machines data.
+
 
 ### Todos
- - Integration test with UI
+ - Integration with [Vue.js]
 
 ### PCMS is builded by:
 * [Vue.js]
