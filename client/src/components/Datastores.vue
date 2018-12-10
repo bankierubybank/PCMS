@@ -1,15 +1,21 @@
 <template>
-  <div class="datastores">
-    <h1>Posts</h1>
-    This file will list all the datastores.
-
-    <div v-for="datastore in datastores">
-      <p>
-        <span><b>Name: {{ datastore.Name }}</b></span><br />
-        <span>Free: {{ datastore.FreeSpaceGB }} GB</span><br />
-        <span>Capacity: {{ datastore.CapacityGB }} GB</span>
-      </p>
-    </div>
+  <div class="container">
+    <h1>All datastores</h1>
+      <div class="row">
+        <div class="datastores">
+          <div v-for="datastore in datastores">
+            <div class="col s12 m6">
+              <div class="card">
+              <div class="card-content">
+                <p><span><b>Name: {{ datastore.Name }}</b></span></p>
+                <p><span>Free: {{ datastore.FreeSpaceGB }} GB</span></p>
+                <p><span>Capacity: {{ datastore.CapacityGB }} GB</span></p>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 

@@ -1,15 +1,21 @@
 <template>
-  <div class="hosts">
-    <h1>Posts</h1>
-    This file will list all the hosts.
-
-    <div v-for="host in hosts">
-      <p>
-        <span><b>Host: {{ host.Name }}</b></span><br />
-        <span>CPU: {{ host.CpuUsageMhz }} / {{ host.CpuTotalMhz }} MHz</span><br />
-        <span>Memory: {{ host.MemoryUsageGB }} / {{ host.MemoryTotalGB }} GB</span>
-      </p>
-    </div>
+  <div class="container">
+    <h1>All hosts</h1>
+      <div class="row">
+        <div class="hosts">
+          <div v-for="host in hosts">
+            <div class="col s12 m6">
+              <div class="card">
+              <div class="card-content">
+                <p><span><b>Name: {{ host.Name }}</b></span></p>
+                <p><span>CPU: {{ host.CpuUsageMhz }} / {{ host.CpuTotalMhz }} MHz</span></p>
+                <p><span>Memory: {{ host.MemoryUsageGB }} / {{ host.MemoryTotalGB }} GB</span></p>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 

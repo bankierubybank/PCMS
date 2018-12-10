@@ -1,13 +1,19 @@
 <template>
-  <div class="datacenters">
-    <h1>Posts</h1>
-    This file will list all the datacenters.
-
-    <div v-for="datacenter in datacenters">
-      <p>
-        <span><b>Name: {{ datacenter.Name }}</b></span>
-      </p>
-    </div>
+  <div class="container">
+    <h1>All datacenters</h1>
+      <div class="row">
+        <div class="datacenters">
+          <div v-for="datacenter in datacenters">
+            <div class="col s12 m6">
+              <div class="card">
+              <div class="card-content">
+                <p><span><b>Name: {{ datacenter.Name }}</b></span></p>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
@@ -25,7 +31,7 @@ export default {
   },
   methods: {
     async getPosts () {
-      const response = await PostsService.fetchDatastores()
+      const response = await PostsService.fetchDatacenters()
       this.datacenters = response.data
     }
   }
