@@ -9,5 +9,8 @@ export default {
   },
   fetchDatastores () {
     return Api().get('datastores')
+  },
+  fetchDatacenters () {
+    return Api().get('datacenters')
   }
 }

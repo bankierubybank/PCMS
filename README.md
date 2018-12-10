@@ -42,14 +42,28 @@ Comment these modules (Add # in front of these modules)
 #@{"ModuleName"="VMware.VumAutomation";"ModuleVersion"="6.5.1.7862888"}
 ```
 
-### Testing
+### Testing - Server
 Before run this command, needed to edit your vCenter details on app.js file.
 ```sh
-$ node src/app.js
+$ node server/src/app.js
 ```
 Open Web Browser and go to
-localhost:8081/vms to see all virtual machines data.
+- [localhost:8081/vms](http://localhost:8081/vms) to see all virtual machines data.
+- [localhost:8081/vmhosts](http://localhost:8081/vmhosts) to see all hosts data.
+- [localhost:8081/datastores](http://localhost:8081/datastores) to see all datastores data.
+- [localhost:8081/datacenters](http://localhost:8081/datacenters) to see all virtual machines data.
 
+### Testing - Client
+Needed to run server(server/src/app.js) before run this command.
+```sh
+$ cd client
+$ npm run dev
+```
+Open Web Browser and go to
+- [localhost:8080/#/vms](http://localhost:8080/#/vms) to see all virtual machines data.
+- [localhost:8080/#/vmhosts](http://localhost:8080/#/vmhosts) to see all hosts data.
+- [localhost:8080/#/datastores](http://localhost:8080/#/datastores) to see all datastores data.
+- [localhost:8080/#/datacenters](http://localhost:8080/#/datacenters) to see all virtual machines data.
 
 ### Todos
  - Integration with [Vue.js]

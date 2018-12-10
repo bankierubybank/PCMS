@@ -109,6 +109,72 @@ class Core {
     return vm;
   }
 
+  async getVMHosts() {
+    /*
+    Get all hosts data from vCenter Server
+    */
+    let vmhosts;
+    this.PS.addCommand('$vmhosts = Get-VMHost | Select-Object -Property *')
+    await this.PS.invoke()
+    .then({
+    }).catch(err => {
+      console.log(err);
+    });
+    this.PS.addCommand('$vmhosts | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+    .then(output => {
+      console.log(output);
+      vmhosts = JSON.parse(output);
+    }).catch(err => {
+      console.log(err);
+    });
+    return vmhosts;
+  }
+
+  async getDatastores() {
+    /*
+    Get all datastores data from vCenter Server
+    */
+    let datastores;
+    this.PS.addCommand('$datastores = Get-Datastore | Select-Object -Property *')
+    await this.PS.invoke()
+    .then({
+    }).catch(err => {
+      console.log(err);
+    });
+    this.PS.addCommand('$datastores | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+    .then(output => {
+      console.log(output);
+      datastores = JSON.parse(output);
+    }).catch(err => {
+      console.log(err);
+    });
+    return datastores;
+  }
+
+  async getDatacenters() {
+    /*
+    Get all datacenters data from vCenter Server
+    */
+    let datacenters;
+    this.PS.addCommand('$datacenters = Get-Datacenter | Select-Object -Property *')
+    await this.PS.invoke()
+    .then({
+    }).catch(err => {
+      console.log(err);
+    });
+    this.PS.addCommand('$datacenters | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+    .then(output => {
+      console.log(output);
+      datacenters = JSON.parse(output);
+    }).catch(err => {
+      console.log(err);
+    });
+    return datacenters;
+  }
+
   async disconnectVIServer() {
     /*
     Disconnect from vCenter Server and dispose PowerShell instance

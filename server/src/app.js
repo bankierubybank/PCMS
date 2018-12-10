@@ -33,6 +33,33 @@ async function createServer(){
 		})
 	})
 
+	app.get('/vmhosts', async (req, res) => {
+		await core.getVMHosts()
+		.then(output => {
+			res.json(output);
+		}).catch(err => {
+			console.log(err);
+		})
+	})
+
+	app.get('/datastores', async (req, res) => {
+		await core.getDatastores()
+		.then(output => {
+			res.json(output);
+		}).catch(err => {
+			console.log(err);
+		})
+	})
+
+	app.get('/datacenters', async (req, res) => {
+		await core.getDatacenters()
+		.then(output => {
+			res.json(output);
+		}).catch(err => {
+			console.log(err);
+		})
+	})
+
 	app.listen(8081);
 	console.log('App listen on port: 8081');
 }
