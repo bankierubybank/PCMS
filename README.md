@@ -56,8 +56,8 @@ Open Web Browser and go to
 ### Testing - Client
 Needed to run server(server/src/app.js) before run this command.
 ```sh
-$ cd client
-$ npm run dev
+$ cd vue-cli
+$ npm run server
 ```
 Open Web Browser and go to
 - [localhost:8080/vms](http://localhost:8080/vms) to see all virtual machines data.
