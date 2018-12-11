@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const morgan = require('morgan');
 
-async function createServer(){
+async function createServer() {
 	const app = express();
 	app.use(morgan('combined'));
 	app.use(bodyParser.json());
@@ -17,47 +17,47 @@ async function createServer(){
 
 	app.get('/vms', async (req, res) => {
 		await core.getVMs()
-		.then(output => {
-			res.json(output);
-		}).catch(err => {
-			console.log(err);
-		})
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
 	})
 
 	app.get('/vm/:name', async (req, res) => {
 		await core.getVMbyName(req.params.name)
-		.then(output => {
-			res.json(output);
-		}).catch(err => {
-			console.log(err);
-		})
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
 	})
 
 	app.get('/vmhosts', async (req, res) => {
 		await core.getVMHosts()
-		.then(output => {
-			res.json(output);
-		}).catch(err => {
-			console.log(err);
-		})
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
 	})
 
 	app.get('/datastores', async (req, res) => {
 		await core.getDatastores()
-		.then(output => {
-			res.json(output);
-		}).catch(err => {
-			console.log(err);
-		})
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
 	})
 
 	app.get('/datacenters', async (req, res) => {
 		await core.getDatacenters()
-		.then(output => {
-			res.json(output);
-		}).catch(err => {
-			console.log(err);
-		})
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
 	})
 
 	app.listen(8081);

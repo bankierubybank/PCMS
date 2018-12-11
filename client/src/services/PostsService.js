@@ -1,16 +1,16 @@
 import Api from '@/services/Api'
 
 export default {
-  fetchVMs () {
+  fetchVMs() {
     return Api().get('vms')
   },
-  fetchVMHosts () {
+  fetchVMHosts() {
     return Api().get('vmhosts')
   },
-  fetchDatastores () {
+  fetchDatastores() {
     return Api().get('datastores')
   },
-  fetchDatacenters () {
+  fetchDatacenters() {
     return Api().get('datacenters')
   }
 }
