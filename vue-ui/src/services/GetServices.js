@@ -4,6 +4,9 @@ export default {
   fetchVMs() {
     return Api().get('vms')
   },
+  fetchVMbyName(vmName) {
+    return Api().get('vm/' + vmName)
+  },
   fetchVMHosts() {
     return Api().get('vmhosts')
   },

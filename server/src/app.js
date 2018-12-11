@@ -24,8 +24,8 @@ async function createServer() {
 			})
 	})
 
-	app.get('/vm/:name', async (req, res) => {
-		await core.getVMbyName(req.params.name)
+	app.get('/vm/:vmName', async (req, res) => {
+		await core.getVMbyName(req.params.vmName)
 			.then(output => {
 				res.json(output);
 			}).catch(err => {

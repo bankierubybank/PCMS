@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import PostsService from "@/services/PostsService";
+import GetServices from "@/services/GetServices";
 export default {
   name: "datastores",
   data() {
@@ -37,11 +37,11 @@ export default {
     };
   },
   mounted() {
-    this.getPosts();
+    this.getDatastores();
   },
   methods: {
-    async getPosts() {
-      const response = await PostsService.fetchDatastores();
+    async getDatastores() {
+      const response = await GetServices.fetchDatastores();
       this.datastores = response.data;
     }
   }

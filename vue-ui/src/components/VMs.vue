@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import PostsService from "@/services/PostsService";
+import GetServices from "@/services/GetServices";
 export default {
   name: "vms",
   data() {
@@ -43,11 +43,11 @@ export default {
     };
   },
   mounted() {
-    this.getPosts();
+    this.getVMs();
   },
   methods: {
-    async getPosts() {
-      const response = await PostsService.fetchVMs();
+    async getVMs() {
+      const response = await GetServices.fetchVMs();
       this.vms = response.data;
     }
   }

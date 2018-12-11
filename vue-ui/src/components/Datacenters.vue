@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import PostsService from "@/services/PostsService";
+import GetServices from "@/services/GetServices";
 export default {
   name: "datacenters",
   data() {
@@ -31,11 +31,11 @@ export default {
     };
   },
   mounted() {
-    this.getPosts();
+    this.getDatacenters();
   },
   methods: {
-    async getPosts() {
-      const response = await PostsService.fetchDatacenters();
+    async getDatacenters() {
+      const response = await GetServices.fetchDatacenters();
       this.datacenters = response.data;
     }
   }

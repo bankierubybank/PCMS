@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import PostsService from "@/services/PostsService";
+import GetServices from "@/services/GetServices";
 export default {
   name: "hosts",
   data() {
@@ -37,11 +37,11 @@ export default {
     };
   },
   mounted() {
-    this.getPosts();
+    this.getVMHosts();
   },
   methods: {
-    async getPosts() {
-      const response = await PostsService.fetchVMHosts();
+    async getVMHosts() {
+      const response = await GetServices.fetchVMHosts();
       this.hosts = response.data;
     }
   }

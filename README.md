@@ -60,10 +60,10 @@ $ cd client
 $ npm run dev
 ```
 Open Web Browser and go to
-- [localhost:8080/#/vms](http://localhost:8080/#/vms) to see all virtual machines data.
-- [localhost:8080/#/vmhosts](http://localhost:8080/#/vmhosts) to see all hosts data.
-- [localhost:8080/#/datastores](http://localhost:8080/#/datastores) to see all datastores data.
-- [localhost:8080/#/datacenters](http://localhost:8080/#/datacenters) to see all virtual machines data.
+- [localhost:8080/vms](http://localhost:8080/vms) to see all virtual machines data.
+- [localhost:8080/vmhosts](http://localhost:8080/vmhosts) to see all hosts data.
+- [localhost:8080/datastores](http://localhost:8080/datastores) to see all datastores data.
+- [localhost:8080/datacenters](http://localhost:8080/datacenters) to see all virtual machines data.
 
 ### Todos
  - Integration with [Vue.js]
