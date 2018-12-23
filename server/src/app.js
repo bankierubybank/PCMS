@@ -33,6 +33,15 @@ async function createServer() {
 			})
 	})
 
+	app.get('/vmharddisk/:vmName', async (req, res) => {
+		await core.getVMHarddiskbyName(req.params.vmName)
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+
 	app.get('/vmhosts', async (req, res) => {
 		await core.getVMHosts()
 			.then(output => {
@@ -59,6 +68,17 @@ async function createServer() {
 				console.log(err);
 			})
 	})
+
+	/*
+	app.post('/newvm', async (req, res) => {
+		await core.newVM()
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+	*/
 
 	app.listen(8081);
 	console.log('App listen on port: 8081');

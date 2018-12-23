@@ -13,7 +13,8 @@
                   </span>
                 </p>
                 <p>
-                  <span>PowerState: {{ vm.PowerState }}</span>
+                  <span v-if="vm.PowerState">PowerState: On</span>
+                  <span v-else>PowerState: Off</span>
                 </p>
                 <p>
                   <span>Guest: {{ vm.Guest }}</span>
@@ -23,6 +24,9 @@
                 </p>
                 <p>
                   <span>Memory: {{ vm.MemoryGB }} GB</span>
+                </p>
+                <p>
+                  <span>Storage: {{ vm.UsedSpaceGB }} GB</span>
                 </p>
               </div>
             </div>

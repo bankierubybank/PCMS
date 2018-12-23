@@ -110,6 +110,29 @@ class Core {
     return vm;
   }
 
+  async getVMHarddiskbyName(vmName) {
+    /*
+    Get virtual machine harddisk data by name
+    */
+    let vmharddisk;
+    this.PS.addCommand('$vmharddisk = Get-HardDisk -VM (Get-VM @Name) | Select-Object -Property *', [{
+      Name: vmName
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('$vmharddisk | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+      .then(output => {
+        console.log(output);
+        vmharddisk = JSON.parse(output);
+      }).catch(err => {
+        console.log(err);
+      });
+    return vmharddisk;
+  }
+
   async getVMHosts() {
     /*
     Get all hosts data from vCenter Server
