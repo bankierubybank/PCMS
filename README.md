@@ -4,19 +4,31 @@
 PCMS is web application for get/set data in VMware private cloud environment.
 
 ### Prerequisite
-PCMS requires [Vue.js], [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
+PCMS requires [Vue CLI] version 3, [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
 
-### PowerCLI Installation
-Run PowerShell Core with this command.
+### PowerCLI Installation and Configuration
+Run PowerShell Core then install and config PowerCLI on PowerShell Core with this command
 ```sh
 $ pwsh
-```
-Install PowerCLI on PowerShell Core with this command
-```sh
 $ Install-Module -Name VMware.PowerCLI
+$ Import-Module VMware.PowerCLI
+$ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip $false
 ```
 
-### Temporary Fix: If running on Windows that has Windows PowerShell (version 5) and PowerShell Core (version 6)
+### Node.js Module
+| Module Name | Installation |
+| ------ | ------ |
+| node-powershell | npm i --save node-powershell |
+| express | npm i --save express |
+| cors | npm i --save cors |
+| morgan | npm i --save morgan |
+
+### Vue.js Module
+| Module Name | Installation |
+| ------ | ------ |
+| axios | npm i --save axios |
+
+### Temporary Fix: Make node-powershell to use PowerShell Core (version 6)
 Open Shell.js and edit this line
 ```javascript
 _this._proc = spawn('powershell' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
@@ -56,8 +68,8 @@ Open Web Browser and go to
 ### Testing - Client
 Needed to run server(server/src/app.js) before run this command.
 ```sh
-$ cd vue-cli
-$ npm run server
+$ cd vue-ui
+$ npm run serve
 ```
 Open Web Browser and go to
 - [localhost:8080/vms](http://localhost:8080/vms) to see all virtual machines data.
@@ -66,16 +78,16 @@ Open Web Browser and go to
 - [localhost:8080/datacenters](http://localhost:8080/datacenters) to see all virtual machines data.
 
 ### Todos
- - Integration with [Vue.js]
 
 ### PCMS is builded by:
-* [Vue.js]
+* [Vue CLI]
 * [PowerShell Core] version 6
 * [PowerCLI] version 11
 * [Node.js] version 11
 * [node-powershell] - use PowerShell on Node.js
 
    [Vue.js]: <https://vuejs.org/>
+   [Vue CLI]: <https://cli.vuejs.org/>
    [PowerShell Core]: <https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell?view=powershell-6>
    [PowerCLI]: <https://blogs.vmware.com/PowerCLI/2017/04/powercli-install-process-powershell-gallery.html>
    [node.js]: <http://nodejs.org>
