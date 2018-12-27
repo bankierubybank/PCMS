@@ -79,7 +79,6 @@ class Core {
     this.PS.addCommand('$vms | ConvertTo-Json -Depth 1 -AsArray');
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
         vms = JSON.parse(output);
       }).catch(err => {
         console.log(err);
@@ -102,7 +101,6 @@ class Core {
     this.PS.addCommand('$vm | ConvertTo-Json -Depth 1 -AsArray');
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
         vm = JSON.parse(output);
       }).catch(err => {
         console.log(err);
@@ -125,7 +123,6 @@ class Core {
     this.PS.addCommand('$vmharddisk | ConvertTo-Json -Depth 1 -AsArray');
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
         vmharddisk = JSON.parse(output);
       }).catch(err => {
         console.log(err);
@@ -140,13 +137,13 @@ class Core {
     let vmhosts;
     this.PS.addCommand('$vmhosts = Get-VMHost | Select-Object -Property *')
     await this.PS.invoke()
-      .then({}).catch(err => {
+      .then(output => {
+      }).catch(err => {
         console.log(err);
       });
     this.PS.addCommand('$vmhosts | ConvertTo-Json -Depth 1 -AsArray');
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
         vmhosts = JSON.parse(output);
       }).catch(err => {
         console.log(err);
@@ -167,7 +164,6 @@ class Core {
     this.PS.addCommand('$datastores | ConvertTo-Json -Depth 1 -AsArray');
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
         datastores = JSON.parse(output);
       }).catch(err => {
         console.log(err);
@@ -188,7 +184,6 @@ class Core {
     this.PS.addCommand('$datacenters | ConvertTo-Json -Depth 1 -AsArray');
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
         datacenters = JSON.parse(output);
       }).catch(err => {
         console.log(err);

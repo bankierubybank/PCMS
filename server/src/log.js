@@ -28,8 +28,7 @@ async function createServer() {
     }, { collection: 'log' });
     var hostPerf = mongoose.model('hostPerf', hostPerfSchema);
 
-    async function log(){
-        console.log("Logging");
+    async function fetchLog(){
         await core.getVMHosts()
         .then(output => {
             let newHostPerf = new hostPerf({
@@ -39,7 +38,7 @@ async function createServer() {
                 Memory: output[0].MemoryUsageGB
             });
             newHostPerf.save(function(err){
-                console.log("SAVED");
+                console.log("SAVED TO DATABASE");
                 if (err){
                     console.error(err);
                 }
@@ -48,14 +47,12 @@ async function createServer() {
             console.log(err);
         })
     }
-
-    await log();
     
     //Delay 1 miniutes
-    let delay = 1000 * 60 * 1;
+    let DELAY = 1000 * 60 * 1;
 
-    setInterval(await login, delay * 3);
-    setInterval(await log, delay);
+    //Fetch VMHosts data every DELAY value
+    setInterval(await fetchLog, DELAY);
 }
 
 createServer();
