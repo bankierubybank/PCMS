@@ -69,6 +69,15 @@ async function createServer() {
 			})
 	})
 
+	app.get('/vmstat/:vmName', async (req, res) => {
+		await core.getVMStat(req.params.vmName)
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+
 	/*
 	app.post('/newvm', async (req, res) => {
 		await core.newVM()

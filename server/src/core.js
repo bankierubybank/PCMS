@@ -25,7 +25,12 @@ class Core {
     /*
     Import PowerCLI Module
     */
-    this.PS.addCommand('Import-Module VMware.PowerCLI')
+    this.PS.addCommand('$isPowerCLIImported = Get-Module VMware.PowerCLI')
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('if ($isPowerCLIImported) {Import-Module VMware.PowerCLI}')
     await this.PS.invoke()
       .then({}).catch(err => {
         console.log(err);
@@ -137,8 +142,7 @@ class Core {
     let vmhosts;
     this.PS.addCommand('$vmhosts = Get-VMHost | Select-Object -Property *')
     await this.PS.invoke()
-      .then(output => {
-      }).catch(err => {
+      .then(output => {}).catch(err => {
         console.log(err);
       });
     this.PS.addCommand('$vmhosts | ConvertTo-Json -Depth 1 -AsArray');
@@ -191,6 +195,27 @@ class Core {
     return datacenters;
   }
 
+  async getVMStat(vmName) {
+    /*
+    Get VM Stat by VM name
+    */
+    let vmstat;
+    this.PS.addCommand('Get-VM @Name | Get-Stat @IntervalMins | ConvertTo-Json -Depth 1 -AsArray', [{
+      Name: vmName
+    },
+    {
+      IntervalMins: (60 * 24)
+    }
+  ]);
+    await this.PS.invoke()
+      .then(output => {
+        vmstat = JSON.parse(output);
+      }).catch(err => {
+        console.log(err);
+      });
+    return vmstat;
+  }
+
   async disconnectVIServer() {
     /*
     Disconnect from vCenter Server and dispose PowerShell instance
@@ -203,11 +228,13 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         console.log(output);
-        this.PS.dispose();
       }).catch(err => {
         console.log(err);
-        this.PS.dispose();
       });
+  }
+
+  async disposePS() {
+    await this.PS.dispose();
   }
 }
 
