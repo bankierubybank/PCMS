@@ -78,6 +78,24 @@ async function createServer() {
 			})
 	})
 
+	app.get('/vm/:vmName/poweron', async (req, res) => {
+		await core.powerOnVM(req.params.vmName)
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+
+	app.get('/vm/:vmName/poweroff', async (req, res) => {
+		await core.powerOffVM(req.params.vmName)
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+
 	/*
 	app.post('/newvm', async (req, res) => {
 		await core.newVM()

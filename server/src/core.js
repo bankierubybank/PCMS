@@ -201,12 +201,12 @@ class Core {
     */
     let vmstat;
     this.PS.addCommand('Get-VM @Name | Get-Stat @IntervalMins | ConvertTo-Json -Depth 1 -AsArray', [{
-      Name: vmName
-    },
-    {
-      IntervalMins: (60 * 24)
-    }
-  ]);
+        Name: vmName
+      },
+      {
+        IntervalMins: (60 * 24)
+      }
+    ]);
     await this.PS.invoke()
       .then(output => {
         vmstat = JSON.parse(output);
@@ -214,6 +214,32 @@ class Core {
         console.log(err);
       });
     return vmstat;
+  }
+
+  async powerOnVM(vmName) {
+    /*
+    Power On VM by VM name
+    */
+    this.PS.addCommand('Start-VM', [{
+      VM: vmName
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+  }
+
+  async powerOffVM(vmName) {
+    /*
+    Power Off VM by VM name
+    */
+    this.PS.addCommand('Stop-VM', [{
+      VM: vmName
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
   }
 
   async disconnectVIServer() {
