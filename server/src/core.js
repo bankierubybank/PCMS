@@ -234,8 +234,10 @@ class Core {
     Power Off VM by VM name
     */
     this.PS.addCommand('Stop-VM', [{
-      VM: vmName
-    }]);
+        VM: vmName
+      },
+      'Confirm:$false'
+    ]);
     await this.PS.invoke()
       .then({}).catch(err => {
         console.log(err);
