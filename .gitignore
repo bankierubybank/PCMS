@@ -1,3 +1,4 @@
 # Dependency directories
+node_modules
 vue-ui/node_modules/
 server/node_modules/
