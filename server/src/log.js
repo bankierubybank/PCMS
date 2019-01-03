@@ -5,14 +5,16 @@ async function createServer() {
     await core.createPS();
     await core.importPowerCLI();
 
-    async function login(){
+    async function login() {
         await core.connectVIServer();
     }
 
     await login();
-    
+
     var mongoose = require('mongoose');
-    mongoose.connect('mongodb://localhost/PCMS', { useNewUrlParser: true });
+    mongoose.connect('mongodb://localhost/PCMS', {
+        useNewUrlParser: true
+    });
     var db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error:'));
     db.once('open', function () {
@@ -25,29 +27,31 @@ async function createServer() {
         host: String,
         CPU: Number,
         Memory: Number
-    }, { collection: 'log' });
+    }, {
+        collection: 'log'
+    });
     var hostPerf = mongoose.model('hostPerf', hostPerfSchema);
 
-    async function fetchLog(){
+    async function fetchLog() {
         await core.getVMHosts()
-        .then(output => {
-            let newHostPerf = new hostPerf({
-                time: Date.now(),
-                host: output[0].Name,
-                CPU: output[0].CpuUsageMhz,
-                Memory: output[0].MemoryUsageGB
-            });
-            newHostPerf.save(function(err){
-                console.log("SAVED TO DATABASE");
-                if (err){
-                    console.error(err);
-                }
-            });
-        }).catch(err => {
-            console.log(err);
-        })
+            .then(output => {
+                let newHostPerf = new hostPerf({
+                    time: Date.now(),
+                    host: output[0].Name,
+                    CPU: output[0].CpuUsageMhz,
+                    Memory: output[0].MemoryUsageGB
+                });
+                newHostPerf.save(function (err) {
+                    console.log("SAVED TO DATABASE");
+                    if (err) {
+                        console.error(err);
+                    }
+                });
+            }).catch(err => {
+                console.log(err);
+            })
     }
-    
+
     //Delay 1 miniutes
     let DELAY = 1000 * 60 * 1;
 

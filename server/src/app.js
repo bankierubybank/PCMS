@@ -81,6 +81,7 @@ async function createServer() {
 	app.get('/vm/:vmName/poweron', async (req, res) => {
 		await core.powerOnVM(req.params.vmName)
 			.then(output => {
+				console.log("VM POWER ON!");
 				res.json(output);
 			}).catch(err => {
 				console.log(err);
@@ -90,6 +91,7 @@ async function createServer() {
 	app.get('/vm/:vmName/poweroff', async (req, res) => {
 		await core.powerOffVM(req.params.vmName)
 			.then(output => {
+				console.log("VM POWER OFF!");
 				res.json(output);
 			}).catch(err => {
 				console.log(err);
