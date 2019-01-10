@@ -98,8 +98,7 @@ async function createServer() {
 			})
 	})
 
-	/*
-	app.post('/newvm', async (req, res) => {
+	app.get('/newvm', async (req, res) => {
 		await core.newVM()
 			.then(output => {
 				res.json(output);
@@ -107,7 +106,16 @@ async function createServer() {
 				console.log(err);
 			})
 	})
-	*/
+
+	app.get('/removevm/:vmName', async (req, res) => {
+		await core.removeVM(req.params.vmName)
+			.then(output => {
+				res.json(output);
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+	
 
 	app.listen(8081);
 	console.log('App listen on port: 8081');

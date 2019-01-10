@@ -216,6 +216,69 @@ class Core {
     return vmstat;
   }
 
+  async removeVM(vmName) {
+    /*
+    Remove VM by VM name
+    */
+    let vmstat;
+    this.PS.addCommand('Get-VM @Name | Remove-VM -DeletePermanently -Confirm:$false', [{
+      Name: vmName
+    }]);
+    await this.PS.invoke()
+      .then(output => {
+        console.log(output);
+      }).catch(err => {
+        console.log(err);
+      });
+  }
+
+  async newVM() {
+    /*
+    Create New VM
+    */
+    this.PS.addCommand('$vmhost = Get-VMHost', [{
+      Name: "10.30.22.9"
+    }])
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('$datastore = Get-Datastore', [{
+      Name: "datastore1"
+    }])
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('New-VM', [{
+        Name: "TEST"
+      }, {
+        VMHost: '$vmhost'
+      },
+      {
+        Datastore: '$datastore'
+      },
+      {
+        NumCpu: 1
+      },
+      {
+        MemoryMB: 256
+      },{
+        DiskGB: 16
+      },
+      {
+        NetworkName: "VM Network"
+      },
+      'CD'
+    ]);
+    //this.PS.addCommand('New-VM -Name "Test New-VM" -VMHost (Get-VMHost -Name "10.30.22.9") -Datastore (Get-Datastore -Name "datastore1") -NumCpu 1 -MemoryMB 256 -DiskGB 16 -NetworkName "VM Network" -CD');
+    await this.PS.invoke().then(output => {
+      console.log(output);
+    }).catch(err => {
+      console.log(err);
+    })
+  }
+
   async powerOnVM(vmName) {
     /*
     Power On VM by VM name
