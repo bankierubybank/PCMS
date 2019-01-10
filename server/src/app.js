@@ -2,12 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const morgan = require('morgan');
+const PORT = 8081;
 
 async function createServer() {
 	const app = express();
 	app.use(morgan('combined'));
 	app.use(bodyParser.json());
 	app.use(cors());
+	let urlencodedParser = bodyParser.urlencoded({
+		extended: false
+	});
 
 	let Core = require('./core.js');
 	let core = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
@@ -98,27 +102,25 @@ async function createServer() {
 			})
 	})
 
-	app.get('/newvm', async (req, res) => {
-		await core.newVM()
+	app.post('/newvm', urlencodedParser, async (req, res) => {
+		await core.newVM(req.body)
 			.then(output => {
-				res.json(output);
+				res.send('POST REQ: newvm');
 			}).catch(err => {
 				console.log(err);
 			})
 	})
 
-	app.get('/removevm/:vmName', async (req, res) => {
+	app.delete('/vm/:vmName', async (req, res) => {
 		await core.removeVM(req.params.vmName)
 			.then(output => {
-				res.json(output);
+				res.send('DELETE REQ: vm/vmName');
 			}).catch(err => {
 				console.log(err);
 			})
 	})
-	
 
-	app.listen(8081);
-	console.log('App listen on port: 8081');
+	app.listen(PORT, () => console.log('App listen on port: ' + PORT));
 }
 
 createServer();

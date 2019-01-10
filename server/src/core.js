@@ -232,7 +232,7 @@ class Core {
       });
   }
 
-  async newVM() {
+  async newVM(spec) {
     /*
     Create New VM
     */
@@ -251,7 +251,7 @@ class Core {
         console.log(err);
       });
     this.PS.addCommand('New-VM', [{
-        Name: "TEST"
+        Name: spec.Name
       }, {
         VMHost: '$vmhost'
       },
@@ -259,15 +259,16 @@ class Core {
         Datastore: '$datastore'
       },
       {
-        NumCpu: 1
+        NumCpu: spec.NumCpu
       },
       {
-        MemoryMB: 256
-      },{
-        DiskGB: 16
+        MemoryMB: spec.MemoryMB
       },
       {
-        NetworkName: "VM Network"
+        DiskGB: spec.DiskGB
+      },
+      {
+        NetworkName: spec.NetworkName
       },
       'CD'
     ]);
