@@ -9,19 +9,23 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
-    "vue": "^2.5.17",
+    "chart.js": "^2.7.3",
+    "vue": "^2.5.21",
+    "vue-chartjs": "^3.4.0",
     "vue-router": "^3.0.1",
+    "vue-select": "^2.5.1",
+    "vuejs-datepicker": "^1.5.4",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.2.0",
-    "@vue/cli-plugin-eslint": "^3.2.0",
-    "@vue/cli-service": "^3.2.0",
+    "@vue/cli-plugin-babel": "^3.3.0",
+    "@vue/cli-plugin-eslint": "^3.3.0",
+    "@vue/cli-service": "^3.3.0",
     "@vue/eslint-config-prettier": "^4.0.0",
     "babel-eslint": "^10.0.1",
-    "eslint": "^5.8.0",
-    "eslint-plugin-vue": "^5.0.0-0",
-    "vue-template-compiler": "^2.5.17"
+    "eslint": "^5.12.0",
+    "eslint-plugin-vue": "^5.1.0",
+    "vue-template-compiler": "^2.5.21"
   },
   "eslintConfig": {
     "root": true,

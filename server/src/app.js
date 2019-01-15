@@ -103,12 +103,14 @@ async function createServer() {
 	})
 
 	app.post('/newvm', urlencodedParser, async (req, res) => {
-		await core.newVM(req.body)
+		console.log(req.body);
+		res.send('POST REQ: newvm');
+		/*await core.newVM(req.body)
 			.then(output => {
 				res.send('POST REQ: newvm');
 			}).catch(err => {
 				console.log(err);
-			})
+			})*/
 	})
 
 	app.delete('/vm/:vmName', async (req, res) => {
