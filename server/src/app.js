@@ -108,14 +108,17 @@ async function createServer() {
 		console.log(req.body);
 		res.send('POST REQ: newvm');
 
+		let totalMemoryGBAllocated = 0;
 
-		await core.getVMHost(req.body.VMHost){
+		await core.getVMsbyHostName(req.body.VMHost)
 			.then(output => {
-				console.log(output);
+				output.forEach(vm => {
+					console.log(vm.Name);
+					totalMemoryGBAllocated += vm.MemoryGB;
+				})
 			}).catch(err => {
 				console.log(err);
 			})
-		}
 
 		/*await core.newVM(req.body)
 			.then(output => {
@@ -125,9 +128,9 @@ async function createServer() {
 			})
 		*/
 
-		console.log(req.body.endDate);
-		let temp = schedule.scheduleJob(req.body.endDate, async function () {
-            console.log("DONE SCHEDULED JOB! at: " + req.body.endDate);
+		console.log(req.body.EndDate);
+		let temp = schedule.scheduleJob(req.body.EndDate, async function () {
+            console.log("DONE SCHEDULED JOB! at: " + req.body.EndDate);
             /*
             await core.powerOffVM(req.params.vmName)
 				.then(output => {

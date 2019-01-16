@@ -113,6 +113,28 @@ class Core {
     return vm;
   }
 
+  async getVMsbyHostName(VMHostName) {
+    /*
+    Get all virtual machines data in single host
+    */
+    let vms;
+    this.PS.addCommand('$vms = Get-VM | where VMHost @Match | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}}', [{
+      Match: VMHostName
+    }])
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('$vms | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+      .then(output => {
+        vms = JSON.parse(output);
+      }).catch(err => {
+        console.log(err);
+      });
+    return vms;
+  }
+
   async getVMHarddiskbyName(vmName) {
     /*
     Get virtual machine harddisk data by name
