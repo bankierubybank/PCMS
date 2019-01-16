@@ -155,6 +155,28 @@ class Core {
     return vmhosts;
   }
 
+  async getVMHostbyName(VMHostName) {
+    /*
+    Get host data by name
+    */
+    let vmhost;
+    this.PS.addCommand('$vmhost = Get-VMHost @Name | Select-Object -Property *', [{
+      Name: VMHostName
+    }])
+    await this.PS.invoke()
+      .then(output => {}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('$vmhost | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+      .then(output => {
+        vmhost = JSON.parse(output);
+      }).catch(err => {
+        console.log(err);
+      });
+    return vmhost;
+  }
+
   async getDatastores() {
     /*
     Get all datastores data from vCenter Server

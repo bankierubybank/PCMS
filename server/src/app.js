@@ -19,6 +19,8 @@ async function createServer() {
 	await core.importPowerCLI();
 	await core.connectVIServer();
 
+	let schedule = require('node-schedule');
+
 	app.get('/vms', async (req, res) => {
 		await core.getVMs()
 			.then(output => {
@@ -105,12 +107,37 @@ async function createServer() {
 	app.post('/newvm', urlencodedParser, async (req, res) => {
 		console.log(req.body);
 		res.send('POST REQ: newvm');
+
+
+		await core.getVMHost(req.body.VMHost){
+			.then(output => {
+				console.log(output);
+			}).catch(err => {
+				console.log(err);
+			})
+		}
+
 		/*await core.newVM(req.body)
 			.then(output => {
 				res.send('POST REQ: newvm');
 			}).catch(err => {
 				console.log(err);
-			})*/
+			})
+		*/
+
+		console.log(req.body.endDate);
+		let temp = schedule.scheduleJob(req.body.endDate, async function () {
+            console.log("DONE SCHEDULED JOB! at: " + req.body.endDate);
+            /*
+            await core.powerOffVM(req.params.vmName)
+				.then(output => {
+					console.log("VM POWER OFF!");
+					res.json(output);
+				}).catch(err => {
+					console.log(err);
+				})
+            */
+        })
 	})
 
 	app.delete('/vm/:vmName', async (req, res) => {

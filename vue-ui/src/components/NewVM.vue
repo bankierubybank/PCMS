@@ -25,9 +25,17 @@
       <div>
         Host:
         <!-- <v-select class="form-control"> -->
-        <v-select v-model="selectedHost" label="Name" :options="hosts">
+        <v-select placeholder="Host" v-model="selectedHost" label="Name" :options="hosts">
           <!-- <option v-for="(host, id) in hosts" :key="id" v-bind:value="host.Name">{{ host.Name }}</option> -->
         </v-select>
+      </div>
+      <div>
+        Start Date:
+        <datepicker placeholder="StartDate" v-model="startDate"></datepicker>
+      </div>
+      <div>
+        End Date:
+        <datepicker placeholder="EndDate" v-model="endDate"></datepicker>
       </div>
       <div>
         <button class="app_post_btn" @click="newVM">Create New VM</button>
@@ -42,10 +50,14 @@ import GetServices from "@/services/GetServices";
 import PostServices from "@/services/PostServices";
 import Vue from 'vue'
 import vSelect from 'vue-select'
+import Datepicker from 'vuejs-datepicker'
 window.Vue = Vue;
 Vue.component("v-select", vSelect);
 export default {
   name: "app",
+  components: {
+    Datepicker
+  },
   data() {
     return {
       hosts: [],
@@ -55,7 +67,9 @@ export default {
       DiskGB: "",
       NetworkName: "",
       VMHost: "",
-      selectedHost: ""
+      selectedHost: "",
+      startDate: "",
+      endDate: ""
     };
   },
   mounted() {
@@ -73,7 +87,9 @@ export default {
         MemoryMB: this.MemoryMB,
         DiskGB: this.DiskGB,
         NetworkName: this.NetworkName,
-        VMHost: this.selectedHost.Name
+        VMHost: this.selectedHost.Name,
+        StartDate: this.startDate,
+        EndDate: this.endDate
       });
     }
   }
