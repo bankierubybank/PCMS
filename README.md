@@ -1,34 +1,24 @@
 # Private Cloud Management System
 
 ### What is Private Cloud Management System
-PCMS is web application for private cloud automation in VMware private cloud environment.
+PCMS is web application for private cloud automation in VMware vSphere environment.
 
 ### Prerequisite
 PCMS requires [Vue CLI] version 3, [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
 
-### PowerCLI Installation and Configuration
-Run PowerShell Core then install and config PowerCLI on PowerShell Core with this command
+### Deployment
+* Install [PowerShell Core]
+* Install [PowerCLI] by run PowerShell Core then install PowerCLI and config it
 ```sh
 $ pwsh
 $ Install-Module -Name VMware.PowerCLI
-$ Import-Module VMware.PowerCLI
 $ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip $false
 ```
-
-### Node.js Module
-| Module Name | Installation | Source |
-| ------ | ------ | ------ |
-| node-powershell | npm i --save node-powershell | [node-powershell] |
-| express | npm i --save express | [express] |
-| cors | npm i --save cors | [cors] |
-| morgan | npm i --save morgan | [morgan] |
-| node-schedule | npm i node-schedule | [node-schedule] |
-
-### Vue.js Module
-| Module Name | Installation | Source |
-| ------ | ------ | ------ |
-| axios | npm i --save axios | [axios] |
-
+* Install [Node.js]
+* Install [Vue CLI]
+* Clone this git then
+   * cd to server directory and ```$ npm install```
+   * cd to vue-ui directory and ```$ npm install```
 ### Temporary Fix: Make node-powershell to use PowerShell Core (version 6)
 Open Shell.js and edit this line
 ```javascript
@@ -40,9 +30,6 @@ _this._proc = spawn('pwsh' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
 ```
 
 ### Temporary Fix: Some modules is not currently supported on Core edition of PowerShell
-Follow this guide
-https://cloudhat.eu/powercli-10-0-0-linux-error-vmware-vimautomation-srm/
-
 Comment these modules (Add # in front of these modules)
 ```
 #@{"ModuleName"="VMware.VimAutomation.Srm";"ModuleVersion"="10.0.0.7893900"}
@@ -54,8 +41,9 @@ Comment these modules (Add # in front of these modules)
 #@{"ModuleName"="VMware.ImageBuilder";"ModuleVersion"="6.7.0.8250345"}
 #@{"ModuleName"="VMware.VumAutomation";"ModuleVersion"="6.5.1.7862888"}
 ```
+Source: https://cloudhat.eu/powercli-10-0-0-linux-error-vmware-vimautomation-srm/
 
-### Testing - Server
+### Testing - REST API Server(Node.js)
 Before run this command, needed to edit your vCenter details on app.js file.
 ```sh
 $ node server/src/app.js
@@ -73,9 +61,10 @@ All operations in app.js
 | GET | [localhost:8081/vmstat/{vmname}](http://localhost:8081/vmstat/{vmname}) | Return stats of virtual machine by that virtual machine name |
 | GET | [localhost:8081/vm/{vmname}/poweron](http://localhost:8081/vm/{vmname}/poweron) | Power on a virtual machine by that virtual machine name |
 | GET | [localhost:8081/vm/{vmname}/poweroff](http://localhost:8081/vm/{vmname}/poweroff) | Power off a virtual machine by that virtual machine name |
+| POST | [localhost:8081/newvm](http://localhost:8081/newvm) | Create new virtual machine |
+| DELETE | [localhost:8081/vm/{vmname}](http://localhost:8081/vm/{vmname}) | Remove a virtual machine by that virtual machine name |
 
-
-### Testing - Client
+### Testing - Vue
 Needed to run server(server/src/app.js) before run this command.
 ```sh
 $ cd vue-ui
@@ -92,6 +81,24 @@ Open Web Browser and go to
 * Automatic power-off vm when no usage for a time
 * Automatic backup and delete vm when not use that vm anymore
 
+### Node.js Module
+| Module Name | Source |
+| ------ | ------ |
+| node-powershell | [node-powershell] |
+| express | [express] |
+| body-parser | [body-parser] |
+| cors | [cors] |
+| morgan | [morgan] |
+| node-schedule | [node-schedule] |
+| helmet | [helmet] |
+
+### Vue.js Module
+| Module Name | Source |
+| ------ | ------ |
+| axios | [axios] |
+| vuejs-datepicker | [vuejs-datepicker] |
+| vue-select | [vue-select] |
+
 ### PCMS is builded by:
 * [Vue CLI]
 * [PowerShell Core] version 6
@@ -104,9 +111,15 @@ Open Web Browser and go to
    [PowerShell Core]: <https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell?view=powershell-6>
    [PowerCLI]: <https://blogs.vmware.com/PowerCLI/2017/04/powercli-install-process-powershell-gallery.html>
    [node.js]: <http://nodejs.org>
+   
    [node-powershell]: <https://github.com/rannn505/node-powershell>
    [node-schedule]: <https://github.com/node-schedule/node-schedule>
    [express]: <https://github.com/expressjs/express>
+   [body-parser]: <https://github.com/expressjs/body-parser>
    [cors]: <https://github.com/expressjs/cors>
    [morgan]: <https://github.com/expressjs/morgan>
+   [helmet]: <https://github.com/helmetjs/helmet>
+   
    [axios]: <https://github.com/axios/axios>
+   [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
+   [vue-select]: <https://github.com/sagalbot/vue-select>
