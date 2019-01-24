@@ -15,5 +15,8 @@ export default {
   },
   fetchDatacenters() {
     return Api().get('datacenters')
+  },
+  fetchVMStat(vmName) {
+    return Api().get('vmstat/' + vmName)
   }
 }

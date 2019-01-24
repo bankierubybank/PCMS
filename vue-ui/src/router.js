@@ -6,6 +6,7 @@ import VMHosts from "@/components/VMHosts";
 import Datastores from "@/components/Datastores";
 import Datacenters from "@/components/Datacenters";
 import NewVM from "@/components/NewVM";
+import Chart from "@/components/Chart";
 
 Vue.use(Router);
 
@@ -41,6 +42,11 @@ export default new Router({
       path: "/newvm",
       name: "NewVM",
       component: NewVM
+    },
+    {
+      path: "/chart",
+      name: "Chart",
+      component: Chart
     },
     {
       path: "/about",
