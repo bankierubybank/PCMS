@@ -1,7 +1,7 @@
-import Api from '@/services/Api'
+import Api from "@/services/Api";
 
 export default {
   newVM(params) {
-    return Api().post('newvm', params)
+    return Api().post("newvm", params);
   }
-}
+};

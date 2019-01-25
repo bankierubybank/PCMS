@@ -23,13 +23,6 @@
         <input type="text" name="NetworkName" placeholder="NetworkName" v-model="NetworkName">
       </div>
       <div>
-        Host:
-        <!-- <v-select class="form-control"> -->
-        <v-select placeholder="Host" v-model="selectedHost" label="Name" :options="hosts">
-          <!-- <option v-for="(host, id) in hosts" :key="id" v-bind:value="host.Name">{{ host.Name }}</option> -->
-        </v-select>
-      </div>
-      <div>
         Start Date:
         <datepicker placeholder="StartDate" v-model="startDate"></datepicker>
       </div>
@@ -44,15 +37,10 @@
   </div>
 </template>
 
-<script src="https://unpkg.com/vue@latest"></script>
 <script>
 import GetServices from "@/services/GetServices";
 import PostServices from "@/services/PostServices";
-import Vue from 'vue'
-import vSelect from 'vue-select'
-import Datepicker from 'vuejs-datepicker'
-window.Vue = Vue;
-Vue.component("v-select", vSelect);
+import Datepicker from "vuejs-datepicker";
 export default {
   name: "app",
   components: {
@@ -66,15 +54,13 @@ export default {
       MemoryMB: "",
       DiskGB: "",
       NetworkName: "",
-      VMHost: "",
+      VMHost: "10.30.22.9",
       selectedHost: "",
       startDate: "",
       endDate: ""
     };
   },
-  mounted() {
-    this.getVMHosts();
-  },
+  mounted() {},
   methods: {
     async getVMHosts() {
       const response = await GetServices.fetchVMHosts();
@@ -87,7 +73,7 @@ export default {
         MemoryMB: this.MemoryMB,
         DiskGB: this.DiskGB,
         NetworkName: this.NetworkName,
-        VMHost: this.selectedHost.Name,
+        VMHost: this.VMHost,
         StartDate: this.startDate,
         EndDate: this.endDate
       });
