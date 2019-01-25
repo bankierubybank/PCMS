@@ -239,16 +239,19 @@ class Core {
     return datacenters;
   }
 
-  async getVMStat(vmName) {
+  async getVMStat(vmName, intervalmins = 1440, stat = "cpu.usage.average") {
     /*
     Get VM Stat by VM name
     */
     let vmstat;
-    this.PS.addCommand('Get-VM @Name | Get-Stat @IntervalMins | ConvertTo-Json -Depth 1 -AsArray', [{
+    this.PS.addCommand('Get-VM @Name | Get-Stat @IntervalMins @Stat | Select-Object -Property Timestamp, Value | Sort-Object -Property Timestamp | ConvertTo-Json -Depth 1 -AsArray', [{
         Name: vmName
       },
       {
-        IntervalMins: (60 * 24)
+        IntervalMins: intervalmins
+      },
+      {
+        Stat: stat
       }
     ]);
     await this.PS.invoke()
