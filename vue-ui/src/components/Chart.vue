@@ -29,33 +29,11 @@ export default {
   },
   data() {
     return {
-      chartData: [
-        { Timestamp: "2019-01-23T15:00:00+07:00", Value: 0.67 },
-        { Timestamp: "2019-01-23T17:00:00+07:00", Value: 0.23 },
-        { Timestamp: "2019-01-23T19:00:00+07:00", Value: 0.17 },
-        { Timestamp: "2019-01-23T21:00:00+07:00", Value: 0.2 },
-        { Timestamp: "2019-01-23T23:00:00+07:00", Value: 0.18 },
-        { Timestamp: "2019-01-24T01:00:00+07:00", Value: 0.16 },
-        { Timestamp: "2019-01-24T03:00:00+07:00", Value: 0.26 },
-        { Timestamp: "2019-01-24T05:00:00+07:00", Value: 0.4 },
-        { Timestamp: "2019-01-24T07:00:00+07:00", Value: 0.16 },
-        { Timestamp: "2019-01-24T09:00:00+07:00", Value: 0.29 },
-        { Timestamp: "2019-01-24T11:00:00+07:00", Value: 0.68 },
-        { Timestamp: "2019-01-24T13:00:00+07:00", Value: 0.24 },
-        { Timestamp: "2019-01-24T15:00:00+07:00", Value: 0.24 },
-        { Timestamp: "2019-01-24T17:00:00+07:00", Value: 0.25 },
-        { Timestamp: "2019-01-24T19:00:00+07:00", Value: 0.25 },
-        { Timestamp: "2019-01-24T21:00:00+07:00", Value: 0.24 },
-        { Timestamp: "2019-01-24T23:00:00+07:00", Value: 0.25 },
-        { Timestamp: "2019-01-25T01:00:00+07:00", Value: 0.25 },
-        { Timestamp: "2019-01-25T03:00:00+07:00", Value: 0.24 },
-        { Timestamp: "2019-01-25T05:00:00+07:00", Value: 0.35 },
-        { Timestamp: "2019-01-25T07:00:00+07:00", Value: 0.24 }
-      ]
+      chartData: []
     };
   },
   mounted() {
-    //this.getVMStat("PCMS");
+    this.getVMStat("PCMS");
   },
   methods: {
     async getVMStat(vmName) {
@@ -65,45 +43,3 @@ export default {
   }
 };
 </script>
-
-/* datacollection: [
-        {
-          Value: 0.16,
-          Timestamp: "2019-01-24T00:30:00+07:00",
-          MetricId: "cpu.usage.average",
-          Unit: "%",
-          Description: "CPU usage as a percentage during the interval",
-          Entity: "PCMS",
-          EntityId: "VirtualMachine-vm-106",
-          IntervalSecs: 1800,
-          Instance: "",
-          Uid:
-            "/VIServer=labs.vsphere\\administrator@10.0.15.10:443/VirtualMachine=VirtualMachine-vm-106/FloatSample=cpu.usage.average\\\\636838866000000000/"
-        },
-        {
-          Value: 0.2,
-          Timestamp: "2019-01-24T00:00:00+07:00",
-          MetricId: "cpu.usage.average",
-          Unit: "%",
-          Description: "CPU usage as a percentage during the interval",
-          Entity: "PCMS",
-          EntityId: "VirtualMachine-vm-106",
-          IntervalSecs: 1800,
-          Instance: "",
-          Uid:
-            "/VIServer=labs.vsphere\\administrator@10.0.15.10:443/VirtualMachine=VirtualMachine-vm-106/FloatSample=cpu.usage.average\\\\636838848000000000/"
-        },
-        {
-          Value: 0.17,
-          Timestamp: "2019-01-23T23:30:00+07:00",
-          MetricId: "cpu.usage.average",
-          Unit: "%",
-          Description: "CPU usage as a percentage during the interval",
-          Entity: "PCMS",
-          EntityId: "VirtualMachine-vm-106",
-          IntervalSecs: 1800,
-          Instance: "",
-          Uid:
-            "/VIServer=labs.vsphere\\administrator@10.0.15.10:443/VirtualMachine=VirtualMachine-vm-106/FloatSample=cpu.usage.average\\\\636838830000000000/"
-        }
-      ], */
