@@ -120,7 +120,7 @@ class Core {
     let vms;
     this.PS.addCommand('$vms = Get-VM | where VMHost @Match | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}}', [{
       Match: VMHostName
-    }])
+    }]);
     await this.PS.invoke()
       .then({}).catch(err => {
         console.log(err);
@@ -133,6 +133,33 @@ class Core {
         console.log(err);
       });
     return vms;
+  }
+
+  async getTotalMemoryGBAllocatedbyHost(VMHostName) {
+    /*
+    Get total memory allocated by vmhost in GB
+    */
+    let totalMemoryGBAllocated;
+    this.PS.addCommand('$totalMemoryGBAllocated = 0');
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('$vms = Get-VM | where VMHost @Match', [{
+      Match: VMHostName
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+    this.PS.addCommand('foreach ($vm in $vms) { $totalMemoryGBAllocated += $vm.MemoryGB }; Write-Host $totalMemoryGBAllocated ');
+    await this.PS.invoke()
+      .then(output => {
+        totalMemoryGBAllocated = output;
+      }).catch(err => {
+        console.log(err);
+      })
+    return totalMemoryGBAllocated;
   }
 
   async getVMHarddiskbyName(vmName) {

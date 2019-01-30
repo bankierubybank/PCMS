@@ -111,17 +111,7 @@ async function createServer() {
 		console.log(req.body);
 		res.send('POST REQ: newvm');
 
-		let totalMemoryGBAllocated = 0;
-
-		await core.getVMsbyHostName(req.body.VMHost)
-			.then(output => {
-				output.forEach(vm => {
-					console.log(vm.Name);
-					totalMemoryGBAllocated += vm.MemoryGB;
-				})
-			}).catch(err => {
-				console.log(err);
-			})
+		let totalMemoryGBAllocated = await core.getTotalMemoryGBAllocatedbyHost('10.30.22.9');
 
 		/*await core.newVM(req.body)
 			.then(output => {
