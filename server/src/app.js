@@ -16,9 +16,9 @@ async function createServer() {
 
 	const core = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
 	await core.createPS()
-	.then(await core.importPowerCLI())
-	.then(await core.connectVIServer())
-	.catch(err => console.log(err));
+		.then(await core.importPowerCLI())
+		.then(await core.connectVIServer())
+		.catch(err => console.log(err));
 
 	app.get('/vms', async (req, res) => {
 		await core.getVMs()
@@ -111,20 +111,25 @@ async function createServer() {
 		console.log(req.body);
 		res.send('POST REQ: newvm');
 
-		let totalMemoryGBAllocated = await core.getTotalMemoryGBAllocatedbyHost('10.30.22.9');
+		//let totalMemoryGBAllocated = await core.getTotalMemoryGBAllocatedbyHost('10.30.22.9');
+		let vmhost = await core.getVMHostbyName('10.30.22.9');
 
-		/*await core.newVM(req.body)
+		// Request VM spec is available for this host
+		if ((req.body.MemoryMB / 1024) < vmhost[0].MemoryUsageGB) {
+			console.log("RESOURCE AVAILABLE!")
+			
+			await core.newVMfromTemplate(req.body)
 			.then(output => {
-				res.send('POST REQ: newvm');
+				
 			}).catch(err => {
 				console.log(err);
 			})
-		*/
 
-		console.log(req.body.EndDate);
-		let temp = schedule.scheduleJob(req.body.EndDate, async function () {
-			console.log("DONE SCHEDULED JOB! at: " + req.body.EndDate);
-			/*
+			//Schedule for EndDate
+			console.log("STARTED SCHEDULE JOB! at:" + req.body.EndDate);
+			let temp = schedule.scheduleJob(req.body.EndDate, async function () {
+				console.log("DONE SCHEDULED JOB! at: " + req.body.EndDate);
+				/*
             await core.powerOffVM(req.params.vmName)
 				.then(output => {
 					console.log("VM POWER OFF!");
@@ -133,7 +138,10 @@ async function createServer() {
 					console.log(err);
 				})
             */
-		})
+			})
+		} else {
+			console.log("RESOURCE UNAVAILABLE!")
+		}
 	})
 
 	app.delete('/vm/:vmName', async (req, res) => {

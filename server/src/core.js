@@ -312,21 +312,24 @@ class Core {
     */
     this.PS.addCommand('$vmhost = Get-VMHost', [{
       Name: "10.30.22.9"
-    }])
+    }]);
     await this.PS.invoke()
       .then({}).catch(err => {
         console.log(err);
       });
+
     this.PS.addCommand('$datastore = Get-Datastore', [{
       Name: "datastore1"
-    }])
+    }]);
     await this.PS.invoke()
       .then({}).catch(err => {
         console.log(err);
       });
+
     this.PS.addCommand('New-VM', [{
         Name: spec.Name
-      }, {
+      },
+      {
         VMHost: '$vmhost'
       },
       {
@@ -346,12 +349,120 @@ class Core {
       },
       'CD'
     ]);
-    //this.PS.addCommand('New-VM -Name "Test New-VM" -VMHost (Get-VMHost -Name "10.30.22.9") -Datastore (Get-Datastore -Name "datastore1") -NumCpu 1 -MemoryMB 256 -DiskGB 16 -NetworkName "VM Network" -CD');
     await this.PS.invoke().then(output => {
       console.log(output);
     }).catch(err => {
       console.log(err);
     })
+  }
+
+  async newVMfromTemplate(spec) {
+    /*
+    Create New VM from Template
+    */
+    this.PS.addCommand('$vmhost = Get-VMHost', [{
+      Name: "10.30.22.9"
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('$datastore = Get-Datastore', [{
+      Name: "datastore1"
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('$template = Get-Template', [{
+      Name: "UbuntuTemplate"
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('New-VM', [{
+        Name: spec.Name
+      },
+      {
+        ResourcePool: '$vmhost'
+      },
+      {
+        Datastore: '$datastore'
+      },
+      {
+        Template: '$template'
+      }
+    ]);
+    await this.PS.invoke().then(output => {
+      console.log(output);
+    }).catch(err => {
+      console.log(err);
+    })
+
+    this.PS.addCommand('Get-VM @Name | Set-VM', [{
+        Name: spec.Name
+      },
+      {
+        NumCpu: spec.NumCpu
+      },
+      {
+        MemoryMB: spec.MemoryMB
+      },
+      'Confirm:$false'
+    ]);
+    await this.PS.invoke().then(output => {
+      console.log(output);
+    }).catch(err => {
+      console.log(err);
+    })
+
+    this.PS.addCommand('$vmhdd = Get-VM @Name | Get-HardDisk', [{
+      Name: spec.Name
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('Set-HardDisk', [{
+        HardDisk: '$vmhdd'
+      },
+      {
+        CapacityGB: spec.DiskGB
+      },
+      'Confirm:$false'
+    ]);
+    await this.PS.invoke().then(output => {
+      console.log(output);
+    }).catch(err => {
+      console.log(err);
+    })
+
+    await this.powerOnVM(spec.Name);
+
+    this.PS.addCommand('Invoke-VMScript -VM (Get-VM @Name) -ScriptType Bash -ScriptText "sudo growpart /dev/sda 1" -GuestUser ubuntu -GuestPassword P@ssw0rd', [{
+        Name: spec.Name
+      },
+      {
+        ToolsWaitSecs: 120
+      }
+    ]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('Invoke-VMScript -VM (Get-VM @Name) -ScriptType Bash -ScriptText "sudo resize2fs /dev/sda1" -GuestUser ubuntu -GuestPassword P@ssw0rd', [{
+      Name: spec.Name
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
   }
 
   async powerOnVM(vmName) {
