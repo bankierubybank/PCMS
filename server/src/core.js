@@ -457,8 +457,12 @@ class Core {
       });
 
     this.PS.addCommand('Invoke-VMScript -VM (Get-VM @Name) -ScriptType Bash -ScriptText "sudo resize2fs /dev/sda1" -GuestUser ubuntu -GuestPassword P@ssw0rd', [{
-      Name: spec.Name
-    }]);
+        Name: spec.Name
+      },
+      {
+        ToolsWaitSecs: 120
+      }
+    ]);
     await this.PS.invoke()
       .then({}).catch(err => {
         console.log(err);
