@@ -91,6 +91,7 @@ Open Web Browser and go to
 | morgan | [morgan] |
 | node-schedule | [node-schedule] |
 | helmet | [helmet] |
+| compressing | [compressing] |
 
 ### Vue.js Module
 | Module Name | Source |
@@ -119,6 +120,7 @@ Open Web Browser and go to
    [cors]: <https://github.com/expressjs/cors>
    [morgan]: <https://github.com/expressjs/morgan>
    [helmet]: <https://github.com/helmetjs/helmet>
+   [compressing]: <https://github.com/node-modules/compressing>
    
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>

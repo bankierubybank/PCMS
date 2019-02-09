@@ -152,7 +152,7 @@ class Core {
       .then({}).catch(err => {
         console.log(err);
       });
-    this.PS.addCommand('foreach ($vm in $vms) { $totalMemoryGBAllocated += $vm.MemoryGB }; Write-Host $totalMemoryGBAllocated ');
+    this.PS.addCommand('foreach ($vm in $vms) { $totalMemoryGBAllocated += $vm.MemoryGB }; Write-Host $totalMemoryGBAllocated');
     await this.PS.invoke()
       .then(output => {
         totalMemoryGBAllocated = output;
@@ -493,6 +493,74 @@ class Core {
     ]);
     await this.PS.invoke()
       .then({}).catch(err => {
+        console.log(err);
+      });
+  }
+
+  async backUpVM(vmName) {
+    /*
+    Download vmx, vmdk, vmsd, vmxf, and nvram files of a virtual machine by VM name from vCenter
+    */
+    this.PS.addCommand('$VMView = Get-VM @Name | Get-View', [{
+      Name: vmName
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('$ds = Get-Datastore $VMview.Config.Files.VmPathName.Split(" ")[0].TrimStart("[").TrimEnd("]")');
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('New-PSDrive', [{
+      Name: 'vcds'
+    }, {
+      Location: '$ds'
+    }, {
+      PSProvider: 'VimDatastore'
+    }, {
+      Root: '/'
+    }]);
+    await this.PS.invoke()
+      .then({}).catch(err => {
+        console.log(err);
+      });
+
+    let dir;
+    this.PS.addCommand('$path = Join-Path -Path ($pwd).path -ChildPath "backup\\"$VMView.Config.Name; New-Item -ItemType "directory" -Path $path; Write-Host $path');
+    await this.PS.invoke()
+      .then(output => {
+        dir = output.replace(/\n/g, '');
+      }).catch(err => {
+        console.log(err);
+      });
+
+    this.PS.addCommand('foreach ($file in $VMView.LayoutEx.File) { $filename = $file.Name.split("]")[1].TrimStart(" "); Copy-DatastoreItem -Item vcds:\$filename @Destination}', [{
+      Destination: '$path'
+    }]);
+    await this.PS.invoke()
+      .then(output => {
+        console.log(output);
+      }).catch(err => {
+        console.log(err);
+      });
+
+    const compressing = require('compressing');
+    await compressing.zip.compressDir(dir, process.cwd() + '\\backup\\' + vmName + '.zip')
+      .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS!")).catch(err => {
+        console.log(err);
+      });
+  }
+
+  //Test compressing
+  async testCompress() {
+    let dir = 'D:\\Drivers';
+    const compressing = require('compressing');
+    await compressing.zip.compressDir(dir, process.cwd() + '\\doc.zip')
+      .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => {
         console.log(err);
       });
   }

@@ -2,3 +2,5 @@
 node_modules
 vue-ui/node_modules/
 server/node_modules/
+server/backup
+server/src/credentials.json
