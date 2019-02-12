@@ -113,6 +113,16 @@ async function createServer() {
 			})
 	})
 
+	//Tempory for testing
+	app.get('/vm/:vmName/testCom', async (req, res) => {
+		await core.testCompress(req.params.vmName)
+			.then(output => {
+				console.log("VM BACK UP COMPLETED!");
+			}).catch(err => {
+				console.log(err);
+			})
+	})
+
 	let urlencodedParser = bodyParser.urlencoded({
 		extended: false
 	});

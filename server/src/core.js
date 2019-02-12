@@ -529,17 +529,18 @@ class Core {
         console.log(err);
       });
 
-    let dir;
-    this.PS.addCommand('$path = Join-Path -Path ($pwd).path -ChildPath "backup\\"$VMView.Config.Name; New-Item -ItemType "directory" -Path $path; Write-Host $path');
+    const path = require('path');
+    let dir = path.join(process.cwd(), 'backup', vmName);
+    this.PS.addCommand('New-Item -ItemType "directory"', [{
+      Path: dir
+    }]);
     await this.PS.invoke()
-      .then(output => {
-        dir = output.replace(/\n/g, '');
-      }).catch(err => {
+      .then().catch(err => {
         console.log(err);
       });
 
     this.PS.addCommand('foreach ($file in $VMView.LayoutEx.File) { $filename = $file.Name.split("]")[1].TrimStart(" "); Copy-DatastoreItem -Item vcds:\$filename @Destination}', [{
-      Destination: '$path'
+      Destination: dir
     }]);
     await this.PS.invoke()
       .then(output => {
@@ -549,17 +550,18 @@ class Core {
       });
 
     const compressing = require('compressing');
-    await compressing.zip.compressDir(dir, process.cwd() + '\\backup\\' + vmName + '.zip')
+    await compressing.zip.compressDir(dir, path.join(dir, vmName, '.zip'))
       .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS!")).catch(err => {
         console.log(err);
       });
   }
 
   //Test compressing
-  async testCompress() {
-    let dir = 'D:\\Drivers';
+  async testCompress(vmName) {
+    const path = require('path');
+    let dir = path.join(process.cwd(), 'backup', vmName);
     const compressing = require('compressing');
-    await compressing.zip.compressDir(dir, process.cwd() + '\\doc.zip')
+    await compressing.zip.compressDir(dir, path.join(dir, vmName, '.zip'))
       .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => {
         console.log(err);
       });
