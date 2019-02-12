@@ -550,7 +550,7 @@ class Core {
       });
 
     const compressing = require('compressing');
-    await compressing.zip.compressDir(dir, path.join(dir, vmName, '.zip'))
+    await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
       .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS!")).catch(err => {
         console.log(err);
       });
@@ -561,7 +561,7 @@ class Core {
     const path = require('path');
     let dir = path.join(process.cwd(), 'backup', vmName);
     const compressing = require('compressing');
-    await compressing.zip.compressDir(dir, path.join(dir, vmName, '.zip'))
+    await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
       .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => {
         console.log(err);
       });
