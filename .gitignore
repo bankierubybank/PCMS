@@ -4,3 +4,4 @@ vue-ui/node_modules/
 server/node_modules/
 server/backup
 server/credentials.json
+server/token.json

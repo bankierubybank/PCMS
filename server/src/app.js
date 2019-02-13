@@ -24,63 +24,75 @@ async function createServer() {
 		await core.getVMs()
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
+	})
+
+	app.get('/vms/:vmhost', async (req, res) => {
+		await core.getVMsbyHostName(req.params.vmhost)
+			.then(output => {
+				res.json(output);
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/vm/:vmName', async (req, res) => {
 		await core.getVMbyName(req.params.vmName)
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/vmharddisk/:vmName', async (req, res) => {
 		await core.getVMHarddiskbyName(req.params.vmName)
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/vmhosts', async (req, res) => {
 		await core.getVMHosts()
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/datastores', async (req, res) => {
 		await core.getDatastores()
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/datacenters', async (req, res) => {
 		await core.getDatacenters()
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
+	/*
+	 * All STAT TYPE
+	 * cpu.usage.average
+	 * cpu.usagemhz.average
+	 * cpu.ready.summation
+	 * mem.usage.average
+	 * mem.swapinRate.average
+	 * mem.swapoutRate.average
+	 * mem.vmmemctl.average
+	 * mem.consumed.average
+	 * mem.overhead.average
+	 * disk.usage.average
+	 * disk.maxTotalLatency.latest
+	 * net.usage.average
+	 * sys.uptime.latest
+	 * disk.used.latest
+	 * disk.provisioned.latest
+	 * disk.unshared.latest
+	 */
 	app.get('/vmstat/:vmName', async (req, res) => {
 		await core.getVMStat(req.params.vmName)
 			.then(output => {
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/vm/:vmName/poweron', async (req, res) => {
@@ -88,9 +100,7 @@ async function createServer() {
 			.then(output => {
 				console.log("VM POWER ON!");
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.get('/vm/:vmName/poweroff', async (req, res) => {
@@ -98,9 +108,7 @@ async function createServer() {
 			.then(output => {
 				console.log("VM POWER OFF!");
 				res.json(output);
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	//Tempory for testing
@@ -108,9 +116,7 @@ async function createServer() {
 		await core.backUpVM(req.params.vmName)
 			.then(output => {
 				console.log("VM BACK UP COMPLETED!");
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	//Tempory for testing
@@ -118,9 +124,7 @@ async function createServer() {
 		await core.testCompress(req.params.vmName)
 			.then(output => {
 				console.log("VM BACK UP COMPLETED!");
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	let urlencodedParser = bodyParser.urlencoded({
@@ -137,13 +141,11 @@ async function createServer() {
 		// Request VM spec is available for this host
 		if ((req.body.MemoryMB / 1024) < vmhost[0].MemoryUsageGB) {
 			console.log("RESOURCE AVAILABLE!")
-			
+
 			await core.newVMfromTemplate(req.body)
-			.then(output => {
-				
-			}).catch(err => {
-				console.log(err);
-			})
+				.then(output => {
+
+				}).catch(err => console.log(err));
 
 			//Schedule for EndDate
 			console.log("STARTED SCHEDULE JOB! at:" + req.body.EndDate);
@@ -168,9 +170,7 @@ async function createServer() {
 		await core.removeVM(req.params.vmName)
 			.then(output => {
 				res.send('DELETE REQ: vm/vmName');
-			}).catch(err => {
-				console.log(err);
-			})
+			}).catch(err => console.log(err));
 	})
 
 	app.listen(PORT, () => console.log('App listen on port: ' + PORT));
