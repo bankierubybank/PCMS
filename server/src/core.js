@@ -48,13 +48,12 @@ class Core {
         Pass: this.password
       }]));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
   }
 
   /**
    * Get data of all virtual machines from vCenter server.
+   * @returns {JSON} Data of all virtual machines.
    */
   async getVMs() {
     let vms;
@@ -67,8 +66,9 @@ class Core {
   }
 
   /**
-   * Get virtual machine data.
+   * Get a virtual machine data.
    * @param {String} vmName A string of virtual machine's name.
+   * @returns {JSON} Data of a virtual machine.
    */
   async getVMbyName(vmName) {
     let vm;
@@ -113,9 +113,7 @@ class Core {
         Match: VMHostName
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => {
-        console.log(err);
-      });
+      .then({}).catch(err => console.log(err));
     this.PS.addCommand('foreach ($vm in $vms) { $totalMemoryGBAllocated += $vm.MemoryGB }; Write-Host $totalMemoryGBAllocated');
     await this.PS.invoke()
       .then(output => {
@@ -207,7 +205,7 @@ class Core {
    * @param {int} intervalmins Interval minutes.
    * @param {String} stat A string of wanted stat. (Ex. cpu.usage.average)
    */
-  async getVMStat(vmName, intervalmins = 1440, stat = "cpu.usage.average") {
+  async getVMStat(vmName, intervalmins, stat) {
     let vmstat;
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
@@ -232,16 +230,13 @@ class Core {
    * @param {String} vmName A string of virtual machine's name.
    */
   async removeVM(vmName) {
-    let vmstat;
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters({
         Name: vmName
       }))
       .then(this.PS.addArgument('| Remove-VM -DeletePermanently -Confirm:$false'));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
   }
 
   /**
@@ -287,9 +282,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
   }
 
   /**
@@ -334,9 +327,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
 
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
@@ -351,9 +342,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
 
     this.PS.addCommand('$vmhdd = Get-VM')
       .then(this.PS.addParameters([{
@@ -372,9 +361,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
 
     await this.powerOnVM(spec.Name);
 
@@ -499,9 +486,7 @@ class Core {
       }]))
       .then(this.PS.addArgument('}'));
     await this.PS.invoke()
-      .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+      .then({}).catch(err => console.log(err));
 
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
@@ -510,7 +495,7 @@ class Core {
 
   /**
    * Temporary for testing compressing module.
-   * @param {*} vmName A string of virtual machine's name.
+   * @param {String} vmName A string of virtual machine's name.
    */
   async testCompress(vmName) {
     const path = require('path');
