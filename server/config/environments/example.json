@@ -1,0 +1,9 @@
+{
+    "port": 8081,
+    "vcenter_url": "x.x.x.x",
+    "vcenter_username": "xxx@labs.vsphere",
+    "vcenter_password": "pwsd",
+    "ldap_url": "ldap://x.x.x.x:389",
+    "ldap_username": "it5807xxxx@it.kmitl.ac.th",
+    "ldap_password": "pwsd"
+}

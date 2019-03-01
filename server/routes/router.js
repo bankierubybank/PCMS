@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
-const Core = require('../src/core.js');
 const schedule = require('node-schedule');
+const Core = require('../src/core.js');
+const config = require('../config/environments/test.json');
 
 express().use(bodyParser.json());
 
@@ -11,13 +12,13 @@ const urlencodedParser = bodyParser.urlencoded({
 });
 
 async function main() {
-    const core1 = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
+    const core1 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
     await core1.createPS()
         .then(await core1.importPowerCLI())
         .then(await core1.connectVIServer())
         .catch(err => console.log(err));
 
-    const core2 = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
+    const core2 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
     await core2.createPS()
         .then(await core2.importPowerCLI())
         .then(await core2.connectVIServer())

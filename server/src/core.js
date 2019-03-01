@@ -472,7 +472,7 @@ class Core {
       .then({}).catch(err => console.log(err));
 
     const path = require('path');
-    let dir = path.join(process.cwd(), 'backup', vmName);
+    let dir = path.join(process.cwd(), 'vmbackup', vmName);
     this.PS.addCommand('New-Item -ItemType "directory"')
       .then(this.PS.addParameters([{
         Path: dir
@@ -499,7 +499,7 @@ class Core {
    */
   async testCompress(vmName) {
     const path = require('path');
-    let dir = path.join(process.cwd(), 'backup', vmName);
+    let dir = path.join(process.cwd(), 'vmbackup', vmName);
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
       .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => console.log(err));
