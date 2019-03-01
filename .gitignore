@@ -2,6 +2,7 @@
 node_modules
 vue-ui/node_modules/
 server/node_modules/
-server/backup
+server/config/environments/test.json
+server/vmbackup
 server/credentials.json
 server/token.json
