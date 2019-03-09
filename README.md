@@ -3,8 +3,13 @@
 ### What is Private Cloud Management System
 PCMS is web application for private cloud automation in VMware vSphere environment.
 
-### Prerequisite
-PCMS requires [Vue CLI] version 3, [PowerShell Core] version 6, [PowerCLI] version 11, [Node.js] version 11 and [node-powershell] to run.
+### PCMS is builded by:
+* [Vue CLI]
+* [PowerShell Core] version 6
+* [PowerCLI] version 11
+* [Node.js] version 11
+* [node-powershell] version 4
+* Better used with [pm2]
 
 ### Deployment
 * Install [PowerShell Core]
@@ -19,15 +24,6 @@ $ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip 
 * Clone this git then
    * cd to server directory and ```$ npm install```
    * cd to vue-ui directory and ```$ npm install```
-### Temporary Fix: Make node-powershell to use PowerShell Core (version 6)
-Open Shell.js and edit this line
-```javascript
-_this._proc = spawn('powershell' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
-```
-to
-```javascript
-_this._proc = spawn('pwsh' + (IS_WIN ? '.exe' : ''), args, { stdio: 'pipe' });
-```
 
 ### Temporary Fix: Some modules is not currently supported on Core edition of PowerShell
 Comment these modules (Add # in front of these modules)
@@ -48,7 +44,13 @@ Before run this command, needed to edit your vCenter details on app.js file.
 ```sh
 $ node server/src/app.js
 ```
-All operations in app.js
+or run with pm2.
+```sh
+$ pm2 start app.js
+$ pm2 monit
+```
+
+Some operations in app.js
 
 | HTTP method | HTTP request | Description |
 | ------ | ------ | ------ |
@@ -58,11 +60,8 @@ All operations in app.js
 | GET | [localhost:8081/vmhosts](http://localhost:8081/vmhosts) | Return data of all hosts managed by vCenter |
 | GET | [localhost:8081/datastores](http://localhost:8081/datastores) | Return data of all datastores in vCenter |
 | GET | [localhost:8081/datacenters](http://localhost:8081/datacenters) | Return data of all datacenters in vCenter |
-| GET | [localhost:8081/vmstat/{vmname}](http://localhost:8081/vmstat/{vmname}) | Return stats of virtual machine by that virtual machine name |
 | GET | [localhost:8081/vm/{vmname}/poweron](http://localhost:8081/vm/{vmname}/poweron) | Power on a virtual machine by that virtual machine name |
 | GET | [localhost:8081/vm/{vmname}/poweroff](http://localhost:8081/vm/{vmname}/poweroff) | Power off a virtual machine by that virtual machine name |
-| POST | [localhost:8081/newvm](http://localhost:8081/newvm) | Create new virtual machine |
-| DELETE | [localhost:8081/vm/{vmname}](http://localhost:8081/vm/{vmname}) | Remove a virtual machine by that virtual machine name |
 
 ### Testing - Vue
 Needed to run server(server/src/app.js) before run this command.
@@ -92,6 +91,7 @@ Open Web Browser and go to
 | node-schedule | [node-schedule] |
 | helmet | [helmet] |
 | compressing | [compressing] |
+| winston | [winston] |
 
 ### Vue.js Module
 | Module Name | Source |
@@ -99,13 +99,6 @@ Open Web Browser and go to
 | axios | [axios] |
 | vuejs-datepicker | [vuejs-datepicker] |
 | vue-select | [vue-select] |
-
-### PCMS is builded by:
-* [Vue CLI]
-* [PowerShell Core] version 6
-* [PowerCLI] version 11
-* [Node.js] version 11
-* [node-powershell] - use PowerShell on Node.js
 
    [Vue.js]: <https://vuejs.org/>
    [Vue CLI]: <https://cli.vuejs.org/>
@@ -125,3 +118,6 @@ Open Web Browser and go to
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
    [vue-select]: <https://github.com/sagalbot/vue-select>
+   
+   [winston]: <https://github.com/winstonjs/winston>
+   [pm2]: <https://github.com/Unitech/pm2>

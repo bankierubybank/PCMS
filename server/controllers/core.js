@@ -11,6 +11,10 @@ class Core {
     this.password = password;
   }
 
+  async addLogger(logger) {
+    this.logger = logger;
+  }
+
   /**
    * Create PowerShell instance.
    */
@@ -32,7 +36,7 @@ class Core {
   async importPowerCLI() {
     this.PS.addCommand('$isPowerCLIImported = Get-Module VMware.PowerCLI; if ($isPowerCLIImported) {} else {Import-Module VMware.PowerCLI; Set-PowerCLIConfiguration -Scope User -ParticipateInCeip $true -DisplayDeprecationWarnings $false -Confirm:$false}')
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -48,7 +52,7 @@ class Core {
         Pass: this.password
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -61,7 +65,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vms = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vms;
   }
 
@@ -80,7 +84,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vm = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vm;
   }
 
@@ -98,7 +102,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vms = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vms;
   }
 
@@ -113,12 +117,12 @@ class Core {
         Match: VMHostName
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
     this.PS.addCommand('foreach ($vm in $vms) { $totalMemoryGBAllocated += $vm.MemoryGB }; Write-Host $totalMemoryGBAllocated');
     await this.PS.invoke()
       .then(output => {
         totalMemoryGBAllocated = output;
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return totalMemoryGBAllocated;
   }
 
@@ -138,7 +142,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vmharddisk = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vmharddisk;
   }
 
@@ -151,7 +155,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vmhosts = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vmhosts;
   }
 
@@ -169,7 +173,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vmhost = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vmhost;
   }
 
@@ -182,7 +186,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         datastores = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return datastores;
   }
 
@@ -195,7 +199,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         datacenters = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return datacenters;
   }
 
@@ -221,7 +225,7 @@ class Core {
     await this.PS.invoke()
       .then(output => {
         vmstat = JSON.parse(output);
-      }).catch(err => console.log(err));
+      }).catch(err => this.logger.error(err));
     return vmstat;
   }
 
@@ -236,7 +240,7 @@ class Core {
       }))
       .then(this.PS.addArgument('| Remove-VM -DeletePermanently -Confirm:$false'));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -249,14 +253,14 @@ class Core {
         Name: "10.30.22.9"
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$datastore = Get-Datastore')
       .then(this.PS.addParameters([{
         Name: "datastore1"
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('New-VM CD')
       .then(this.PS.addParameters([{
@@ -282,7 +286,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -296,21 +300,21 @@ class Core {
         Name: "10.30.22.9"
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$datastore = Get-Datastore')
       .then(this.PS.addParameters([{
         Name: "datastore1"
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$template = Get-Template')
       .then(this.PS.addParameters([{
         Name: "UbuntuTemplate"
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('New-VM')
       .then(this.PS.addParameters([{
@@ -327,7 +331,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
@@ -342,7 +346,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$vmhdd = Get-VM')
       .then(this.PS.addParameters([{
@@ -350,7 +354,7 @@ class Core {
       }]))
       .then(this.PS.addArgument('| Get-HardDisk'));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('Set-HardDisk -Confirm:$false')
       .then(this.PS.addParameters([{
@@ -361,7 +365,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     await this.powerOnVM(spec.Name);
 
@@ -387,7 +391,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
@@ -411,7 +415,7 @@ class Core {
         }
       ]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -424,7 +428,7 @@ class Core {
         VM: vmName
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -437,7 +441,7 @@ class Core {
         VM: vmName
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
   }
 
   /**
@@ -452,11 +456,11 @@ class Core {
       }]))
       .then(this.PS.addArgument('| Get-View'));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$ds = Get-Datastore $VMview.Config.Files.VmPathName.Split(" ")[0].TrimStart("[").TrimEnd("]")');
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('New-PSDrive')
       .then(this.PS.addParameters([{
@@ -469,7 +473,7 @@ class Core {
         Root: '/'
       }]));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     const path = require('path');
     let dir = path.join(process.cwd(), 'vmbackup', vmName);
@@ -478,7 +482,7 @@ class Core {
         Path: dir
       }]));
     await this.PS.invoke()
-      .then().catch(err => console.log(err));
+      .then().catch(err => this.logger.error(err));
 
     this.PS.addCommand('foreach ($file in $VMView.LayoutEx.File) { $filename = $file.Name.split("]")[1].TrimStart(" "); Copy-DatastoreItem -Item vcds:\$filename')
       .then(this.PS.addParameters([{
@@ -486,11 +490,11 @@ class Core {
       }]))
       .then(this.PS.addArgument('}'));
     await this.PS.invoke()
-      .then({}).catch(err => console.log(err));
+      .then({}).catch(err => this.logger.error(err));
 
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
-      .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS!")).catch(err => console.log(err));
+      .then(this.logger.info("CREATED FILE! COMPRESSING IS IN PROGRESS!")).catch(err => this.logger.error(err));
   }
 
   /**
@@ -502,7 +506,7 @@ class Core {
     let dir = path.join(process.cwd(), 'vmbackup', vmName);
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
-      .then(console.log("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => console.log(err));
+      .then(this.logger.info("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => this.logger.error(err));
   }
 
   /**
@@ -515,8 +519,8 @@ class Core {
       }]));
     await this.PS.invoke()
       .then(output => {
-        console.log(output);
-      }).catch(err => console.log(err));
+        this.logger.info(output);
+      }).catch(err => this.logger.error(err));
   }
 
   /**

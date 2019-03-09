@@ -56,10 +56,57 @@ async function testLDAPsearch(client) {
     }
 }
 
+function testLogger() {
+    const winston = require('winston');
+    const logger = winston.createLogger({
+        transports: [
+            new winston.transports.Console(),
+            new winston.transports.File({
+                filename: 'combine.log'
+            })
+        ]
+    });
+    logger.info("127.0.0.1 - there's no place like home");
+    logger.warn("127.0.0.1 - there's no place like home");
+    logger.error("127.0.0.1 - there's no place like home");
+}
+
+async function test_winston_express() {
+    const express = require('express');
+    const morgan = require('morgan');
+    const app = express();
+    app.use(morgan('combined'));
+
+    const winston = require('winston');
+    const logger = winston.createLogger({
+        transports: [
+            new winston.transports.Console(),
+            new winston.transports.File({
+                filename: 'combine.log'
+            })
+        ]
+    });
+
+    app.get('/', async (req, res) => {
+        res.status(200).send('OK JA')
+    });
+
+    var server = app.listen(8081).then(process.send('ready'));
+
+    process.on('SIGINT', () => {
+        logger.warn("SIGINT signal received.")
+        server.close((err) => {
+            logger.error(err)
+            process.exit(1)
+        })
+    })
+}
+
 async function test() {
     var config = require('../config/environments/test.json');
-    await testLADPbind(config.ldap_url, config.ldap_username, config.ldap_password);
-    console.log('TEST COMPLETE!');
+    //await testLADPbind(config.ldap_url, config.ldap_username, config.ldap_password);
+    //testLogger();
+    test_winston_express();
 }
 
 test();

@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const schedule = require('node-schedule');
-const Core = require('../src/core.js');
+const Core = require('../controllers/core.js');
 const config = require('../config/environments/test.json');
+const logger = require('../controllers/logger.js');
 
 express().use(bodyParser.json());
 
@@ -13,16 +14,18 @@ const urlencodedParser = bodyParser.urlencoded({
 
 async function main() {
     const core1 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+    await core1.addLogger(logger);
     await core1.createPS()
         .then(await core1.importPowerCLI())
         .then(await core1.connectVIServer())
-        .catch(err => console.log(err));
+        .catch(err => logger.error(err));
 
     const core2 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+    await core2.addLogger(logger);
     await core2.createPS()
         .then(await core2.importPowerCLI())
         .then(await core2.connectVIServer())
-        .catch(err => console.log(err));
+        .catch(err => logger.error(err));
 
     vmRoutes(core1);
     vmOperation(core2);
@@ -33,49 +36,49 @@ async function vmRoutes(core) {
         await core.getVMs()
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vms/:vmhost', async (req, res) => {
         await core.getVMsbyHostName(req.params.vmhost)
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vm/:vmName', async (req, res) => {
         await core.getVMbyName(req.params.vmName)
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vmharddisk/:vmName', async (req, res) => {
         await core.getVMHarddiskbyName(req.params.vmName)
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vmhosts', async (req, res) => {
         await core.getVMHosts()
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.get('/datastores', async (req, res) => {
         await core.getDatastores()
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.get('/datacenters', async (req, res) => {
         await core.getDatacenters()
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     /*
@@ -101,19 +104,19 @@ async function vmRoutes(core) {
         await core.getVMStat(req.body.vmName, req.body.intervalMins, req.body.stat)
             .then(output => {
                 res.json(output);
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 }
 
 async function vmOperation(core) {
     router.post('/vm/:vmName/poweron', async (req, res) => {
         await core.powerOnVM(req.params.vmName)
-            .then(res.status(200).send('POWERED ON')).catch(err => console.log(err));
+            .then(res.status(200).send('POWERED ON')).catch(err => logger.error(err));
     })
 
     router.post('/vm/:vmName/poweroff', async (req, res) => {
         await core.powerOffVM(req.params.vmName)
-            .then(res.status(200).send('POWERED OFF')).catch(err => console.log(err));
+            .then(res.status(200).send('POWERED OFF')).catch(err => logger.error(err));
     })
 
     //Tempory for testing
@@ -122,12 +125,12 @@ async function vmOperation(core) {
         await backupCore.createPS()
             .then(await backupCore.importPowerCLI())
             .then(await backupCore.connectVIServer())
-            .catch(err => console.log(err));
+            .catch(err => logger.error(err));
         await backupCore.backUpVM(req.params.vmName)
             .then(output => {
                 res.status(200).send('BACKUP COMPLETED!');
                 backupCore.disposePS();
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     //Tempory for testing
@@ -136,12 +139,12 @@ async function vmOperation(core) {
         await testComCore.createPS()
             .then(await testComCore.importPowerCLI())
             .then(await testComCore.connectVIServer())
-            .catch(err => console.log(err));
+            .catch(err => logger.error(err));
         await testComCore.testCompress(req.params.vmName)
             .then(output => {
                 res.status(200).send('BACKUP COMPLETED!');
                 testComCore.disposePS();
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 
     router.post('/newvm', urlencodedParser, async (req, res) => {
@@ -150,18 +153,18 @@ async function vmOperation(core) {
 
         // Request VM spec is available for this host
         if ((req.body.MemoryMB / 1024) < vmhost[0].MemoryUsageGB) {
-            console.log("RESOURCE AVAILABLE!")
+            logger.info("RESOURCE AVAILABLE!")
 
             await core.newVMfromTemplate(req.body)
                 .then(output => {
-                    console.log(output);
+                    logger.info(output);
                     res.status(200).send('VM CREATED');
-                }).catch(err => console.log(err));
+                }).catch(err => logger.error(err));
 
             //Schedule for EndDate
-            console.log("STARTED SCHEDULE JOB! at:" + req.body.EndDate);
+            logger.info("STARTED SCHEDULE JOB! at:" + req.body.EndDate);
             let temp = schedule.scheduleJob(req.body.EndDate, async function () {
-                console.log("DONE SCHEDULED JOB! at: " + req.body.EndDate);
+                logger.info("DONE SCHEDULED JOB! at: " + req.body.EndDate);
                 /*
             await core.powerOffVM(req.params.vmName)
 				.then(output => {
@@ -173,7 +176,7 @@ async function vmOperation(core) {
             */
             })
         } else {
-            console.log("RESOURCE UNAVAILABLE!")
+            logger.info("RESOURCE UNAVAILABLE!")
         }
     })
 
@@ -181,7 +184,7 @@ async function vmOperation(core) {
         await core.removeVM(req.params.vmName)
             .then(output => {
                 res.status(200).send('VM DELETED');
-            }).catch(err => console.log(err));
+            }).catch(err => logger.error(err));
     })
 }
 

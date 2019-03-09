@@ -4,8 +4,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
-const config = require('../config/environments/test.json');
-const router = require('../routes/router.js')
+const config = require('./config/environments/test.json');
+const router = require('./routes/router.js');
+const logger = require('./controllers/logger.js');
 
 async function createServer() {
 	const app = express();
@@ -17,7 +18,7 @@ async function createServer() {
 
 	app.use('/', router);
 
-	app.listen(config.port, () => console.log('App listen on port: ' + config.port));
+	app.listen(config.port, () => logger.info('App listen on port: ' + config.port));
 
 }
 
