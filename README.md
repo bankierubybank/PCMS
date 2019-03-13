@@ -9,24 +9,31 @@ PCMS is web application for private cloud automation in VMware vSphere environme
 * [PowerCLI] version 11
 * [Node.js] version 11
 * [node-powershell] version 4
-* Better used with [pm2]
+* [MongoDB]
+* Better used with [pm2] for keep application alive forever
 
 ### Deployment
 * Install [PowerShell Core]
 * Install [PowerCLI] by run PowerShell Core then install PowerCLI and config it
 ```sh
 $ pwsh
+$ Set-ExecutionPolicy RemoteSigned
 $ Install-Module -Name VMware.PowerCLI
+$ Import-Module VMware.PowerCLI
 $ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip $false
 ```
+* Install [MongoDB]
 * Install [Node.js]
 * Install [Vue CLI]
 * Clone this git then
    * cd to server directory and ```$ npm install```
    * cd to vue-ui directory and ```$ npm install```
+   * Use example.json to create your setting file, named it test.json and saved at /config/environments/
 
 ### Temporary Fix: Some modules is not currently supported on Core edition of PowerShell
-Comment these modules (Add # in front of these modules)
+Comment these modules (Add # in front of these modules) in VMware.PowerCLI.psd1
+
+Located in C:\Program Files\PowerShell\Modules\VMware.PowerCLI\11.0.0.10380590 (Windows) or /usr/local/share/powershell/Modules/VMware.PowerCLI/11.0.0.10380590/ (Ubuntu)
 ```
 #@{"ModuleName"="VMware.VimAutomation.Srm";"ModuleVersion"="10.0.0.7893900"}
 #@{"ModuleName"="VMware.VimAutomation.License";"ModuleVersion"="10.0.0.7893904"}
@@ -39,10 +46,10 @@ Comment these modules (Add # in front of these modules)
 ```
 Source: https://cloudhat.eu/powercli-10-0-0-linux-error-vmware-vimautomation-srm/
 
-### Testing - REST API Server(Node.js)
-Before run this command, needed to edit your vCenter details on app.js file.
+### Testing - REST API Server (Node.js)
+Before run this command, needed to edit your vCenter details on /config/environments/test.json file.
 ```sh
-$ node server/src/app.js
+$ node app.js
 ```
 or run with pm2.
 ```sh
@@ -63,8 +70,8 @@ Some operations in app.js
 | GET | [localhost:8081/vm/{vmname}/poweron](http://localhost:8081/vm/{vmname}/poweron) | Power on a virtual machine by that virtual machine name |
 | GET | [localhost:8081/vm/{vmname}/poweroff](http://localhost:8081/vm/{vmname}/poweroff) | Power off a virtual machine by that virtual machine name |
 
-### Testing - Vue
-Needed to run server(server/src/app.js) before run this command.
+### Testing - Web Application (Vue.js)
+Needed to run REST API server (Node.js) before run this command.
 ```sh
 $ cd vue-ui
 $ npm run serve
@@ -81,17 +88,19 @@ Open Web Browser and go to
 * Automatic backup and delete vm when not use that vm anymore
 
 ### Node.js Module
-| Module Name | Source |
-| ------ | ------ |
-| node-powershell | [node-powershell] |
-| express | [express] |
-| body-parser | [body-parser] |
-| cors | [cors] |
-| morgan | [morgan] |
-| node-schedule | [node-schedule] |
-| helmet | [helmet] |
-| compressing | [compressing] |
-| winston | [winston] |
+| Module Name | Source | Description |
+| ------ | ------ | ------ |
+| node-powershell | [node-powershell] | Invoke PowerShell Commands on Node.js |
+| express | [express] | Create REST Server |
+| body-parser | [body-parser] | Parse HTTP Request's Body |
+| cors | [cors] | Enable CORS in Node.js |
+| morgan | [morgan] | HTTP Request Logger |
+| node-schedule | [node-schedule] | Schedule Jobs in Node.js |
+| helmet | [helmet] | Middleware for more Security |
+| compressing | [compressing] | Compress files into .zip |
+| winston | [winston] | Log errors to Console and Files |
+| mongoose | [mongoose] | MongoDB ODM for Node.js |
+| compression | [compression] | Compress Response's Body |
 
 ### Vue.js Module
 | Module Name | Source |
@@ -105,6 +114,7 @@ Open Web Browser and go to
    [PowerShell Core]: <https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-powershell?view=powershell-6>
    [PowerCLI]: <https://blogs.vmware.com/PowerCLI/2017/04/powercli-install-process-powershell-gallery.html>
    [node.js]: <http://nodejs.org>
+   [MongoDB]: <https://www.mongodb.com/download-center/community>
    
    [node-powershell]: <https://github.com/rannn505/node-powershell>
    [node-schedule]: <https://github.com/node-schedule/node-schedule>
@@ -114,6 +124,8 @@ Open Web Browser and go to
    [morgan]: <https://github.com/expressjs/morgan>
    [helmet]: <https://github.com/helmetjs/helmet>
    [compressing]: <https://github.com/node-modules/compressing>
+   [compression]: <https://github.com/expressjs/compression>
+   [mongoose]: <https://github.com/Automattic/mongoose>
    
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>

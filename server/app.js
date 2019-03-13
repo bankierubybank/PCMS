@@ -18,8 +18,15 @@ async function createServer() {
 
 	app.use('/', router);
 
-	app.listen(config.port, () => logger.info('App listen on port: ' + config.port));
+	let server = app.listen(config.port, () => logger.info('App listen on port: ' + config.port));
 
+	process.on('SIGINT', () => {
+        logger.warn("Application Terminated!")
+        server.close((err) => {
+            logger.error(err)
+            process.exit(1)
+        })
+    })
 }
 
 createServer();

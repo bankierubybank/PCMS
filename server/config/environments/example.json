@@ -1,9 +1,10 @@
 {
     "port": 8081,
     "vcenter_url": "x.x.x.x",
-    "vcenter_username": "xxx@labs.vsphere",
+    "vcenter_username": "xxxx@vsphere.domain",
     "vcenter_password": "pwsd",
+    "mongodb_url": "mongodb://localhost/xxx",
     "ldap_url": "ldap://x.x.x.x:389",
-    "ldap_username": "it5807xxxx@it.kmitl.ac.th",
+    "ldap_username": "xxxx@ldap.domain",
     "ldap_password": "pwsd"
 }

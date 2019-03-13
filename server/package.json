@@ -1,8 +1,16 @@
 {
-  "name": "test",
+  "name": "pcms",
+  "author": "",
+  "contributors": [],
+  "bugs": {},
+  "homepage": "https://github.com/easuck/PCMS",
   "version": "1.0.0",
-  "description": "",
-  "main": "test.js",
+  "licenses": [],
+  "keywords": [],
+  "description": "VMware Private Cloud Management System",
+  "repository": {"type": "git", "url": "https://github.com/easuck/PCMS.git"},
+  "main": "app.js",
+  "private": true,
   "dependencies": {
     "app-root-path": "^2.1.0",
     "compressing": "^1.4.0",
@@ -13,21 +21,20 @@
     "helmet": "^3.15.1",
     "ldapjs": "^1.0.2",
     "ldapjs-client": "^0.1.1",
+    "moment-timezone": "^0.5.23",
     "mongoose": "^5.4.14",
     "morgan": "^1.9.1",
+    "node-powershell": "^4.0.0",
     "npm": "^6.8.0",
     "passport": "^0.4.0",
     "passport-ldapauth": "^2.1.2",
+    "passport-local": "^1.0.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "eslint": "^5.14.1",
-    "node-powershell": "^4.0.0"
+    "eslint": "^5.14.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }
