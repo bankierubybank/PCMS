@@ -16,14 +16,14 @@ async function main() {
     const core1 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
     await core1.addLogger(logger);
     await core1.createPS()
-        .then(await core1.importPowerCLI())
+        //.then(await core1.importPowerCLI())
         .then(await core1.connectVIServer())
         .catch(err => logger.error(err));
 
     const core2 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
     await core2.addLogger(logger);
     await core2.createPS()
-        .then(await core2.importPowerCLI())
+        //.then(await core2.importPowerCLI())
         .then(await core2.connectVIServer())
         .catch(err => logger.error(err));
 
@@ -121,68 +121,55 @@ async function vmOperation(core) {
 
     //Tempory for testing
     router.get('/vm/:vmName/backup', async (req, res) => {
-        let backupCore = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
+        let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
         await backupCore.createPS()
             .then(await backupCore.importPowerCLI())
             .then(await backupCore.connectVIServer())
             .catch(err => logger.error(err));
+        res.status(200).send('BACKUP COMPLETED!');
         await backupCore.backUpVM(req.params.vmName)
-            .then(output => {
-                res.status(200).send('BACKUP COMPLETED!');
+            .then(() => {
                 backupCore.disposePS();
             }).catch(err => logger.error(err));
     })
 
     //Tempory for testing
     router.get('/vm/:vmName/testCom', async (req, res) => {
-        let testComCore = new Core('10.0.15.10', 'administrator@labs.vsphere', 'vc#13ITkmitl');
+        let testComCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
         await testComCore.createPS()
             .then(await testComCore.importPowerCLI())
             .then(await testComCore.connectVIServer())
             .catch(err => logger.error(err));
+        res.status(200).send('BACKUP COMPLETED!');
         await testComCore.testCompress(req.params.vmName)
-            .then(output => {
-                res.status(200).send('BACKUP COMPLETED!');
+            .then(() => {
                 testComCore.disposePS();
             }).catch(err => logger.error(err));
     })
 
     router.post('/newvm', urlencodedParser, async (req, res) => {
-        //let totalMemoryGBAllocated = await core.getTotalMemoryGBAllocatedbyHost('10.30.22.9');
-        let vmhost = await core.getVMHostbyName('10.30.22.9');
+        await core.newVMfromTemplate(req.body)
+            .then(output => {
+                logger.info(output);
+                res.status(200).send('VM CREATED');
+            }).catch(err => logger.error(err));
 
-        // Request VM spec is available for this host
-        if ((req.body.MemoryMB / 1024) < vmhost[0].MemoryUsageGB) {
-            logger.info("RESOURCE AVAILABLE!")
-
-            await core.newVMfromTemplate(req.body)
-                .then(output => {
-                    logger.info(output);
-                    res.status(200).send('VM CREATED');
-                }).catch(err => logger.error(err));
-
-            //Schedule for EndDate
-            logger.info("STARTED SCHEDULE JOB! at:" + req.body.EndDate);
-            let temp = schedule.scheduleJob(req.body.EndDate, async function () {
-                logger.info("DONE SCHEDULED JOB! at: " + req.body.EndDate);
-                /*
+        //Schedule for EndDate
+        logger.info("STARTED SCHEDULE JOB! at:" + req.body.EndDate);
+        schedule.scheduleJob(req.body.EndDate, async function () {
+            logger.info("DONE SCHEDULED JOB! at: " + req.body.EndDate);
             await core.powerOffVM(req.params.vmName)
-				.then(output => {
-					console.log("VM POWER OFF!");
-					res.json(output);
-				}).catch(err => {
-					console.log(err);
-				})
-            */
-            })
-        } else {
-            logger.info("RESOURCE UNAVAILABLE!")
-        }
+                .then(() => {
+                    logger.info("VM POWER OFF!");
+                }).catch(err => {
+                    logger.error(err);
+                })
+        })
     })
 
     router.delete('/vm/:vmName', async (req, res) => {
         await core.removeVM(req.params.vmName)
-            .then(output => {
+            .then(() => {
                 res.status(200).send('VM DELETED');
             }).catch(err => logger.error(err));
     })

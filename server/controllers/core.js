@@ -1,7 +1,7 @@
 class Core {
   /**
    * Create core object for using PowerShell
-   * @param {String} server A string of server name or ip address. (Ex. labs.vsphere or 10.0.15.10)
+   * @param {String} server A string of server name or ip address.
    * @param {String} username A string of vCenter user account.
    * @param {String} password A string of password.
    */
@@ -250,14 +250,14 @@ class Core {
   async newVM(spec) {
     this.PS.addCommand('$vmhost = Get-VMHost')
       .then(this.PS.addParameters([{
-        Name: "10.30.22.9"
+        Name: spec.VMHost
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$datastore = Get-Datastore')
       .then(this.PS.addParameters([{
-        Name: "datastore1"
+        Name: spec.Datastore
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
@@ -297,21 +297,21 @@ class Core {
   async newVMfromTemplate(spec) {
     this.PS.addCommand('$vmhost = Get-VMHost')
       .then(this.PS.addParameters([{
-        Name: "10.30.22.9"
+        Name: spec.VMHost
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$datastore = Get-Datastore')
       .then(this.PS.addParameters([{
-        Name: "datastore1"
+        Name: spec.Datastore
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$template = Get-Template')
       .then(this.PS.addParameters([{
-        Name: "UbuntuTemplate"
+        Name: spec.OS
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
@@ -424,6 +424,19 @@ class Core {
    */
   async powerOnVM(vmName) {
     this.PS.addCommand('Start-VM')
+      .then(this.PS.addParameters([{
+        VM: vmName
+      }]));
+    await this.PS.invoke()
+      .then({}).catch(err => this.logger.error(err));
+  }
+
+  /**
+   * Shuts down a virtual machine guest OS.
+   * @param {String} vmName A string of virtual machine's name.
+   */
+  async shutdownVMGuest(vmName) {
+    this.PS.addCommand('Stop-VMGuest -Confirm:$false')
       .then(this.PS.addParameters([{
         VM: vmName
       }]));
