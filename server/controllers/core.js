@@ -18,10 +18,10 @@ class Core {
   /**
    * Create PowerShell instance.
    */
-  async createPS() {
+  async createPS(debugging = false) {
     let nodePowershell = require('node-powershell');
     this.PS = new nodePowershell({
-      verbose: true,
+      verbose: debugging,
       pwsh: true,
       inputEncoding: 'utf8',
       outputEncoding: 'utf8',
@@ -294,31 +294,31 @@ class Core {
    * then configure virtual machine's spec
    * @param {JSON} spec A JSON object contains virtual machine's spec.
    */
-  async newVMfromTemplate(spec) {
+  async newVMfromTemplate(vmSpec, templateSpec) {
     this.PS.addCommand('$vmhost = Get-VMHost')
       .then(this.PS.addParameters([{
-        Name: spec.VMHost
+        Name: vmSpec.VMHost
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$datastore = Get-Datastore')
       .then(this.PS.addParameters([{
-        Name: spec.Datastore
+        Name: vmSpec.Datastore
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('$template = Get-Template')
       .then(this.PS.addParameters([{
-        Name: spec.OS
+        Name: templateSpec.Name
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
     this.PS.addCommand('New-VM')
       .then(this.PS.addParameters([{
-          Name: spec.Name
+          Name: vmSpec.Name
         },
         {
           ResourcePool: '$vmhost'
@@ -335,14 +335,14 @@ class Core {
 
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
-        Name: spec.Name
+        Name: vmSpec.Name
       }]))
       .then(this.PS.addArgument('| Set-VM -Confirm:$false'))
       .then(this.PS.addParameters([{
-          NumCpu: spec.NumCpu
+          NumCpu: vmSpec.NumCpu
         },
         {
-          MemoryMB: spec.MemoryMB
+          MemoryGB: vmSpec.MemoryGB
         }
       ]));
     await this.PS.invoke()
@@ -350,72 +350,74 @@ class Core {
 
     this.PS.addCommand('$vmhdd = Get-VM')
       .then(this.PS.addParameters([{
-        Name: spec.Name
+        Name: vmSpec.Name
       }]))
       .then(this.PS.addArgument('| Get-HardDisk'));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
-    this.PS.addCommand('Set-HardDisk -Confirm:$false')
-      .then(this.PS.addParameters([{
-          HardDisk: '$vmhdd'
-        },
-        {
-          CapacityGB: spec.DiskGB
-        }
-      ]));
-    await this.PS.invoke()
-      .then({}).catch(err => this.logger.error(err));
+    if (vmSpec.DiskGB > templateSpec.DiskGB) {
+      this.PS.addCommand('Set-HardDisk -Confirm:$false')
+        .then(this.PS.addParameters([{
+            HardDisk: '$vmhdd'
+          },
+          {
+            CapacityGB: vmSpec.DiskGB
+          }
+        ]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
 
-    await this.powerOnVM(spec.Name);
+      await this.powerOnVM(vmSpec.Name);
 
-    this.PS.addCommand('Get-VM')
-      .then(this.PS.addParameters([{
-        Name: spec.Name
-      }]))
-      .then(this.PS.addArgument('| Invoke-VMScript'))
-      .then(this.PS.addParameters([{
-          ScriptType: 'Bash'
-        },
-        {
-          ScriptText: 'sudo growpart /dev/sda 1'
-        },
-        {
-          GuestUser: 'ubuntu'
-        },
-        {
-          GuestPassword: 'P@ssw0rd'
-        },
-        {
-          ToolsWaitSecs: 120
-        }
-      ]));
-    await this.PS.invoke()
-      .then({}).catch(err => this.logger.error(err));
+      this.PS.addCommand('Get-VM')
+        .then(this.PS.addParameters([{
+          Name: vmSpec.Name
+        }]))
+        .then(this.PS.addArgument('| Invoke-VMScript'))
+        .then(this.PS.addParameters([{
+            ScriptType: 'Bash'
+          },
+          {
+            ScriptText: 'sudo growpart /dev/sda 1'
+          },
+          {
+            GuestUser: 'ubuntu'
+          },
+          {
+            GuestPassword: 'P@ssw0rd'
+          },
+          {
+            ToolsWaitSecs: 120
+          }
+        ]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
 
-    this.PS.addCommand('Get-VM')
-      .then(this.PS.addParameters([{
-        Name: spec.Name
-      }]))
-      .then(this.PS.addArgument('| Invoke-VMScript'))
-      .then(this.PS.addParameters([{
-          ScriptType: 'Bash'
-        },
-        {
-          ScriptText: 'sudo resize2fs /dev/sda1'
-        },
-        {
-          GuestUser: 'ubuntu'
-        },
-        {
-          GuestPassword: 'P@ssw0rd'
-        },
-        {
-          ToolsWaitSecs: 120
-        }
-      ]));
-    await this.PS.invoke()
-      .then({}).catch(err => this.logger.error(err));
+      this.PS.addCommand('Get-VM')
+        .then(this.PS.addParameters([{
+          Name: vmSpec.Name
+        }]))
+        .then(this.PS.addArgument('| Invoke-VMScript'))
+        .then(this.PS.addParameters([{
+            ScriptType: 'Bash'
+          },
+          {
+            ScriptText: 'sudo resize2fs /dev/sda1'
+          },
+          {
+            GuestUser: 'ubuntu'
+          },
+          {
+            GuestPassword: 'P@ssw0rd'
+          },
+          {
+            ToolsWaitSecs: 120
+          }
+        ]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
+    }
   }
 
   /**
@@ -508,7 +510,7 @@ class Core {
 
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
-      .then(this.logger.info("CREATED FILE! COMPRESSING IS IN PROGRESS!")).catch(err => this.logger.error(err));
+      .then(this.logger.info('CREATED FILE! COMPRESSING IS IN PROGRESS!')).catch(err => this.logger.error(err));
   }
 
   /**
@@ -520,7 +522,7 @@ class Core {
     let dir = path.join(process.cwd(), 'vmbackup', vmName);
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
-      .then(this.logger.info("CREATED FILE! COMPRESSING IS IN PROGRESS")).catch(err => this.logger.error(err));
+      .then(this.logger.info('CREATED FILE! COMPRESSING IS IN PROGRESS')).catch(err => this.logger.error(err));
   }
 
   /**

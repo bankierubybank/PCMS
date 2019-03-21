@@ -6,6 +6,7 @@ let registeredVmSchema = new Schema({
     NumCpu: Number,
     MemoryGB: Number,
     ProvisionedSpaceGB: Number,
+    OS: String,
     Requestor: String,
     StartDate: Date,
     EndDate: Date

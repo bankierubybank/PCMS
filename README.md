@@ -92,6 +92,7 @@ Open Web Browser and go to
 | ------ | ------ | ------ |
 | node-powershell | [node-powershell] | Invoke PowerShell Commands on Node.js |
 | express | [express] | Create REST Server |
+| express-session | [express-session] | Maintain user's session |
 | body-parser | [body-parser] | Parse HTTP Request's Body |
 | cors | [cors] | Enable CORS in Node.js |
 | morgan | [morgan] | HTTP Request Logger |
@@ -101,6 +102,8 @@ Open Web Browser and go to
 | winston | [winston] | Log errors to Console and Files |
 | mongoose | [mongoose] | MongoDB ODM for Node.js |
 | compression | [compression] | Compress Response's Body |
+| googleapis | [googleapis] | Upload backup files to Google Drive |
+| ldapjs-client | [ldapjs-client] | Authentication with Active Directory |
 
 ### Vue.js Module
 | Module Name | Source |
@@ -108,6 +111,9 @@ Open Web Browser and go to
 | axios | [axios] |
 | vuejs-datepicker | [vuejs-datepicker] |
 | vue-select | [vue-select] |
+
+### JS Style Guide
+Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.html with [eslint].
 
    [Vue.js]: <https://vuejs.org/>
    [Vue CLI]: <https://cli.vuejs.org/>
@@ -126,6 +132,9 @@ Open Web Browser and go to
    [compressing]: <https://github.com/node-modules/compressing>
    [compression]: <https://github.com/expressjs/compression>
    [mongoose]: <https://github.com/Automattic/mongoose>
+   [googleapis]: <https://github.com/googleapis/google-api-nodejs-client>
+   [ldapjs-client]: <https://github.com/zont/ldapjs-client>
+   [express-session]: <https://github.com/expressjs/session>
    
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
@@ -133,3 +142,4 @@ Open Web Browser and go to
    
    [winston]: <https://github.com/winstonjs/winston>
    [pm2]: <https://github.com/Unitech/pm2>
+   [eslint]: <https://github.com/eslint/eslint>
