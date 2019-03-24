@@ -7,6 +7,7 @@ import Datastores from "@/components/Datastores";
 import Datacenters from "@/components/Datacenters";
 import NewVM from "@/components/NewVM";
 import Chart from "@/components/Chart";
+import Overview from "@/components/Overview";
 
 Vue.use(Router);
 
@@ -57,6 +58,11 @@ export default new Router({
       // which is lazy-loaded when the route is visited.
       component: () =>
         import(/* webpackChunkName: "about" */ "./views/About.vue")
+    },
+    {
+      path: "/overview",
+      name: "Overview",
+      component: Overview
     }
   ]
 });
