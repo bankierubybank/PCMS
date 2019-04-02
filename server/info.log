@@ -38,3 +38,9 @@
 {"message":"Mongoose connection is disconnected due to application termination!","level":"warn"}
 {"message":"App listen on port: 8081","level":"info"}
 {"name":"MongoNetworkError","errorLabels":["TransientTransactionError"],"level":"error"}
+{"message":"App listen on port: 8081","level":"info"}
+{"name":"MongoNetworkError","errorLabels":["TransientTransactionError"],"level":"error"}
+{"message":"Mongoose connection is disconnected due to application termination!","level":"warn"}
+{"message":"App listen on port: 8081","level":"info"}
+{"name":"MongoNetworkError","errorLabels":["TransientTransactionError"],"level":"error"}
+{"message":"Mongoose connection is disconnected due to application termination!","level":"warn"}

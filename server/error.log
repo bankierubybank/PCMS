@@ -21,3 +21,5 @@
 {"name":"PS_CMD_FAIL_ERROR","level":"error"}
 {"name":"PS_CMD_FAIL_ERROR","level":"error"}
 {"name":"MongoNetworkError","errorLabels":["TransientTransactionError"],"level":"error"}
+{"name":"MongoNetworkError","errorLabels":["TransientTransactionError"],"level":"error"}
+{"name":"MongoNetworkError","errorLabels":["TransientTransactionError"],"level":"error"}

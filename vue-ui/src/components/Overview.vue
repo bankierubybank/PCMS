@@ -6,6 +6,28 @@
 		height: 100%;
 		color: white;
 	}
+	.row, .col{
+		padding: 0;
+	}
+	.collection{
+		border: 0;
+		border-radius: 0;
+		margin-top: 7.5em;
+	}
+	.collection a.collection-item{
+		color: #222222;
+	}
+	.collection .collection-item {
+    background-color: #fff;
+    line-height: 1.5rem;
+    padding: 1em 1.5em;
+    margin: 0;
+    border: 0;
+	}
+	.collection a.collection-item:hover {
+    background-color: #222222;
+    color: #fff;
+	}
 	nav{
 	 background-color: #1b1b1b;
 	}
@@ -19,24 +41,10 @@
 	#nav{
 		padding: 0px !important;
 	}
-	#sidenav{
-		position: absolute;
-	    top: 10px;
-	    width: 44px;
-	    height: 44px;
-	    z-index: 700;
-	    background-color: #1b1b1b;
-	    font-size: 28px;
+	#sidebar-menu{
+		background: #ffffff;
 	}
-	.fa{
-		margin-top: 15%;
-	    text-align: center;
-	    display: block;
-	    text-rendering: auto;
-	    -webkit-font-smoothing: antialiased;
-	}.sidenav{
-	    width: 20%;
-	}
+
 	#firstname{
 		padding-left: 1em;
 	}
@@ -47,39 +55,26 @@
 
 <template>
 	<div class="bg-main">
-		<header>
-		<nav>
-		  <div class="nav-wrapper">
-		    <ul class="right hide-on-med-and-down">
-		      <li><i id="icon-size" class="large material-icons">notifications_none</i></li>
-		      <li><span id="firstname">IT Support</span></li>
-		      <!-- Dropdown Trigger -->
-		      <li><a class="dropdown-trigger" href="#!" data-target="dropdown1"><i id="icon-size" class="large material-icons">account_circle</i></a></li>
-		    </ul>
-		  </div>
-		</nav>
-		</header>
-
 		<div class="row">
-			<div class="col s12 m4 l3">
-				<!-- Grey navigation panel -->
-				<ul id="slide-out" class="sidenav">
-					<li><div class="user-view">
-						<div class="background">
-						</div>
-						<a href="#name"><span class="black-text name">IT Support</span></a>
-					</div></li>
-					<li><a class="waves-effect" href="overview.html">Overview</a></li>
-					<li><a class="waves-effect" href="requestApproval.html">Request Approval</a></li>
-					<li><a class="waves-effect" href="vms.html">Virtual Machines</a></li>
-				</ul>
-				<a href="#sidr" id="sidenav" data-target="slide-out" class="sidenav-trigger"><i class="fa small material-icons">menu</i></a>
+			<div id="sidebar-menu" class="col s2 m2 l2">
+				<div class="collection">
+			        <a href="#!" class="collection-item active">Aj.Chotipas</a>
+			        <a href="#!" class="collection-item">My VMs</a>
+			        <a href="#!" class="collection-item">Request</a>
+			      </div>
 
 			</div>
-		</div>
-
-		<div class="row">
-			<div class="col s12 m8 l12">
+			<div class="col s10 m10 l10">
+				<nav>
+				  <div class="nav-wrapper">
+				    <ul class="right hide-on-med-and-down">
+				      <li><i id="icon-size" class="large material-icons">notifications_none</i></li>
+				      <li><span id="firstname">IT Support</span></li>
+				      <!-- Dropdown Trigger -->
+				      <li><a class="dropdown-trigger" href="#!" data-target="dropdown1"><i id="icon-size" class="large material-icons">account_circle</i></a></li>
+				    </ul>
+				  </div>
+				</nav>
 				<!-- Teal page content  -->
 				<div class="container">
 					<h1>Virtual Machines</h1>
@@ -132,8 +127,7 @@
 	</div>
 </template>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery"></script>
+
 <script>
 import GetServices from "@/services/GetServices";
 	export default {
@@ -154,8 +148,5 @@ import GetServices from "@/services/GetServices";
 	  }
 	};
 
-  $(document).ready(function(){
-    $('.sidenav').sidenav();
-  });
 </script>
 
