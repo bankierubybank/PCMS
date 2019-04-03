@@ -16,7 +16,9 @@ async function createServer() {
 	app.use(compression());
 	app.use(morgan('combined'));
 	app.use(bodyParser.json());
-	//app.use(cors());
+	app.use(cors({
+		origin: true
+	}));
 	app.use(helmet());
 	app.use(cookieParser());
 	app.use(session({
@@ -24,10 +26,10 @@ async function createServer() {
 		secret: 'anuchita',
 		resave: false,
 		saveUninitialized: false,
-		cookie: {
+		/*cookie: {
 			expires: 600000,
 			secure: true
-		}
+		}*/
 	}))
 
 	app.use('/', router);

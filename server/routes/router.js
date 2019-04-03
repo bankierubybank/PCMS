@@ -75,12 +75,14 @@ async function main() {
 
     // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
     // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
+    /*
     router.use((req, res, next) => {
         if (req.cookies.user_sid && !req.session.username) {
             res.clearCookie('user_sid');
         }
         next();
     });
+    */
 
     router.post('/login', urlencodedParser, ldapAuth, async (req, res) => {
         if (!req.session.username) {
@@ -102,7 +104,6 @@ async function main() {
     });
 
     router.get('/session', async (req, res) => {
-        console.log(req.session)
         /*
         if (req.session.username && req.cookies.user_sid) {
             res.status(200).send(req.session)
@@ -110,11 +111,11 @@ async function main() {
             res.status(401).send('Auth failed, please log in.');
         }
         */
-       res.status(200).send(req.session)
+        res.status(200).send(req.session)
     })
 
     router.get('/content', async (req, res) => {
-        if (req.session.username && req.cookies.user_sid) {
+        if (req.session.username) {
             res.status(200).send("QUALITY CONTENT BY: " + req.session.username)
         } else {
             res.status(401).send('Auth failed, please log in.');
@@ -125,11 +126,7 @@ async function main() {
     await vmOperation(core2, jobs);
 
     router.use((req, res) => {
-        if (req.session.username) {
-            res.status(404).send('Not found.');
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        res.status(404).send('Not found.');
     });
 }
 
@@ -164,80 +161,66 @@ async function reScheduleVM(core, jobs) {
 
 async function vmRoutes(core) {
     router.get('/vms', async (req, res) => {
-        if (req.session.username) {
-            await core.getVMs()
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getVMs()
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vms/:vmhost', async (req, res) => {
-        if (req.session.username) {
-            await core.getVMsbyHostName(req.params.vmhost)
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getVMsbyHostName(req.params.vmhost)
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vm/:vmName', async (req, res) => {
-        if (req.session.username) {
-            await core.getVMbyName(req.params.vmName)
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
+        await core.getVMbyName(req.params.vmName)
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
+    })
+
+    router.get('/vm/:vmName/registered', async (req, res) => {
+        let vms;
+        await registeredVmSchema.find({
+            Name: req.params.vmName
+        }).then((registeredVMs) => {
+            vms = registeredVMs;
+        }).catch(err => logger.error(err))
+        if (vms[0]) {
+            res.status(200).json(vms[0])
         } else {
-            res.status(401).send('Auth failed, please log in.');
+            res.status(200).send('VM not registered!')
         }
     })
 
     router.get('/vmharddisk/:vmName', async (req, res) => {
-        if (req.session.username) {
-            await core.getVMHarddiskbyName(req.params.vmName)
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getVMHarddiskbyName(req.params.vmName)
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     router.get('/vmhosts', async (req, res) => {
-        if (req.session.username) {
-            await core.getVMHosts()
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getVMHosts()
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     router.get('/datastores', async (req, res) => {
-        if (req.session.username) {
-            await core.getDatastores()
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getDatastores()
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     router.get('/datacenters', async (req, res) => {
-        if (req.session.username) {
-            await core.getDatacenters()
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getDatacenters()
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     /*
@@ -260,153 +243,133 @@ async function vmRoutes(core) {
      * disk.unshared.latest
      */
     router.get('/vmstat', urlencodedParser, async (req, res) => {
-        if (req.session.username) {
-            await core.getVMStat(req.body.vmName, req.body.intervalMins, req.body.stat)
-                .then(output => {
-                    res.json(output);
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.getVMStat(req.body.vmName, req.body.intervalMins, req.body.stat)
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
     })
 
     router.get('/templates', async (req, res) => {
-        if (req.session.username) {
-            await vmTemplateSchema.find().then((templates) => {
-                res.json(templates);
-            }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await vmTemplateSchema.find().then((templates) => {
+            res.status(200).json(templates);
+        }).catch(err => logger.error(err));
     })
 }
 
 async function vmOperation(core, jobs) {
     router.post('/vm/:vmName/poweron', async (req, res) => {
-        if (req.session.username) {
-            await core.powerOnVM(req.params.vmName)
-                .then(res.status(200).send('POWERED ON')).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.powerOnVM(req.params.vmName)
+            .then(res.status(200).send('VM powered on!')).catch(err => logger.error(err));
     })
 
     router.post('/vm/:vmName/shutdown', async (req, res) => {
-        if (req.session.username) {
-            await core.shutdownVMGuest(req.params.vmName)
-                .then(res.status(200).send('VM GUEST SHUT DOWN')).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.shutdownVMGuest(req.params.vmName)
+            .then(res.status(200).send('VM guest shutted down!')).catch(err => logger.error(err));
+
     })
 
     router.post('/vm/:vmName/poweroff', async (req, res) => {
-        if (req.session.username) {
-            await core.powerOffVM(req.params.vmName)
-                .then(res.status(200).send('POWERED OFF')).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.powerOffVM(req.params.vmName)
+            .then(res.status(200).send('VM powered off!')).catch(err => logger.error(err));
+
     })
 
     //Tempory for testing
     router.get('/vm/:vmName/backup', async (req, res) => {
-        if (req.session.username) {
-            let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-            backupCore.addLogger(logger);
-            backupCore.createPS(debugging)
-                .then(await backupCore.connectVIServer())
-                .catch(err => logger.error(err));
-            res.status(200).send('BACKUP QUQUED!');
-            await backupCore.backUpVM(req.params.vmName)
-                .then(async () => {
-                    backupCore.disconnectVIServer(config.vcenter_url);
-                    backupCore.disposePS();
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+        backupCore.addLogger(logger);
+        backupCore.createPS(debugging)
+            .then(await backupCore.connectVIServer())
+            .catch(err => logger.error(err));
+        res.status(200).send('VM backup queued!');
+        await backupCore.backUpVM(req.params.vmName)
+            .then(async () => {
+                backupCore.disconnectVIServer(config.vcenter_url);
+                backupCore.disposePS();
+            }).catch(err => logger.error(err));
     })
 
     //Tempory for testing
     router.get('/vm/:vmName/testCom', async (req, res) => {
-        if (req.session.username) {
-            let testComCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-            testComCore.addLogger(logger);
-            testComCore.createPS(debugging)
-                .then(await testComCore.connectVIServer())
-                .catch(err => logger.error(err));
-            res.status(200).send('BACKUP QUQUED!');
-            await testComCore.testCompress(req.params.vmName)
-                .then(async () => {
-                    await testComCore.disconnectVIServer(config.vcenter_url);
-                    testComCore.disposePS();
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        let testComCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+        testComCore.addLogger(logger);
+        testComCore.createPS(debugging)
+            .then(await testComCore.connectVIServer())
+            .catch(err => logger.error(err));
+        res.status(200).send('VM backup queued!');
+        await testComCore.testCompress(req.params.vmName)
+            .then(async () => {
+                await testComCore.disconnectVIServer(config.vcenter_url);
+                testComCore.disposePS();
+            }).catch(err => logger.error(err));
     })
 
     router.post('/newvm', urlencodedParser, async (req, res) => {
-        if (req.session.username) {
-            let vmTemplate;
-            await vmTemplateSchema.find({
-                GuestVersion: req.body.OS
-            }).then((templates) => {
-                vmTemplate = templates;
+        let vmTemplate;
+        await vmTemplateSchema.find({
+            GuestVersion: req.body.OS
+        }).then((templates) => {
+            vmTemplate = templates;
+        }).catch(err => logger.error(err));
+        await core.newVMfromTemplate(req.body, vmTemplate[0])
+            .then(() => {
+                res.status(200).send('VM creation in progress!');
+                let newVM = new registeredVmSchema({
+                    Name: req.body.Name,
+                    Guest: req.body.Guest,
+                    NumCpu: req.body.NumCpu,
+                    MemoryGB: req.body.MemoryGB,
+                    ProvisionedSpaceGB: req.body.ProvisionedSpaceGB,
+                    OS: req.body.OS,
+                    Requestor: req.body.Requestor,
+                    StartDate: new Date(req.body.StartDate),
+                    EndDate: new Date(req.body.EndDate)
+                })
+                newVM.save(logger.info('Registered New VM!')).catch(err => logger.error(err));
+
+                logger.info('Schedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
+                jobs.scheduleJob(req.body.Name, req.body.EndDate, async function () {
+                    await core.shutdownVMGuest(req.body.Name)
+                        .then(async () => logger.info('VM: ' + req.body.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
+
+                    let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+                    backupCore.addLogger(logger);
+                    backupCore.createPS(debugging)
+                        .then(await backupCore.connectVIServer())
+                        .catch(err => logger.error(err));
+                    await backupCore.backUpVM(req.params.vmName)
+                        .then(async () => {
+                            await backupCore.disconnectVIServer(config.vcenter_url);
+                            backupCore.disposePS();
+                        }).catch(err => logger.error(err));
+                })
             }).catch(err => logger.error(err));
-            await core.newVMfromTemplate(req.body, vmTemplate[0])
-                .then(() => {
-                    res.status(200).send('VM CREATING IN PROGRESS!');
-                    let newVM = new registeredVmSchema({
-                        Name: req.body.Name,
-                        Guest: req.body.Guest,
-                        NumCpu: req.body.NumCpu,
-                        MemoryGB: req.body.MemoryGB,
-                        ProvisionedSpaceGB: req.body.ProvisionedSpaceGB,
-                        OS: req.body.OS,
-                        Requestor: req.body.Requestor,
-                        StartDate: new Date(req.body.StartDate),
-                        EndDate: new Date(req.body.EndDate)
-                    })
-                    newVM.save(logger.info('Registered New VM!')).catch(err => logger.error(err));
-
-                    let timezoneParser = require('../utils/timezoneParser.js');
-                    logger.info('Schedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
-                    jobs.scheduleJob(req.body.Name, req.body.EndDate, async function () {
-                        await core.shutdownVMGuest(req.body.Name)
-                            .then(async () => logger.info('VM: ' + req.body.Name + ' was shuted down at: ' + timezoneParser.toDay())).catch(err => logger.error(err));
-
-                        let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-                        backupCore.addLogger(logger);
-                        backupCore.createPS(debugging)
-                            .then(await backupCore.connectVIServer())
-                            .catch(err => logger.error(err));
-                        await backupCore.backUpVM(req.params.vmName)
-                            .then(async () => {
-                                await backupCore.disconnectVIServer(config.vcenter_url);
-                                backupCore.disposePS();
-                            }).catch(err => logger.error(err));
-                    })
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
     })
 
     router.post('/extendvm', urlencodedParser, async (req, res) => {
-
+        await registeredVmSchema.findOneAndUpdate({
+            Name: req.body.Name
+        }, {
+            $set: {
+                EndDate: new Date(req.body.EndDate)
+            }
+        }, {
+            new: true
+        }, (err) => {
+            if (err) {
+                logger.error(err)
+            }
+        })
+        logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
+        jobs.rescheduleJob(req.body.Name, req.body.EndDate)
+        res.status(200).send('Extended VM Duration')
     })
 
     router.delete('/vm/:vmName', async (req, res) => {
-        if (req.session.username) {
-            await core.removeVM(req.params.vmName)
-                .then(() => {
-                    res.status(200).send('VM DELETED');
-                }).catch(err => logger.error(err));
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+        await core.removeVM(req.params.vmName)
+            .then(() => {
+                res.status(200).send('VM deleted!');
+            }).catch(err => logger.error(err));
     })
 }
 
