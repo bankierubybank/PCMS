@@ -6,3 +6,5 @@ server/config/environments/test.json
 server/vmbackup
 server/credentials.json
 server/token.json
+server/error.log
+server/info.log

@@ -9,5 +9,9 @@ module.exports = {
         jQuery: "jquery"
       })
     ]
+  },
+  devServer: {
+    host: 'localhost',
+    port: 80
   }
 };

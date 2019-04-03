@@ -8,6 +8,7 @@ const config = require('./config/environments/test.json');
 const router = require('./routes/router.js');
 const logger = require('./controllers/logger.js');
 const dbConnector = require('./db/dbConnector.js');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
 
 async function createServer() {
@@ -15,17 +16,24 @@ async function createServer() {
 	app.use(compression());
 	app.use(morgan('combined'));
 	app.use(bodyParser.json());
-	app.use(cors());
+	//app.use(cors());
 	app.use(helmet());
-    app.use(session({
-        secret: 'keyboard cat',
-        resave: false,
-        saveUninitialized: true
-    }))
+	app.use(cookieParser());
+	app.use(session({
+		key: 'user_sid',
+		secret: 'anuchita',
+		resave: false,
+		saveUninitialized: false,
+		cookie: {
+			expires: 600000,
+			secure: true
+		}
+	}))
 
 	app.use('/', router);
 
 	await dbConnector.connect(config.mongodb_url);
+
 	let server = await app.listen(config.port, () => logger.info('App listen on port: ' + config.port));
 
 	process.on('SIGINT', () => {

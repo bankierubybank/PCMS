@@ -23,11 +23,12 @@ async function main() {
         .then(await core1.connectVIServer())
         .catch(err => logger.error(err));
 
+    const jobs = schedule;
     const core2 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
     core2.addLogger(logger);
     core2.createPS(debugging)
         .then(await core2.connectVIServer())
-        .then(await reScheduleVM(core2))
+        .then(await reScheduleVM(core2, jobs))
         .catch(err => logger.error(err));
 
     async function ldapAuth(req, res, next) {
@@ -72,6 +73,15 @@ async function main() {
         }
     }
 
+    // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
+    // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
+    router.use((req, res, next) => {
+        if (req.cookies.user_sid && !req.session.username) {
+            res.clearCookie('user_sid');
+        }
+        next();
+    });
+
     router.post('/login', urlencodedParser, ldapAuth, async (req, res) => {
         if (!req.session.username) {
             res.status(401).send('Auth failed, please log in.');
@@ -80,14 +90,39 @@ async function main() {
 
     router.get('/logout', async (req, res) => {
         if (req.session.username) {
-            req.session.destroy(res.status(200).send('Logged out!')).catch(err => logger.error(err));
+            req.session.destroy((err) => {
+                if (err) {
+                    logger.error(err);
+                }
+                res.status(200).send('Logged out!')
+            })
         } else {
             res.status(400).send('Not logged in.');
         }
     });
 
+    router.get('/session', async (req, res) => {
+        console.log(req.session)
+        /*
+        if (req.session.username && req.cookies.user_sid) {
+            res.status(200).send(req.session)
+        } else {
+            res.status(401).send('Auth failed, please log in.');
+        }
+        */
+       res.status(200).send(req.session)
+    })
+
+    router.get('/content', async (req, res) => {
+        if (req.session.username && req.cookies.user_sid) {
+            res.status(200).send("QUALITY CONTENT BY: " + req.session.username)
+        } else {
+            res.status(401).send('Auth failed, please log in.');
+        }
+    })
+
     await vmRoutes(core1);
-    await vmOperation(core2);
+    await vmOperation(core2, jobs);
 
     router.use((req, res) => {
         if (req.session.username) {
@@ -98,9 +133,7 @@ async function main() {
     });
 }
 
-async function reScheduleVM(core) {
-    let schedule = require('node-schedule');
-    let timezoneParser = require('../utils/timezoneParser.js');
+async function reScheduleVM(core, jobs) {
     await registeredVmSchema.find({
             EndDate: {
                 $gte: new Date()
@@ -109,9 +142,9 @@ async function reScheduleVM(core) {
         .then((vms) => {
             vms.forEach(async (vm) => {
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
-                schedule.scheduleJob(vm.EndDate, async function () {
+                jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
                     await core.shutdownVMGuest(vm.Name)
-                        .then(async () => logger.info('VM: ' + vm.Name + ' was shuted down at: ' + await timezoneParser.toDay()))
+                        .then(async () => logger.info('VM: ' + vm.Name + ' was shuted down at: ' + new Date()))
                         .catch(err => logger.error(err));
 
                     let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
@@ -248,7 +281,7 @@ async function vmRoutes(core) {
     })
 }
 
-async function vmOperation(core) {
+async function vmOperation(core, jobs) {
     router.post('/vm/:vmName/poweron', async (req, res) => {
         if (req.session.username) {
             await core.powerOnVM(req.params.vmName)
@@ -340,7 +373,7 @@ async function vmOperation(core) {
 
                     let timezoneParser = require('../utils/timezoneParser.js');
                     logger.info('Schedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
-                    schedule.scheduleJob(req.body.EndDate, async function () {
+                    jobs.scheduleJob(req.body.Name, req.body.EndDate, async function () {
                         await core.shutdownVMGuest(req.body.Name)
                             .then(async () => logger.info('VM: ' + req.body.Name + ' was shuted down at: ' + timezoneParser.toDay())).catch(err => logger.error(err));
 
@@ -359,6 +392,10 @@ async function vmOperation(core) {
         } else {
             res.status(401).send('Auth failed, please log in.');
         }
+    })
+
+    router.post('/extendvm', urlencodedParser, async (req, res) => {
+
     })
 
     router.delete('/vm/:vmName', async (req, res) => {

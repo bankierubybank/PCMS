@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Home from "./views/Home.vue";
+import Login from "@/components/Login";
 import VMs from "@/components/VMs";
 import VMHosts from "@/components/VMHosts";
 import Datastores from "@/components/Datastores";
@@ -8,6 +9,7 @@ import Datacenters from "@/components/Datacenters";
 import NewVM from "@/components/NewVM";
 import Chart from "@/components/Chart";
 import Overview from "@/components/Overview";
+import Content from "@/components/Content";
 
 Vue.use(Router);
 
@@ -19,6 +21,11 @@ export default new Router({
       path: "/",
       name: "home",
       component: Home
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: Login
     },
     {
       path: "/vms",
@@ -63,6 +70,11 @@ export default new Router({
       path: "/overview",
       name: "Overview",
       component: Overview
+    },
+    {
+      path: "/content",
+      name: 'Content',
+      component: Content
     }
   ]
 });

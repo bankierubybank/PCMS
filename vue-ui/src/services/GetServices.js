@@ -1,6 +1,9 @@
 import Api from "@/services/Api";
 
 export default {
+  fetchSession() {
+    return Api().get("session");
+  },
   fetchVMs() {
     return Api().get("vms");
   },
@@ -16,7 +19,17 @@ export default {
   fetchDatacenters() {
     return Api().get("datacenters");
   },
-  fetchVMStat(vmName) {
-    return Api().get("vmstat/" + vmName);
+  fetchVMStat(params) {
+    return Api().get("vmstat/", params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+  },
+  fetchContent() {
+    return Api().get("content");
+  },
+  logout() {
+    return Api().get("logout")
   }
 };

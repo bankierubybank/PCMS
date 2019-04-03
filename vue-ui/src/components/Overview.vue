@@ -140,6 +140,7 @@ import GetServices from "@/services/GetServices";
 	  name: "vms",
 	  data() {
 	    return {
+				session: {},
 	      vms: []
 	    };
 	  },
