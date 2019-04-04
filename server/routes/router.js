@@ -8,6 +8,7 @@ const logger = require('../controllers/logger.js');
 const debugging = true;
 const registeredVmSchema = require('../db/models/registerdVmSchema.js');
 const vmTemplateSchema = require('../db/models/vmTemplateSchema.js');
+const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
 
 express().use(bodyParser.json());
@@ -16,6 +17,9 @@ const urlencodedParser = bodyParser.urlencoded({
     extended: false
 });
 
+/**
+ * Create core and assign core to routes.
+ */
 async function main() {
     const core1 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
     core1.addLogger(logger);
@@ -29,6 +33,13 @@ async function main() {
     core2.createPS(debugging)
         .then(await core2.connectVIServer())
         .then(await reScheduleVM(core2, jobs))
+        .catch(err => logger.error(err));
+
+    const core3 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+    core3.addLogger(logger);
+    core3.createPS(debugging)
+        .then(await core3.connectVIServer())
+        .then(await getVMPowerState(core3))
         .catch(err => logger.error(err));
 
     async function ldapAuth(req, res, next) {
@@ -130,6 +141,11 @@ async function main() {
     });
 }
 
+/**
+ * Reschdule all virtual machines to shutdown, backup and remove them when duration ended.
+ * @param {Core} core Node-powershell PowerCLI Core.
+ * @param {schedule} jobs Node-schedule jobs.
+ */
 async function reScheduleVM(core, jobs) {
     await registeredVmSchema.find({
             EndDate: {
@@ -159,6 +175,52 @@ async function reScheduleVM(core, jobs) {
         }).catch(err => logger.error(err));
 }
 
+/**
+ * Get PowerState of all virtual machines from vCenter and save them to database every 1 hour.
+ * @param {Core} core Node-powershell PowerCLI Core.
+ */
+async function getVMPowerState(core) {
+    //Set Interval for 1 hour (1000 ms * 60 * 60)
+    setInterval(async () => {
+        await core.getVMs().then(output => {
+            output.forEach(async (vm) => {
+                VMPerfSchema.findOneAndUpdate({
+                    Name: vm.Name
+                }, {
+                    $addToSet: {
+                        stats: {
+                            timestamp: new Date(),
+                            PowerState: vm.PowerState
+                        }
+                    }
+                }, {
+                    new: true
+                }, (err, data) => {
+                    if (err) {
+                        logger.error(err);
+                    }
+                    if (!data) {
+                        let vmPerf = new VMPerfSchema({
+                            Name: vm.Name,
+                            stats: [{
+                                timestamp: new Date(),
+                                PowerState: vm.PowerState
+                            }]
+                        });
+                        vmPerf.save(logger.info('Saved New VM PowerState')).catch(err => logger.error(err));
+                    } else {
+                        logger.info('Saved Existing VM PowerState');
+                    }
+                })
+            })
+        })
+    }, (1000 * 60));
+}
+
+/**
+ * Defined all get routes.
+ * @param {Core} core Node-powershell PowerCLI Core.
+ */
 async function vmRoutes(core) {
     router.get('/vms', async (req, res) => {
         await core.getVMs()
@@ -256,6 +318,11 @@ async function vmRoutes(core) {
     })
 }
 
+/**
+ * Defined all virtual machine operations routes.
+ * @param {Core} core Node-powershell PowerCLI Core.
+ * @param {schedule} jobs Node-schedule jobs.
+ */
 async function vmOperation(core, jobs) {
     router.post('/vm/:vmName/poweron', async (req, res) => {
         await core.powerOnVM(req.params.vmName)

@@ -5,7 +5,7 @@ let VMPerfSchema = new Schema({
     Name: String,
     stats: [{
         timestamp: Date,
-        PoweredStatus: String
+        PowerState: Boolean
     }]
 }, {
     collection: 'logs'
