@@ -15,34 +15,29 @@ export default {
   name: "content",
   data() {
     return {
-      cont: {}
+      cont: []
     };
   },
   mounted() {
-    this.getContent();
+    if (localStorage.getItem("token") == null) {
+      router.push({
+        name: "Login"
+      });
+      alert("Please Login!");
+    } else {
+      this.getContent();
+    }
   },
   methods: {
     async getContent() {
-      /* await GetServices.fetchSession().then(res => {
-        console.log(res.data)
-        
-        if (!res.data.username) {
-          router.push("/login");
-        } else {
-          GetServices.fetchContent().then(res => {
-            if (res.data.status == true) {
-              this.data = res.data.content;
-            }
-          });
-        }
-      }); */
-      const response = await GetServices.fetchSession();
-      console.log(response);
-      this.cont = response.data;
+      const response = await GetServices.fetchContent();
+      this.cont = response.data.content;
     },
     async logout() {
       await GetServices.logout();
-      router.push("/login");
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      router.push({ name: "Login" });
     }
   }
 };

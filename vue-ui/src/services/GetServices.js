@@ -1,35 +1,61 @@
 import Api from "@/services/Api";
 
 export default {
-  fetchSession() {
-    return Api().get("session");
-  },
   fetchVMs() {
-    return Api().get("vms");
+    return Api().get("vms", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   },
   fetchVMbyName(vmName) {
-    return Api().get("vm/" + vmName);
+    return Api().get("vm/" + vmName, {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   },
   fetchVMHosts() {
-    return Api().get("vmhosts");
+    return Api().get("vmhosts", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   },
   fetchDatastores() {
-    return Api().get("datastores");
+    return Api().get("datastores", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   },
   fetchDatacenters() {
-    return Api().get("datacenters");
+    return Api().get("datacenters", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   },
   fetchVMStat(params) {
     return Api().get("vmstat/", params, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        "x-access-token": localStorage.getItem("token"),
+        "Content-Type": "application/x-www-form-urlencoded"
       }
     });
   },
   fetchContent() {
-    return Api().get("content");
+    return Api().get("content", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   },
   logout() {
-    return Api().get("logout")
+    return Api().get("logout", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
   }
 };

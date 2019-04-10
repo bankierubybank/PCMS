@@ -92,7 +92,7 @@ Open Web Browser and go to
 | ------ | ------ | ------ |
 | node-powershell | [node-powershell] | Invoke PowerShell Commands on Node.js |
 | express | [express] | Create REST Server |
-| express-session | [express-session] | Maintain user's session |
+| jsonwebtoken | [jsonwebtoken] | Maintain user's web token |
 | body-parser | [body-parser] | Parse HTTP Request's Body |
 | cors | [cors] | Enable CORS in Node.js |
 | morgan | [morgan] | HTTP Request Logger |
@@ -111,6 +111,8 @@ Open Web Browser and go to
 | axios | [axios] |
 | vuejs-datepicker | [vuejs-datepicker] |
 | vue-select | [vue-select] |
+| epic-spinner | [epic-spinner] |
+| materialize-css | [materialize-css] |
 
 ### JS Style Guide
 Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.html with [eslint].
@@ -135,10 +137,13 @@ Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.htm
    [googleapis]: <https://github.com/googleapis/google-api-nodejs-client>
    [ldapjs-client]: <https://github.com/zont/ldapjs-client>
    [express-session]: <https://github.com/expressjs/session>
+   [jsonwebtoken]: <https://github.com/auth0/node-jsonwebtoken>
    
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
    [vue-select]: <https://github.com/sagalbot/vue-select>
+   [materialize-css]: <https://github.com/dogfalo/materialize/>
+   [epic-spinner]: <https://github.com/epicmaxco/epic-spinners>
    
    [winston]: <https://github.com/winstonjs/winston>
    [pm2]: <https://github.com/Unitech/pm2>

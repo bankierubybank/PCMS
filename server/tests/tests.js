@@ -199,8 +199,9 @@ const config = require('../config/environments/test.json');
 const logger = require('../controllers/logger.js');
 async function test() {
     //await testPassportLDAP(config.ldap_url, config.ldap_username, config.ldap_password);
-    await testDB(config.mongodb_url);
+    //await testDB(config.mongodb_url);
     //await testSession();
+    setInterval(() => console.log('Interval at: ' + new Date()), (1000 * 2))
 }
 
 test();

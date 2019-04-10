@@ -8,8 +8,6 @@ const config = require('./config/environments/test.json');
 const router = require('./routes/router.js');
 const logger = require('./controllers/logger.js');
 const dbConnector = require('./db/dbConnector.js');
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
 
 async function createServer() {
 	const app = express();
@@ -20,17 +18,6 @@ async function createServer() {
 		origin: true
 	}));
 	app.use(helmet());
-	app.use(cookieParser());
-	app.use(session({
-		key: 'user_sid',
-		secret: 'anuchita',
-		resave: false,
-		saveUninitialized: false,
-		/*cookie: {
-			expires: 600000,
-			secure: true
-		}*/
-	}))
 
 	app.use('/', router);
 

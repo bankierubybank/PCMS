@@ -18,8 +18,7 @@ import router from "@/router";
 export default {
   name: "Login",
   data() {
-    return {
-    };
+    return {};
   },
   methods: {
     login: e => {
@@ -31,11 +30,23 @@ export default {
           username: username,
           password: password
         };
+
         PostServices.login(data)
           .then(res => {
-            router.push("/content");
+            if (res.data.status == true) {
+              localStorage.setItem("token", res.data.token);
+              localStorage.setItem("username", res.data.username);
+              router.push({
+                name: "Overview"
+              });
+            }
           })
-          .catch(err => console.log(err));
+          .catch(err => {
+            if (err.response.status == 401) {
+              alert("Please check your username/password!");
+              location.reload();
+            }
+          });
       };
       login();
     }

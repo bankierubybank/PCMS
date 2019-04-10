@@ -41,7 +41,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "eslint": "^5.15.3"
+    "eslint": "^5.16.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

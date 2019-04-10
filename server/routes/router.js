@@ -10,6 +10,7 @@ const registeredVmSchema = require('../db/models/registerdVmSchema.js');
 const vmTemplateSchema = require('../db/models/vmTemplateSchema.js');
 const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
+const jwt = require('jsonwebtoken');
 
 express().use(bodyParser.json());
 
@@ -42,8 +43,8 @@ async function main() {
         .then(await getVMPowerState(core3))
         .catch(err => logger.error(err));
 
-    async function ldapAuth(req, res, next) {
-        if (req.session.username) {
+    router.post('/login', urlencodedParser, async (req, res) => {
+        if (req.header('Authorization') || req.headers["x-access-token"]) {
             res.status(400).send('Already logged in!');
         } else {
             let client = new LdapClient({
@@ -68,69 +69,38 @@ async function main() {
             //const entries = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
             let entries = await client.search('OU=IT13,OU=Bachelor,OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
 
-            let user_session = req.session;
-            user_session.username = entries[0].sAMAccountName;
-            user_session.displayName = entries[0].displayName;
-            user_session.mail = entries[0].mail;
+            let payload = {
+                username: entries[0].sAMAccountName,
+                displayName: entries[0].displayName,
+                mail: entries[0].mail
+            }
+            let token = jwt.sign(payload, config.appSecret, {
+                expiresIn: '1h'
+            });
             res.status(200).json({
-                username: user_session.username,
-                displayName: user_session.displayName,
-                mail: user_session.mail
+                status: true,
+                username: entries[0].sAMAccountName,
+                displayName: entries[0].displayName,
+                mail: entries[0].mail,
+                token: token
             });
 
             await client.destroy().catch(err => logger.error(err));
-
-            next();
-        }
-    }
-
-    // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
-    // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
-    /*
-    router.use((req, res, next) => {
-        if (req.cookies.user_sid && !req.session.username) {
-            res.clearCookie('user_sid');
-        }
-        next();
-    });
-    */
-
-    router.post('/login', urlencodedParser, ldapAuth, async (req, res) => {
-        if (!req.session.username) {
-            res.status(401).send('Auth failed, please log in.');
         }
     });
 
-    router.get('/logout', async (req, res) => {
-        if (req.session.username) {
-            req.session.destroy((err) => {
-                if (err) {
-                    logger.error(err);
-                }
-                res.status(200).send('Logged out!')
-            })
-        } else {
-            res.status(400).send('Not logged in.');
-        }
-    });
-
-    router.get('/session', async (req, res) => {
-        /*
-        if (req.session.username && req.cookies.user_sid) {
-            res.status(200).send(req.session)
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
-        */
-        res.status(200).send(req.session)
+    router.get('/content', verifyToken, async (req, res) => {
+        res.status(200).json({
+            status: true,
+            content: 'Quality Content by: ' + (req.decoded.username)
+        })
     })
 
-    router.get('/content', async (req, res) => {
-        if (req.session.username) {
-            res.status(200).send("QUALITY CONTENT BY: " + req.session.username)
-        } else {
-            res.status(401).send('Auth failed, please log in.');
-        }
+    router.get('/logout', verifyToken, async (req, res) => {
+        res.status(200).json({
+            status: false,
+            token: null
+        })
     })
 
     await vmRoutes(core1);
@@ -138,6 +108,19 @@ async function main() {
 
     router.use((req, res) => {
         res.status(404).send('Not found.');
+    });
+}
+
+async function verifyToken(req, res, next) {
+    let token = await req.header('Authorization') || req.headers["x-access-token"];
+    jwt.verify(token, config.appSecret, (err, decoded) => {
+        if (err) {
+            res.status(403).send('No token')
+            logger.error('No token')
+        } else {
+            req.decoded = decoded;
+            next();
+        }
     });
 }
 
@@ -214,7 +197,7 @@ async function getVMPowerState(core) {
                 })
             })
         })
-    }, (1000 * 60));
+    }, (1000 * 60 * 60));
 }
 
 /**
@@ -222,28 +205,28 @@ async function getVMPowerState(core) {
  * @param {Core} core Node-powershell PowerCLI Core.
  */
 async function vmRoutes(core) {
-    router.get('/vms', async (req, res) => {
+    router.get('/vms', verifyToken, async (req, res) => {
         await core.getVMs()
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/vms/:vmhost', async (req, res) => {
+    router.get('/vms/:vmhost', verifyToken, async (req, res) => {
         await core.getVMsbyHostName(req.params.vmhost)
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/vm/:vmName', async (req, res) => {
+    router.get('/vm/:vmName', verifyToken, async (req, res) => {
         await core.getVMbyName(req.params.vmName)
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/vm/:vmName/registered', async (req, res) => {
+    router.get('/vm/:vmName/registered', verifyToken, async (req, res) => {
         let vms;
         await registeredVmSchema.find({
             Name: req.params.vmName
@@ -257,28 +240,28 @@ async function vmRoutes(core) {
         }
     })
 
-    router.get('/vmharddisk/:vmName', async (req, res) => {
+    router.get('/vmharddisk/:vmName', verifyToken, async (req, res) => {
         await core.getVMHarddiskbyName(req.params.vmName)
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/vmhosts', async (req, res) => {
+    router.get('/vmhosts', verifyToken, async (req, res) => {
         await core.getVMHosts()
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/datastores', async (req, res) => {
+    router.get('/datastores', verifyToken, async (req, res) => {
         await core.getDatastores()
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/datacenters', async (req, res) => {
+    router.get('/datacenters', verifyToken, async (req, res) => {
         await core.getDatacenters()
             .then(output => {
                 res.status(200).json(output);
@@ -304,14 +287,14 @@ async function vmRoutes(core) {
      * disk.provisioned.latest
      * disk.unshared.latest
      */
-    router.get('/vmstat', urlencodedParser, async (req, res) => {
+    router.get('/vmstat', urlencodedParser, verifyToken, async (req, res) => {
         await core.getVMStat(req.body.vmName, req.body.intervalMins, req.body.stat)
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
-    router.get('/templates', async (req, res) => {
+    router.get('/templates', verifyToken, async (req, res) => {
         await vmTemplateSchema.find().then((templates) => {
             res.status(200).json(templates);
         }).catch(err => logger.error(err));
@@ -324,25 +307,25 @@ async function vmRoutes(core) {
  * @param {schedule} jobs Node-schedule jobs.
  */
 async function vmOperation(core, jobs) {
-    router.post('/vm/:vmName/poweron', async (req, res) => {
+    router.post('/vm/:vmName/poweron', verifyToken, async (req, res) => {
         await core.powerOnVM(req.params.vmName)
             .then(res.status(200).send('VM powered on!')).catch(err => logger.error(err));
     })
 
-    router.post('/vm/:vmName/shutdown', async (req, res) => {
+    router.post('/vm/:vmName/shutdown', verifyToken, async (req, res) => {
         await core.shutdownVMGuest(req.params.vmName)
             .then(res.status(200).send('VM guest shutted down!')).catch(err => logger.error(err));
 
     })
 
-    router.post('/vm/:vmName/poweroff', async (req, res) => {
+    router.post('/vm/:vmName/poweroff', verifyToken, async (req, res) => {
         await core.powerOffVM(req.params.vmName)
             .then(res.status(200).send('VM powered off!')).catch(err => logger.error(err));
 
     })
 
     //Tempory for testing
-    router.get('/vm/:vmName/backup', async (req, res) => {
+    router.get('/vm/:vmName/backup', verifyToken, async (req, res) => {
         let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
         backupCore.addLogger(logger);
         backupCore.createPS(debugging)
@@ -357,7 +340,7 @@ async function vmOperation(core, jobs) {
     })
 
     //Tempory for testing
-    router.get('/vm/:vmName/testCom', async (req, res) => {
+    router.get('/vm/:vmName/testCom', verifyToken, async (req, res) => {
         let testComCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
         testComCore.addLogger(logger);
         testComCore.createPS(debugging)
@@ -371,7 +354,7 @@ async function vmOperation(core, jobs) {
             }).catch(err => logger.error(err));
     })
 
-    router.post('/newvm', urlencodedParser, async (req, res) => {
+    router.post('/newvm', urlencodedParser, verifyToken, async (req, res) => {
         let vmTemplate;
         await vmTemplateSchema.find({
             GuestVersion: req.body.OS
@@ -413,7 +396,7 @@ async function vmOperation(core, jobs) {
             }).catch(err => logger.error(err));
     })
 
-    router.post('/extendvm', urlencodedParser, async (req, res) => {
+    router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
         await registeredVmSchema.findOneAndUpdate({
             Name: req.body.Name
         }, {
@@ -432,7 +415,7 @@ async function vmOperation(core, jobs) {
         res.status(200).send('Extended VM Duration')
     })
 
-    router.delete('/vm/:vmName', async (req, res) => {
+    router.delete('/vm/:vmName', verifyToken, async (req, res) => {
         await core.removeVM(req.params.vmName)
             .then(() => {
                 res.status(200).send('VM deleted!');
