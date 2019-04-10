@@ -4,23 +4,43 @@
     <div class="form">
       <div>
         VM Name:
-        <input type="text" name="Name" placeholder="VM Name" v-model="Name">
+        <input type="text" name="Name" placeholder="VM Name" v-model="Name" />
       </div>
       <div>
         NumCpu:
-        <input type="text" name="NumCpu" placeholder="NumCpu" v-model="NumCpu">
+        <input
+          type="text"
+          name="NumCpu"
+          placeholder="NumCpu"
+          v-model="NumCpu"
+        />
       </div>
       <div>
         MemoryMB:
-        <input type="text" name="MemoryMB" placeholder="MemoryMB" v-model="MemoryMB">
+        <input
+          type="text"
+          name="MemoryMB"
+          placeholder="MemoryMB"
+          v-model="MemoryMB"
+        />
       </div>
       <div>
         DiskGB:
-        <input type="text" name="DiskGB" placeholder="DiskGB" v-model="DiskGB">
+        <input
+          type="text"
+          name="DiskGB"
+          placeholder="DiskGB"
+          v-model="DiskGB"
+        />
       </div>
       <div>
         NetworkName:
-        <input type="text" name="NetworkName" placeholder="NetworkName" v-model="NetworkName">
+        <input
+          type="text"
+          name="NetworkName"
+          placeholder="NetworkName"
+          v-model="NetworkName"
+        />
       </div>
       <div>
         Start Date:

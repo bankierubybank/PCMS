@@ -2,17 +2,16 @@
   <div class="container">
     <h1>Login</h1>
     <form v-on:submit="login">
-      <input type="text" name="username">
-      <br>
-      <input type="password" name="password">
-      <br>
-      <input type="submit" value="Login">
+      <input type="text" name="username" />
+      <br />
+      <input type="password" name="password" />
+      <br />
+      <input type="submit" value="Login" />
     </form>
   </div>
 </template>
 
 <script>
-import GetServices from "@/services/GetServices";
 import PostServices from "@/services/PostServices";
 import router from "@/router";
 export default {
@@ -30,12 +29,13 @@ export default {
           username: username,
           password: password
         };
-
         PostServices.login(data)
           .then(res => {
             if (res.data.status == true) {
               localStorage.setItem("token", res.data.token);
               localStorage.setItem("username", res.data.username);
+              localStorage.setItem("displayName", res.data.displayName);
+              localStorage.setItem("mail", res.data.mail);
               router.push({
                 name: "Overview"
               });

@@ -39,8 +39,7 @@ export default {
   fetchVMStat(params) {
     return Api().get("vmstat/", params, {
       headers: {
-        "x-access-token": localStorage.getItem("token"),
-        "Content-Type": "application/x-www-form-urlencoded"
+        "x-access-token": localStorage.getItem("token")
       }
     });
   },

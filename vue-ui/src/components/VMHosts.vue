@@ -13,10 +13,16 @@
                   </span>
                 </p>
                 <p>
-                  <span>CPU: {{ host.CpuUsageMhz / 1000 }} / {{ host.CpuTotalMhz / 1000 }} GHz</span>
+                  <span
+                    >CPU: {{ host.CpuUsageMhz / 1000 }} /
+                    {{ host.CpuTotalMhz / 1000 }} GHz</span
+                  >
                 </p>
                 <p>
-                  <span>Memory: {{ host.MemoryUsageGB }} / {{ host.MemoryTotalGB }} GB</span>
+                  <span
+                    >Memory: {{ host.MemoryUsageGB }} /
+                    {{ host.MemoryTotalGB }} GB</span
+                  >
                 </p>
               </div>
             </div>

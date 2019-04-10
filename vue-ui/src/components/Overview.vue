@@ -58,9 +58,9 @@ a {
     <div class="row">
       <div id="sidebar-menu" class="col s2 m2 l2">
         <div class="collection">
-          <a href="#!" class="collection-item active">Aj.Chotipas</a>
+          <a href="#!" class="collection-item active">{{ displayName }}</a>
           <a href="#!" class="collection-item">My VMs</a>
-          <a href="#!" class="collection-item">Request</a>
+          <a href="http://localhost/newvm" class="collection-item">Request</a>
         </div>
       </div>
       <div class="col s10 m10 l10">
@@ -71,12 +71,13 @@ a {
                 <i id="icon-size" class="large material-icons">notifications_none</i>
               </li>
               <li>
-                <span id="firstname">IT Support</span>
+                <span id="username">{{ username }}</span>
               </li>
               <!-- Dropdown Trigger -->
               <li>
                 <a class="dropdown-trigger" href="#!" data-target="dropdown1">
                   <i id="icon-size" class="large material-icons">account_circle</i>
+                  <button v-on:click="logout">LOG OUT</button>
                 </a>
               </li>
             </ul>
@@ -154,9 +155,10 @@ a {
   </div>
 </template>
 
-
 <script>
 import GetServices from "@/services/GetServices";
+
+import router from "@/router";
 import { HollowDotsSpinner } from "epic-spinners";
 export default {
   name: "vms",
@@ -166,7 +168,9 @@ export default {
   data() {
     return {
       vms: [],
-      loading: true
+      loading: true,
+      username: "",
+      displayName: ""
     };
   },
   mounted() {
@@ -176,6 +180,8 @@ export default {
       });
       alert("Please Login!");
     } else {
+      this.username = localStorage.getItem("username");
+      this.displayName = localStorage.getItem("displayName");
       this.getVMs();
     }
   },
@@ -194,4 +200,3 @@ export default {
   }
 };
 </script>
-
