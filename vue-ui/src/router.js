@@ -5,6 +5,7 @@ import Login from "@/components/Login";
 import NewVM from "@/components/NewVM";
 import Chart from "@/components/Chart";
 import Overview from "@/components/Overview";
+import VMs from "@/components/VMs";
 
 Vue.use(Router);
 
@@ -21,6 +22,11 @@ export default new Router({
       path: "/login",
       name: "Login",
       component: Login
+    },
+    {
+      path: "/vms",
+      name: "VM",
+      component: VMs
     },
     {
       path: "/newvm",

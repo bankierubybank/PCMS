@@ -1,9 +1,24 @@
 <template>
   <div id="app">
-    <div id="nav"></div>
+    <div id="nav"><nav>
+    <div class="nav-wrapper">
+      <ul id="nav-mobile" class="right hide-on-med-and-down">
+        <li><router-link to="/" class="nav-link">Home</router-link></li>
+        <li><router-link to="/about" class="nav-link">About</router-link></li>
+        <li><a href="">Notification<span class="new badge">4</span></a></li> 
+        <li><router-link to="/login" class="nav-link">Login</router-link></li>
+      </ul>
+    </div>
+  </nav> </div>
+     
     <router-view />
   </div>
+  
 </template>
+
+<script>
+
+</script>
 
 <style>
 @import "https://fonts.googleapis.com/icon?family=Material+Icons";

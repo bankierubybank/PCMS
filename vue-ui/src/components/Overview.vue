@@ -68,7 +68,9 @@ a {
           <div class="nav-wrapper">
             <ul class="right hide-on-med-and-down">
               <li>
-                <i id="icon-size" class="large material-icons">notifications_none</i>
+                <i id="icon-size" class="large material-icons"
+                  >notifications_none</i
+                >
               </li>
               <li>
                 <span id="username">{{ username }}</span>
@@ -76,7 +78,9 @@ a {
               <!-- Dropdown Trigger -->
               <li>
                 <a class="dropdown-trigger" href="#!" data-target="dropdown1">
-                  <i id="icon-size" class="large material-icons">account_circle</i>
+                  <i id="icon-size" class="large material-icons"
+                    >account_circle</i
+                  >
                   <button v-on:click="logout">LOG OUT</button>
                 </a>
               </li>
@@ -88,7 +92,7 @@ a {
           <h1>Virtual Machines</h1>
           <div class="row">
             <div v-if="loading">
-              <div class="col s12 m12">
+              <!-- <div class="col s12 m12">
                 <div align="center">
                   <hollow-dots-spinner
                     :animation-duration="1000"
@@ -97,7 +101,18 @@ a {
                     color="#ff1d5e"
                   />
                 </div>
-              </div>
+              </div> -->
+               <div class="preloader-wrapper big active">
+    <div class="spinner-layer spinner-blue-only">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+  </div>
             </div>
             <div v-else>
               <div class="col s12 m12">
@@ -141,7 +156,11 @@ a {
                       <td>01/01/2562 - 01/01/2563</td>
                       <td>
                         <!-- Modal Trigger -->
-                        <a class="waves-effect waves-light btn modal-trigger" href="#modal1">View</a>
+                        <a
+                          class="waves-effect waves-light btn modal-trigger"
+                          href="#modal1"
+                          >View</a
+                        >
                       </td>
                     </tr>
                   </tbody>
