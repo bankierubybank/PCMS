@@ -59,8 +59,8 @@ a {
       <div id="sidebar-menu" class="col s2 m2 l2">
         <div class="collection">
           <a href="#!" class="collection-item active">{{ displayName }}</a>
-          <a href="#!" class="collection-item">My VMs</a>
-          <a href="http://localhost/newvm" class="collection-item">Request</a>
+          <router-link to="/newvm" class="collection-item">Request New VM</router-link>
+          <router-link to="/requestedvms" class="collection-item">Requested VM</router-link>
         </div>
       </div>
       <div class="col s10 m10 l10">
@@ -68,9 +68,7 @@ a {
           <div class="nav-wrapper">
             <ul class="right hide-on-med-and-down">
               <li>
-                <i id="icon-size" class="large material-icons"
-                  >notifications_none</i
-                >
+                <i id="icon-size" class="large material-icons">notifications_none</i>
               </li>
               <li>
                 <span id="username">{{ username }}</span>
@@ -78,9 +76,7 @@ a {
               <!-- Dropdown Trigger -->
               <li>
                 <a class="dropdown-trigger" href="#!" data-target="dropdown1">
-                  <i id="icon-size" class="large material-icons"
-                    >account_circle</i
-                  >
+                  <i id="icon-size" class="large material-icons">account_circle</i>
                   <button v-on:click="logout">LOG OUT</button>
                 </a>
               </li>
@@ -92,27 +88,19 @@ a {
           <h1>Virtual Machines</h1>
           <div class="row">
             <div v-if="loading">
-              <!-- <div class="col s12 m12">
-                <div align="center">
-                  <hollow-dots-spinner
-                    :animation-duration="1000"
-                    :dot-size="15"
-                    :dots-num="3"
-                    color="#ff1d5e"
-                  />
+              <div class="preloader-wrapper big active">
+                <div class="spinner-layer spinner-blue-only">
+                  <div class="circle-clipper left">
+                    <div class="circle"></div>
+                  </div>
+                  <div class="gap-patch">
+                    <div class="circle"></div>
+                  </div>
+                  <div class="circle-clipper right">
+                    <div class="circle"></div>
+                  </div>
                 </div>
-              </div> -->
-               <div class="preloader-wrapper big active">
-    <div class="spinner-layer spinner-blue-only">
-      <div class="circle-clipper left">
-        <div class="circle"></div>
-      </div><div class="gap-patch">
-        <div class="circle"></div>
-      </div><div class="circle-clipper right">
-        <div class="circle"></div>
-      </div>
-    </div>
-  </div>
+              </div>
             </div>
             <div v-else>
               <div class="col s12 m12">
@@ -156,11 +144,7 @@ a {
                       <td>01/01/2562 - 01/01/2563</td>
                       <td>
                         <!-- Modal Trigger -->
-                        <a
-                          class="waves-effect waves-light btn modal-trigger"
-                          href="#modal1"
-                          >View</a
-                        >
+                        <a class="waves-effect waves-light btn modal-trigger" href="#modal1">View</a>
                       </td>
                     </tr>
                   </tbody>
@@ -176,13 +160,10 @@ a {
 
 <script>
 import GetServices from "@/services/GetServices";
-
 import router from "@/router";
-import { HollowDotsSpinner } from "epic-spinners";
 export default {
   name: "vms",
   components: {
-    HollowDotsSpinner
   },
   data() {
     return {

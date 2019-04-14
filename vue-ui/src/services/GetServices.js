@@ -36,6 +36,13 @@ export default {
       }
     });
   },
+  fetchRegisteredVMs() {
+    return Api().get("registeredvm", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
+  },
   fetchVMTemplates() {
     return Api().get("templates", {
       headers: {
@@ -45,13 +52,6 @@ export default {
   },
   fetchVMStat(params) {
     return Api().get("vmstat/", params, {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
-  },
-  fetchContent() {
-    return Api().get("content", {
       headers: {
         "x-access-token": localStorage.getItem("token")
       }
