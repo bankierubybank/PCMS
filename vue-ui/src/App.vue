@@ -2,6 +2,7 @@
   <div id="app">
     <div id="nav"><nav>
     <div class="nav-wrapper">
+      <a href="#" class="brand-logo">PCMS</a>
       <ul id="nav-mobile" class="right hide-on-med-and-down">
         <li><router-link to="/" class="nav-link">Home</router-link></li>
         <li><router-link to="/about" class="nav-link">About</router-link></li>
@@ -17,7 +18,6 @@
 </template>
 
 <script>
-
 </script>
 
 <style>

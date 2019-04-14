@@ -240,6 +240,20 @@ async function vmRoutes(core) {
         }
     })
 
+    router.get('/registeredvm', verifyToken, async (req, res) => {
+        let vms;
+        await registeredVmSchema.find({
+            Requestor: req.decoded.username
+        }).then((registeredVMs) => {
+            vms = registeredVMs;
+        }).catch(err => logger.error(err))
+        if (vms[0]) {
+            res.status(200).json(vms)
+        } else {
+            res.status(200).send('No registered VM!')
+        }
+    })
+
     router.get('/vmharddisk/:vmName', verifyToken, async (req, res) => {
         await core.getVMHarddiskbyName(req.params.vmName)
             .then(output => {
@@ -357,21 +371,20 @@ async function vmOperation(core, jobs) {
     router.post('/newvm', urlencodedParser, verifyToken, async (req, res) => {
         let vmTemplate;
         await vmTemplateSchema.find({
-            GuestVersion: req.body.OS
+            Name: req.body.OS
         }).then((templates) => {
             vmTemplate = templates;
         }).catch(err => logger.error(err));
-        await core.newVMfromTemplate(req.body, vmTemplate[0])
+        await core.newVMfromTemplate(req.body, vmTemplate[0], '10.30.22.9', 'datastore1')
             .then(() => {
                 res.status(200).send('VM creation in progress!');
                 let newVM = new registeredVmSchema({
                     Name: req.body.Name,
-                    Guest: req.body.Guest,
                     NumCpu: req.body.NumCpu,
                     MemoryGB: req.body.MemoryGB,
-                    ProvisionedSpaceGB: req.body.ProvisionedSpaceGB,
+                    ProvisionedSpaceGB: req.body.DiskGB,
                     OS: req.body.OS,
-                    Requestor: req.body.Requestor,
+                    Requestor: req.decoded.username,
                     StartDate: new Date(req.body.StartDate),
                     EndDate: new Date(req.body.EndDate)
                 })

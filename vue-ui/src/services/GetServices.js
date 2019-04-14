@@ -36,6 +36,13 @@ export default {
       }
     });
   },
+  fetchVMTemplates() {
+    return Api().get("templates", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
+  },
   fetchVMStat(params) {
     return Api().get("vmstat/", params, {
       headers: {

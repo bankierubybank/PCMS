@@ -1,58 +1,27 @@
 <template>
   <div class="container">
     <h1>Create New VM</h1>
-    <div class="form">
-      <div>
-        VM Name:
-        <input type="text" name="Name" placeholder="VM Name" v-model="Name" />
+    <div class="row">
+      <div class="col s3"></div>
+      <div class="col s6">
+        <div class="form">
+          VM Name:
+          <input type="text" name="Name" placeholder="VM Name" v-model="Name">
+          NumCpu:
+          <input type="text" name="NumCpu" placeholder="NumCpu" v-model="NumCpu">
+          MemoryGB:
+          <input type="text" name="MemoryGB" placeholder="MemoryGB" v-model="MemoryGB">
+          DiskGB:
+          <input type="text" name="DiskGB" placeholder="DiskGB" v-model="DiskGB">
+          OS: {{ this.OS }} <br>
+          Start Date:
+          <datepicker name="StartDate" placeholder="StartDate" v-model="StartDate"></datepicker>
+          End Date:
+          <datepicker name="EndDate" placeholder="EndDate" v-model="EndDate"></datepicker>
+          <button class="app_post_btn" @click="newVM">Create New VM</button>
+        </div>
       </div>
-      <div>
-        NumCpu:
-        <input
-          type="text"
-          name="NumCpu"
-          placeholder="NumCpu"
-          v-model="NumCpu"
-        />
-      </div>
-      <div>
-        MemoryMB:
-        <input
-          type="text"
-          name="MemoryMB"
-          placeholder="MemoryMB"
-          v-model="MemoryMB"
-        />
-      </div>
-      <div>
-        DiskGB:
-        <input
-          type="text"
-          name="DiskGB"
-          placeholder="DiskGB"
-          v-model="DiskGB"
-        />
-      </div>
-      <div>
-        NetworkName:
-        <input
-          type="text"
-          name="NetworkName"
-          placeholder="NetworkName"
-          v-model="NetworkName"
-        />
-      </div>
-      <div>
-        Start Date:
-        <datepicker placeholder="StartDate" v-model="startDate"></datepicker>
-      </div>
-      <div>
-        End Date:
-        <datepicker placeholder="EndDate" v-model="endDate"></datepicker>
-      </div>
-      <div>
-        <button class="app_post_btn" @click="newVM">Create New VM</button>
-      </div>
+      <div class="col s3"></div>
     </div>
   </div>
 </template>
@@ -62,41 +31,50 @@ import GetServices from "@/services/GetServices";
 import PostServices from "@/services/PostServices";
 import Datepicker from "vuejs-datepicker";
 export default {
-  name: "app",
+  name: "newvm",
   components: {
     Datepicker
   },
   data() {
     return {
-      hosts: [],
+      OSs: [],
+      OS: "UbuntuTemplate",
       Name: "",
       NumCpu: "",
-      MemoryMB: "",
+      MemoryGB: "",
       DiskGB: "",
-      NetworkName: "",
-      VMHost: "10.30.22.9",
-      selectedHost: "",
-      startDate: "",
-      endDate: ""
+      StartDate: "",
+      EndDate: ""
     };
   },
-  mounted() {},
+  mounted() {
+    if (localStorage.getItem("token") == null) {
+      router.push({
+        name: "Login"
+      });
+      alert("Please Login!");
+    } else {
+      this.username = localStorage.getItem("username");
+      this.displayName = localStorage.getItem("displayName");
+    }
+  },
   methods: {
-    async getVMHosts() {
-      const response = await GetServices.fetchVMHosts();
-      this.hosts = response.data;
+    async getVMTemplates() {
+      const response = await GetServices.fetchVMTemplates();
+      this.OSs = response.data;
     },
     async newVM() {
+      console.log(this.EndDate);
+      /*
       await PostServices.newVM({
         Name: this.Name,
         NumCpu: this.NumCpu,
-        MemoryMB: this.MemoryMB,
+        MemoryGB: this.MemoryGB,
         DiskGB: this.DiskGB,
-        NetworkName: this.NetworkName,
-        VMHost: this.VMHost,
-        StartDate: this.startDate,
-        EndDate: this.endDate
-      });
+        OS: this.OS,
+        StartDate: this.StartDate,
+        EndDate: this.EndDate
+      });*/
     }
   }
 };

@@ -195,13 +195,24 @@ async function testSession() {
     app.listen(8081, () => logger.log('App listen on port: ' + 8081));
 }
 
+async function testSchedule() {
+    const schedule = require('node-schedule');
+    let job = schedule;
+
+
+    job.scheduleJob('test', 'Sun Apr 14 2019 10:13:00 GMT+0700 (Indochina Time)', async () => {
+        console.log('complete at: ' + new Date())
+    })
+}
+
 const config = require('../config/environments/test.json');
 const logger = require('../controllers/logger.js');
 async function test() {
     //await testPassportLDAP(config.ldap_url, config.ldap_username, config.ldap_password);
     //await testDB(config.mongodb_url);
     //await testSession();
-    setInterval(() => console.log('Interval at: ' + new Date()), (1000 * 2))
+    //setInterval(() => console.log('Interval at: ' + new Date()), (1000 * 2))
+    await testSchedule();
 }
 
 test();
