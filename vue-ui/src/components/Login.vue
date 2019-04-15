@@ -33,6 +33,7 @@ export default {
           .then(res => {
             if (res.data.status == true) {
               localStorage.setItem("token", res.data.token);
+              localStorage.setItem("type", res.data.type);
               localStorage.setItem("username", res.data.username);
               localStorage.setItem("displayName", res.data.displayName);
               localStorage.setItem("mail", res.data.mail);

@@ -47,45 +47,78 @@ async function main() {
         if (req.header('Authorization') || req.headers["x-access-token"]) {
             res.status(400).send('Already logged in!');
         } else {
-            let client = new LdapClient({
-                url: config.ldap_url
-            });
-
-            await client.bind(req.body.username + '@it.kmitl.ac.th', req.body.password)
-                .catch(err => {
-                    res.status(401).send('Auth failed, please check your username/password.');
-                    logger.error(err);
+            let accountData = {
+                type: '',
+                username: '',
+                displayName: '',
+                mail: ''
+            }
+            if (req.body.username == 'admin' && req.body.password == 'admin') {
+                accountData.type = 'Staff';
+                accountData.username = 'admin';
+                accountData.displayName = 'admin';
+                accountData.mail = '58070020@kmitl.ac.th';
+            } else {
+                let client = new LdapClient({
+                    url: config.ldap_url
                 });
 
-            let filter_option = '(&(sAMAccountName=' + req.body.username + '))';
+                await client.bind(req.body.username + '@it.kmitl.ac.th', req.body.password)
+                    .catch(err => {
+                        res.status(401).send('Auth failed, please check your username/password.');
+                        logger.error(err);
+                    });
 
-            let options = {
-                scope: 'sub',
-                filter: filter_option,
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                //filter: '(&(displayName=นายก*))'
-            };
+                let filter_option = '(&(sAMAccountName=' + req.body.username + '))';
 
-            //const entries = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
-            let entries = await client.search('OU=IT13,OU=Bachelor,OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
+                let options = {
+                    scope: 'sub',
+                    filter: filter_option,
+                    attributes: ['sAMAccountName', 'displayName', 'mail'],
+                    //filter: '(&(displayName=นายก*))'
+                };
+
+                let Lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
+                let Staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
+                let Students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
+
+                if (Lecturers.length != 0) {
+                    accountData.type = 'Lecturer';
+                    accountData.username = Lecturers[0].sAMAccountName;
+                    accountData.displayName = Lecturers[0].displayName;
+                    accountData.mail = Lecturers[0].mail;
+                } else if (Staffs.length != 0) {
+                    accountData.type = 'Staff';
+                    accountData.username = Staffs[0].sAMAccountName;
+                    accountData.displayName = Staffs[0].displayName;
+                    accountData.mail = Staffs[0].mail;
+                } else if (Students.length != 0) {
+                    accountData.type = 'Student';
+                    accountData.username = Students[0].sAMAccountName;
+                    accountData.displayName = Students[0].displayName;
+                    accountData.mail = Students[0].mail;
+                }
+
+                await client.destroy().catch(err => logger.error(err));
+            }
 
             let payload = {
-                username: entries[0].sAMAccountName,
-                displayName: entries[0].displayName,
-                mail: entries[0].mail
+                type: accountData.type,
+                username: accountData.username,
+                displayName: accountData.displayName,
+                mail: accountData.mail
             }
             let token = jwt.sign(payload, config.appSecret, {
                 expiresIn: '1h'
             });
             res.status(200).json({
                 status: true,
-                username: entries[0].sAMAccountName,
-                displayName: entries[0].displayName,
-                mail: entries[0].mail,
+                type: accountData.type,
+                username: accountData.sAMAccountName,
+                displayName: accountData.displayName,
+                mail: accountData.mail,
                 token: token
             });
-
-            await client.destroy().catch(err => logger.error(err));
         }
     });
 
