@@ -71,13 +71,12 @@ a {
                 <i id="icon-size" class="large material-icons">notifications_none</i>
               </li>
               <li>
-                <span id="username">{{ username }}</span>
+                <span id="username">{{ this.username }}</span>
               </li>
               <!-- Dropdown Trigger -->
               <li>
                 <a class="dropdown-trigger" href="#!" data-target="dropdown1">
                   <i id="icon-size" class="large material-icons">account_circle</i>
-                  <button v-on:click="logout">LOG OUT</button>
                 </a>
               </li>
             </ul>
@@ -163,8 +162,7 @@ import GetServices from "@/services/GetServices";
 import router from "@/router";
 export default {
   name: "vms",
-  components: {
-  },
+  components: {},
   data() {
     return {
       vms: [],
@@ -174,28 +172,23 @@ export default {
     };
   },
   mounted() {
-    if (localStorage.getItem("token") == null) {
-      router.push({
-        name: "Login"
-      });
-      alert("Please Login!");
-    } else {
-      this.username = localStorage.getItem("username");
-      this.displayName = localStorage.getItem("displayName");
-      this.getVMs();
-    }
+    this.getVMs();
   },
   methods: {
     async getVMs() {
-      const response = await GetServices.fetchVMs();
-      this.vms = response.data;
-      this.loading = false;
-    },
-    async logout() {
-      await GetServices.logout();
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
-      router.push({ name: "Login" });
+      await GetServices.fetchVMs()
+        .then(res => {
+          this.vms = res.data;
+          this.loading = false;
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            alert("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
     }
   }
 };

@@ -12,7 +12,7 @@
         <div class="col s10 m10 l10">
           <nav>
             <div class="nav-wrapper">
-              <a href="#" class="brand-logo">PCMS</a>
+              <a href="" class="brand-logo">PCMS</a>
               <ul id="nav-mobile" class="right hide-on-med-and-down">
                 <li>
                   <router-link to="/" class="nav-link">Home</router-link>
@@ -29,19 +29,53 @@
                 <li>
                   <router-link to="/login" class="nav-link">Login</router-link>
                 </li>
+                <li>
+                  <a v-on:click="logout">Logout</a>
+                </li>
               </ul>
             </div>
           </nav>
-          <div class="col s12 m12"></div>
+          <div class="col s12 m12">
+            <router-view/>
+          </div>
         </div>
       </div>
     </div>
-
-    <router-view/>
   </div>
 </template>
 
 <script>
+import GetServices from "@/services/GetServices";
+export default {
+  data() {
+    return {
+      username: "",
+      displayName: ""
+    };
+  },
+  mounted() {
+    if (localStorage.getItem("token") == null) {
+      this.$router.push({
+        name: "Login"
+      });
+      alert("Please Login!");
+    } else {
+      this.username = localStorage.getItem("username");
+      this.displayName = localStorage.getItem("displayName");
+    }
+  },
+  methods: {
+    async logout() {
+      await GetServices.logout();
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      localStorage.removeItem("displayName");
+      this.$router.push({
+        name: "Login"
+      });
+    }
+  }
+};
 </script>
 
 <style>
