@@ -287,6 +287,30 @@ async function vmRoutes(core) {
         }
     })
 
+    router.get('/powerstatestat', verifyToken, async (req, res) => {
+        let data = [];
+        await VMPerfSchema.find().then((vms) => {
+            vms.forEach((vm) => {
+                let length = vm.stats.length;
+                let trueCount = 0;
+                vm.stats.map(x => {
+                    if (x.PowerState) {
+                        trueCount++;
+                    }
+                })
+                let falseCount = length - trueCount;
+                data.push({
+                    Name: vm.Name,
+                    statCount: length,
+                    trueCount: trueCount,
+                    falseCount: falseCount
+                });
+                logger.info(`${vm.Name}, Length: ${length}, True: ${trueCount}, False: ${falseCount}`)
+            })
+        }).catch(err => logger.error(err));
+        res.status(200).json(data);
+    })
+
     router.get('/vmharddisk/:vmName', verifyToken, async (req, res) => {
         await core.getVMHarddiskbyName(req.params.vmName)
             .then(output => {
