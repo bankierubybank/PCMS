@@ -78,9 +78,11 @@ const config = require('../config/environments/test.json');
 const logger = require('../controllers/logger.js');
 async function test() {
     //await testPassportLDAP(config.ldap_url, config.ldap_username, config.ldap_password);
-    await testDB(config.mongodb_url);
+    //await testDB(config.mongodb_url);
     //setInterval(() => logger.info('Interval at: ' + new Date()), (1000 * 2))
     //await testSchedule();
+    let uploadToGoogleDrive = require('../controllers/googleDrive.js');
+    uploadToGoogleDrive('log.zip');
 }
 
 test();
