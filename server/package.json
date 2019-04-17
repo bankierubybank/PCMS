@@ -16,6 +16,7 @@
   "private": true,
   "dependencies": {
     "app-root-path": "^2.1.0",
+    "bull": "^3.7.0",
     "compressing": "^1.4.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.4",

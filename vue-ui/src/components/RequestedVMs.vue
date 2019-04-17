@@ -1,43 +1,18 @@
 <template>
   <div class="container">
     <h1>Requested virtual machines</h1>
-    <div class="row">
-      <div class="vms">
-        <div v-for="(vm, id) in vms" :key="id">
-          <div class="col s12 m6">
-            <div class="card">
-              <div class="card-content">
-                <p>
-                  <span>
-                    <b>VM Name: {{ vm.Name }}</b>
-                  </span>
-                </p>
-                <p>
-                  <span>Guest: {{ vm.Guest }}</span>
-                </p>
-                <p>
-                  <span>Cpu: {{ vm.NumCpu }} Core</span>
-                </p>
-                <p>
-                  <span>Memory: {{ vm.MemoryGB }} GB</span>
-                </p>
-                <p>
-                  <span>Storage: {{ vm.ProvisionedSpaceGB }} GB</span>
-                </p>
-                <p>
-                  <span>OS: {{ vm.OS }}</span>
-                </p>
-                <p>
-                  <span>StartDate: {{ vm.StartDate }}</span>
-                </p>
-                <p>
-                  <span>EndDate: {{ vm.EndDate }}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div v-for="(vm, id) in vms" :key="id">
+      <b-card
+        tag="article"
+        style="max-width: 20rem;"
+        class="mb-2"
+      >
+        <b-card-text>Name: {{ vm.Name }}</b-card-text>
+        <b-card-text>NumCpu: {{ vm.NumCpu }}</b-card-text>
+        <b-card-text>MemoryGB: {{ vm.MemoryGB }}</b-card-text>
+        <b-card-text>StartDate: {{ vm.StartDate }}</b-card-text>
+        <b-card-text>EndDate: {{ vm.EndDate }}</b-card-text>
+      </b-card>
     </div>
   </div>
 </template>
