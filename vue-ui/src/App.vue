@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <b-container class="bv-example-row">
-      <b-navbar toggleable="lg" type="dark" variant="info">
+        <b-navbar toggleable="lg" type="dark" variant="info">
         <b-navbar-brand>PCMS</b-navbar-brand>
 
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -27,27 +26,10 @@
           </b-navbar-nav>
         </b-collapse>
       </b-navbar>
-      <b-row>
-        <b-col>
-          <b-list-group>
-            <b-list-group-item>
-              <router-link to="/overview" class="collection-item">All VM</router-link>
-            </b-list-group-item>
-            <b-list-group-item>
-              <router-link to="/newvm" class="collection-item">Request New VM</router-link>
-            </b-list-group-item>
-            <b-list-group-item>
-              <router-link to="/requestedvms" class="collection-item">Requested VM</router-link>
-            </b-list-group-item>
-          </b-list-group>
-        </b-col>
-        <b-col cols="10">
-          <router-view/>
-        </b-col>
-      </b-row>
-    </b-container>
+      <router-view/>
   </div>
 </template>
+
 
 <script>
 import GetServices from "@/services/GetServices";
