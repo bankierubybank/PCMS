@@ -1,20 +1,37 @@
 <template>
-  <div class="container">
-    <h1>Requested virtual machines</h1>
-    <div v-for="(vm, id) in vms" :key="id">
-      <b-card
-        tag="article"
-        style="max-width: 20rem;"
-        class="mb-2"
-      >
-        <b-card-text>Name: {{ vm.Name }}</b-card-text>
-        <b-card-text>NumCpu: {{ vm.NumCpu }}</b-card-text>
-        <b-card-text>MemoryGB: {{ vm.MemoryGB }}</b-card-text>
-        <b-card-text>StartDate: {{ vm.StartDate }}</b-card-text>
-        <b-card-text>EndDate: {{ vm.EndDate }}</b-card-text>
-      </b-card>
-    </div>
-  </div>
+  <b-row>
+    <b-col cols="2">
+      <b-list-group>
+            <b-list-group-item>
+              <router-link to="/overview" class="collection-item">All VM</router-link>
+            </b-list-group-item>
+            <b-list-group-item>
+              <router-link to="/newvm" class="collection-item">Request New VM</router-link>
+            </b-list-group-item>
+            <b-list-group-item>
+              <router-link to="/requestedvms" class="collection-item">Requested VM</router-link>
+            </b-list-group-item>
+      </b-list-group>
+    </b-col>
+    <b-col cols="8">
+      <div class="container">
+        <h1>Requested virtual machines</h1>
+        <div v-for="(vm, id) in vms" :key="id">
+          <b-card
+            tag="article"
+            style="max-width: 20rem;"
+            class="mb-2"
+          >
+            <b-card-text>Name: {{ vm.Name }}</b-card-text>
+            <b-card-text>NumCpu: {{ vm.NumCpu }}</b-card-text>
+            <b-card-text>MemoryGB: {{ vm.MemoryGB }}</b-card-text>
+            <b-card-text>StartDate: {{ vm.StartDate }}</b-card-text>
+            <b-card-text>EndDate: {{ vm.EndDate }}</b-card-text>
+          </b-card>
+        </div>
+      </div>
+    </b-col>
+  </b-row>
 </template>
 
 <script>
