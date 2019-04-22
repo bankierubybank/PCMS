@@ -44,82 +44,78 @@ async function main() {
         .catch(err => logger.error(err));
 
     router.post('/login', urlencodedParser, async (req, res) => {
-        if (req.header('Authorization') || req.headers["x-access-token"]) {
-            res.status(400).send('Already logged in!');
+        let accountData = {
+            type: '',
+            username: '',
+            displayName: '',
+            mail: ''
+        }
+        if (req.body.username == 'admin' && req.body.password == 'admin') {
+            accountData.type = 'Staff';
+            accountData.username = 'admin';
+            accountData.displayName = 'admin';
+            accountData.mail = '58070020@kmitl.ac.th';
         } else {
-            let accountData = {
-                type: '',
-                username: '',
-                displayName: '',
-                mail: ''
-            }
-            if (req.body.username == 'admin' && req.body.password == 'admin') {
-                accountData.type = 'Staff';
-                accountData.username = 'admin';
-                accountData.displayName = 'admin';
-                accountData.mail = '58070020@kmitl.ac.th';
-            } else {
-                let client = new LdapClient({
-                    url: config.ldap_url
+            let client = new LdapClient({
+                url: config.ldap_url
+            });
+
+            await client.bind(req.body.username + '@it.kmitl.ac.th', req.body.password)
+                .catch(err => {
+                    res.status(401).send('Auth failed, please check your username/password.');
+                    logger.error(err);
                 });
 
-                await client.bind(req.body.username + '@it.kmitl.ac.th', req.body.password)
-                    .catch(err => {
-                        res.status(401).send('Auth failed, please check your username/password.');
-                        logger.error(err);
-                    });
+            let filter_option = '(&(sAMAccountName=' + req.body.username + '))';
 
-                let filter_option = '(&(sAMAccountName=' + req.body.username + '))';
+            let options = {
+                scope: 'sub',
+                filter: filter_option,
+                attributes: ['sAMAccountName', 'displayName', 'mail'],
+                //filter: '(&(displayName=นายก*))'
+            };
 
-                let options = {
-                    scope: 'sub',
-                    filter: filter_option,
-                    attributes: ['sAMAccountName', 'displayName', 'mail'],
-                    //filter: '(&(displayName=นายก*))'
-                };
+            let Lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
+            let Staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
+            let Students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
 
-                let Lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
-                let Staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
-                let Students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
-
-                if (Lecturers.length != 0) {
-                    accountData.type = 'Lecturer';
-                    accountData.username = Lecturers[0].sAMAccountName;
-                    accountData.displayName = Lecturers[0].displayName;
-                    accountData.mail = Lecturers[0].mail;
-                } else if (Staffs.length != 0) {
-                    accountData.type = 'Staff';
-                    accountData.username = Staffs[0].sAMAccountName;
-                    accountData.displayName = Staffs[0].displayName;
-                    accountData.mail = Staffs[0].mail;
-                } else if (Students.length != 0) {
-                    accountData.type = 'Student';
-                    accountData.username = Students[0].sAMAccountName;
-                    accountData.displayName = Students[0].displayName;
-                    accountData.mail = Students[0].mail;
-                }
-
-                await client.destroy().catch(err => logger.error(err));
+            if (Lecturers.length != 0) {
+                accountData.type = 'Lecturer';
+                accountData.username = Lecturers[0].sAMAccountName;
+                accountData.displayName = Lecturers[0].displayName;
+                accountData.mail = Lecturers[0].mail;
+            } else if (Staffs.length != 0) {
+                accountData.type = 'Staff';
+                accountData.username = Staffs[0].sAMAccountName;
+                accountData.displayName = Staffs[0].displayName;
+                accountData.mail = Staffs[0].mail;
+            } else if (Students.length != 0) {
+                accountData.type = 'Student';
+                accountData.username = Students[0].sAMAccountName;
+                accountData.displayName = Students[0].displayName;
+                accountData.mail = Students[0].mail;
             }
 
-            let payload = {
-                type: accountData.type,
-                username: accountData.username,
-                displayName: accountData.displayName,
-                mail: accountData.mail
-            }
-            let token = jwt.sign(payload, config.appSecret, {
-                expiresIn: '1h'
-            });
-            res.status(200).json({
-                status: true,
-                type: accountData.type,
-                username: accountData.sAMAccountName,
-                displayName: accountData.displayName,
-                mail: accountData.mail,
-                token: token
-            });
+            await client.destroy().catch(err => logger.error(err));
         }
+
+        let payload = {
+            type: accountData.type,
+            username: accountData.username,
+            displayName: accountData.displayName,
+            mail: accountData.mail
+        }
+        let token = jwt.sign(payload, config.appSecret, {
+            expiresIn: '1h'
+        });
+        res.status(200).json({
+            status: true,
+            type: accountData.type,
+            username: accountData.sAMAccountName,
+            displayName: accountData.displayName,
+            mail: accountData.mail,
+            token: token
+        });
     });
 
     router.get('/content', verifyToken, async (req, res) => {
@@ -287,6 +283,13 @@ async function vmRoutes(core) {
         }
     })
 
+    router.get('/powerstate', verifyToken, async (req, res) => {
+        await VMPerfSchema.find().then((data) => {
+            res.status(200).json(data);
+        }).catch(err => logger.error(err));
+
+    })
+
     router.get('/powerstatestat', verifyToken, async (req, res) => {
         let data = [];
         await VMPerfSchema.find().then((vms) => {
@@ -305,7 +308,6 @@ async function vmRoutes(core) {
                     trueCount: trueCount,
                     falseCount: falseCount
                 });
-                logger.info(`${vm.Name}, Length: ${length}, True: ${trueCount}, False: ${falseCount}`)
             })
         }).catch(err => logger.error(err));
         res.status(200).json(data);
@@ -358,7 +360,7 @@ async function vmRoutes(core) {
      * disk.provisioned.latest
      * disk.unshared.latest
      */
-    router.get('/vmstat', urlencodedParser, verifyToken, async (req, res) => {
+    router.post('/vmstat', urlencodedParser, verifyToken, async (req, res) => {
         await core.getVMStat(req.body.vmName, req.body.intervalMins, req.body.stat)
             .then(output => {
                 res.status(200).json(output);

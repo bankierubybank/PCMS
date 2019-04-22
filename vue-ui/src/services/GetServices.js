@@ -50,8 +50,15 @@ export default {
       }
     });
   },
+  fetchPowerState() {
+    return Api().get("powerstate", {
+      headers: {
+        "x-access-token": localStorage.getItem("token")
+      }
+    });
+  },
   fetchVMStat(params) {
-    return Api().get("vmstat/", params, {
+    return Api().post("vmstat", params, {
       headers: {
         "x-access-token": localStorage.getItem("token")
       }

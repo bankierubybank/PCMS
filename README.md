@@ -77,15 +77,7 @@ $ cd vue-ui
 $ npm run serve
 ```
 Open Web Browser and go to
-- [localhost:8080/vms](http://localhost:8080/vms) to see all virtual machines data.
-- [localhost:8080/vmhosts](http://localhost:8080/vmhosts) to see all hosts data.
-- [localhost:8080/datastores](http://localhost:8080/datastores) to see all datastores data.
-- [localhost:8080/datacenters](http://localhost:8080/datacenters) to see all virtual machines data.
-
-### Todos
-* Automatic create vm and install guest os when user request
-* Automatic power-off vm when no usage for a time
-* Automatic backup and delete vm when not use that vm anymore
+- [localhost](http://localhost)
 
 ### Node.js Module
 | Module Name | Source | Description |
@@ -110,9 +102,9 @@ Open Web Browser and go to
 | ------ | ------ |
 | axios | [axios] |
 | vuejs-datepicker | [vuejs-datepicker] |
-| vue-select | [vue-select] |
-| epic-spinner | [epic-spinner] |
-| materialize-css | [materialize-css] |
+| bootstrap-vue | [bootstrap-vue] |
+| vue2-frappe | [vue2-frappe] |
+
 
 ### JS Style Guide
 Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.html with [eslint].
@@ -136,14 +128,12 @@ Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.htm
    [mongoose]: <https://github.com/Automattic/mongoose>
    [googleapis]: <https://github.com/googleapis/google-api-nodejs-client>
    [ldapjs-client]: <https://github.com/zont/ldapjs-client>
-   [express-session]: <https://github.com/expressjs/session>
    [jsonwebtoken]: <https://github.com/auth0/node-jsonwebtoken>
    
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
-   [vue-select]: <https://github.com/sagalbot/vue-select>
-   [materialize-css]: <https://github.com/dogfalo/materialize/>
-   [epic-spinner]: <https://github.com/epicmaxco/epic-spinners>
+   [bootstrap-vue]: <https://github.com/bootstrap-vue/bootstrap-vue>
+   [vue2-frappe]: <https://github.com/JustSteveKing/vue2-frappe>
    
    [winston]: <https://github.com/winstonjs/winston>
    [pm2]: <https://github.com/Unitech/pm2>

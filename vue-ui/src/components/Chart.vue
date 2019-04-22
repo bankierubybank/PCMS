@@ -1,39 +1,44 @@
 <template>
   <div class="container">
     <h1>Chart</h1>
-    <div class="chart">
-      <line-chart
-        id="line"
-        :data="chartData"
-        xkey="Timestamp"
-        ykeys='["Value"]'
-        labels='["T1"]'
-        line-color='["#FF6384"]'
-        grid="true"
-        grid-text-weight="bold"
-        resize="true"
-      ></line-chart>
+
+    <div v-if="loading">
+      <b-spinner variant="primary" label="Spinning"></b-spinner>
+    </div>
+    <div v-else>
+      <vue-frappe
+        id="test"
+        :labels="this.labels"
+        title="My Awesome Chart"
+        type="axis-mixed"
+        :height="300"
+        :colors="['purple', '#ffa3ef', 'light-blue']"
+        :dataSets="this.data"
+      ></vue-frappe>
+      DATA: {{this.data}}
+      <br>
+      LABELS: {{this.labels}}
     </div>
   </div>
 </template>
 
 <script>
 import GetServices from "@/services/GetServices";
-import Raphael from "raphael/raphael";
-global.Raphael = Raphael;
-import { LineChart } from "vue-morris";
 export default {
   name: "chart",
-  components: {
-    LineChart
-  },
+  components: {},
   data() {
     return {
-      chartData: []
+      chartData: [],
+      data: [],
+      labels: [],
+      loading: true,
+      maxLength: 0
     };
   },
   mounted() {
-    this.getVMStat();
+    //this.getVMStat();
+    this.getPowerState();
   },
   methods: {
     async getVMStat() {
@@ -43,53 +48,38 @@ export default {
         stat: "mem.usage.average"
       });
       this.chartData = response.data;
-      /*
-      this.chartData = [
-        {
-          Timestamp: "2019-03-14T07:00:00+07:00",
-          Value: 22.36
-        },
-        {
-          Timestamp: "2019-03-15T07:00:00+07:00",
-          Value: 24.6
-        },
-        {
-          Timestamp: "2019-03-16T07:00:00+07:00",
-          Value: 28.25
-        },
-        {
-          Timestamp: "2019-03-17T07:00:00+07:00",
-          Value: 30.13
-        },
-        {
-          Timestamp: "2019-03-18T07:00:00+07:00",
-          Value: 32.7
-        },
-        {
-          Timestamp: "2019-03-19T07:00:00+07:00",
-          Value: 36.07
-        },
-        {
-          Timestamp: "2019-03-20T07:00:00+07:00",
-          Value: 38.53
-        },
-        {
-          Timestamp: "2019-03-21T07:00:00+07:00",
-          Value: 24.31
-        },
-        {
-          Timestamp: "2019-03-22T07:00:00+07:00",
-          Value: 26.3
-        },
-        {
-          Timestamp: "2019-03-23T07:00:00+07:00",
-          Value: 31.16
-        },
-        {
-          Timestamp: "2019-03-24T07:00:00+07:00",
-          Value: 34.14
-        }
-      ];*/
+      console.log(this.chartData);
+    },
+    async getPowerState() {
+      await GetServices.fetchPowerState()
+        .then(res => {
+          res.data.forEach(vm => {
+            this.data.push({
+              name: vm.Name,
+              chartType: "line",
+              values: vm.stats.map(x => {
+                if (x.PowerState) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              })
+            });
+            if(vm.stats.length > this.maxLength) {
+              this.maxLength = vm.stats.length
+              this.labels = vm.stats.map(x => x.timestamp)
+            }
+          });
+          this.loading = false;
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            alert("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
     }
   }
 };
