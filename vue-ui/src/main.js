@@ -5,14 +5,10 @@ import store from "./store";
 import BootstrapVue from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import VCalendar from "v-calendar";
 import Chart from "vue2-frappe";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
-Vue.use(VCalendar, {
-  firstDayOfWeek: 1
-});
 
 Vue.use(Chart);
 

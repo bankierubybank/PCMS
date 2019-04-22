@@ -34,10 +34,10 @@
           </b-form-group>
 
           <b-form-group label="StartDate">
-            <v-date-picker mode="single" v-model="vmSpec.StartDate"></v-date-picker>
+            <datepicker v-model="vmSpec.StartDate" name="StartDate"></datepicker>
           </b-form-group>
           <b-form-group label="EndDate">
-            <v-date-picker mode="single" v-model="vmSpec.EndDate"></v-date-picker>
+            <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
           </b-form-group>
           <b-button type="submit" variant="primary">Submit</b-button>
         </b-form>
@@ -52,7 +52,9 @@ import PostServices from "@/services/PostServices";
 import Datepicker from "vuejs-datepicker";
 export default {
   name: "newvm",
-  components: {},
+  components: {
+    Datepicker
+  },
   data() {
     return {
       vmSpec: {

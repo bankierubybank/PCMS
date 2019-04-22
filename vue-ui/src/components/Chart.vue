@@ -15,9 +15,6 @@
         :colors="['purple', '#ffa3ef', 'light-blue']"
         :dataSets="this.data"
       ></vue-frappe>
-      DATA: {{this.data}}
-      <br>
-      LABELS: {{this.labels}}
     </div>
   </div>
 </template>
@@ -65,9 +62,16 @@ export default {
                 }
               })
             });
-            if(vm.stats.length > this.maxLength) {
-              this.maxLength = vm.stats.length
-              this.labels = vm.stats.map(x => x.timestamp)
+            //Get maxinum length of datasets
+            if (vm.stats.length > this.maxLength) {
+              this.maxLength = vm.stats.length;
+              this.labels = vm.stats.map(x => x.timestamp);
+            }
+          });
+          //Pad 0 at beginning for datasets that length are less than the maxinum length of datasets
+          this.data.forEach(vm => {
+            for (let i = vm.values.length; i < this.maxLength; i++) {
+              vm.values = [0].concat(vm.values);
             }
           });
           this.loading = false;
