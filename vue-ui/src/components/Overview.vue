@@ -3,13 +3,19 @@
     <b-col cols="2">
       <b-list-group>
         <b-list-group-item>
-          <router-link to="/overview" class="collection-item">All VM</router-link>
+          <router-link to="/overview" class="collection-item"
+            >All VM</router-link
+          >
         </b-list-group-item>
         <b-list-group-item>
-          <router-link to="/newvm" class="collection-item">Request New VM</router-link>
+          <router-link to="/newvm" class="collection-item"
+            >Request New VM</router-link
+          >
         </b-list-group-item>
         <b-list-group-item>
-          <router-link to="/requestedvms" class="collection-item">Requested VM</router-link>
+          <router-link to="/requestedvms" class="collection-item"
+            >Requested VM</router-link
+          >
         </b-list-group-item>
       </b-list-group>
     </b-col>
@@ -36,7 +42,7 @@ export default {
   data() {
     return {
       vms: [],
-      fields: ["Name", "NumCpu", "MemoryGB"],
+      fields: ["Name", "Id", "NumCpu", "MemoryGB", "PowerState"],
       loading: true,
       username: "",
       displayName: ""

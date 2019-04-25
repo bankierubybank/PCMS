@@ -111,7 +111,7 @@ async function main() {
         res.status(200).json({
             status: true,
             type: accountData.type,
-            username: accountData.sAMAccountName,
+            username: accountData.username,
             displayName: accountData.displayName,
             mail: accountData.mail,
             token: token

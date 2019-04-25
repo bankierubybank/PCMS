@@ -1,36 +1,49 @@
 <template>
-  <div class="container">
-    <h1>Chart</h1>
+  <b-container>
+    <h1>VM Stat Chart</h1>
 
     <div v-if="loading">
       <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
     <div v-else>
-      <vue-frappe
-        id="test"
-        :labels="this.labels"
-        title="My Awesome Chart"
-        type="axis-mixed"
-        :height="300"
-        :colors="['purple', '#ffa3ef', 'light-blue']"
-        :dataSets="this.data"
-      ></vue-frappe>
+      <b-card-group deck>
+        <div v-for="(vm) in this.data" v-bind:key="vm.name">
+          <b-card style="max-width: 20rem;" class="mb-2">
+            <b-card-text>VM Name: {{ vm.name }}</b-card-text>
+            <vue-apex-charts type="pie" :options="chartOptions" :series="vm.sum"/>
+            <b-button v-b-modal="vm.name">See Detail</b-button>
+
+            <b-modal :id="vm.name" :title="'VM Name: ' + vm.name" hide-footer>
+              <vue-apex-charts
+                type="line"
+                :options="vm.lineOptions"
+                :series="[{ name: vm.name, data: vm.data}]"
+              />
+            </b-modal>
+          </b-card>
+        </div>
+      </b-card-group>
     </div>
-  </div>
+  </b-container>
 </template>
 
 <script>
 import GetServices from "@/services/GetServices";
+import VueApexCharts from "vue-apexcharts";
 export default {
   name: "chart",
-  components: {},
+  components: { VueApexCharts },
   data() {
     return {
       chartData: [],
       data: [],
       labels: [],
       loading: true,
-      maxLength: 0
+      maxLength: 0,
+      series: [44, 55],
+      chartOptions: {
+        labels: ["Power On", "Power Off"]
+      }
     };
   },
   mounted() {
@@ -51,28 +64,30 @@ export default {
       await GetServices.fetchPowerState()
         .then(res => {
           res.data.forEach(vm => {
+            let PowerOnCount = 0;
+            let temp = vm.stats.map(x => {
+              if (x.PowerState) {
+                PowerOnCount++;
+                return 1;
+              } else {
+                return 0;
+              }
+            });
             this.data.push({
               name: vm.Name,
-              chartType: "line",
-              values: vm.stats.map(x => {
-                if (x.PowerState) {
-                  return 1;
-                } else {
-                  return 0;
+              data: temp,
+              lineOptions: {
+                chart: {
+                  zoom: {
+                    enabled: true
+                  }
+                },
+                xaxis: {
+                  categories: vm.stats.map(x => x.timestamp)
                 }
-              })
+              },
+              sum: [PowerOnCount, vm.stats.length - PowerOnCount]
             });
-            //Get maxinum length of datasets
-            if (vm.stats.length > this.maxLength) {
-              this.maxLength = vm.stats.length;
-              this.labels = vm.stats.map(x => x.timestamp);
-            }
-          });
-          //Pad 0 at beginning for datasets that length are less than the maxinum length of datasets
-          this.data.forEach(vm => {
-            for (let i = vm.values.length; i < this.maxLength; i++) {
-              vm.values = [0].concat(vm.values);
-            }
           });
           this.loading = false;
         })

@@ -6,6 +6,7 @@ import NewVM from "@/components/NewVM";
 import Chart from "@/components/Chart";
 import Overview from "@/components/Overview";
 import RequestedVMs from "@/components/RequestedVMs";
+import Datacenters from "@/components/Datacenters";
 
 Vue.use(Router);
 
@@ -51,6 +52,10 @@ export default new Router({
       path: "/overview",
       name: "Overview",
       component: Overview
+    },{
+      path: "/test",
+      name: "Datacenters",
+      component: Datacenters
     }
   ]
 });

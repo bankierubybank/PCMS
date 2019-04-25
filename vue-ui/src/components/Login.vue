@@ -15,14 +15,14 @@
 </template>
 
 <style scoped>
-  .login{
-    margin: auto;
-    padding-top: 2.5em;
-    width: 50%;
-  }
-  .form-control{
-    width: 80%;
-  }
+.login {
+  margin: auto;
+  padding-top: 2.5em;
+  width: 50%;
+}
+.form-control {
+  width: 80%;
+}
 </style>
 
 <script>

@@ -16,16 +16,19 @@
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
-          <b-nav-item>
-            <router-link to="/login" class="nav-link">Login</router-link>
-          </b-nav-item>
-          <b-nav-item-dropdown right>
-            <template slot="button-content">
-              <em>User</em>
-            </template>
-            <b-dropdown-item href="#">Profile</b-dropdown-item>
-            <b-dropdown-item v-on:click="logout">Sign Out</b-dropdown-item>
-          </b-nav-item-dropdown>
+          <div v-if="loggedIn">
+            <b-nav-item-dropdown right>
+              <template slot="button-content">
+                <em>{{this.username}}</em>
+              </template>
+              <b-dropdown-item v-on:click="logout">Sign Out</b-dropdown-item>
+            </b-nav-item-dropdown>
+          </div>
+          <div v-else>
+            <b-nav-item>
+              <router-link to="/login" class="nav-link">Login</router-link>
+            </b-nav-item>
+          </div>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -33,14 +36,14 @@
   </div>
 </template>
 
-
 <script>
 import GetServices from "@/services/GetServices";
 export default {
   data() {
     return {
       username: "",
-      displayName: ""
+      displayName: "",
+      loggedIn: false
     };
   },
   mounted() {
@@ -52,6 +55,7 @@ export default {
     } else {
       this.username = localStorage.getItem("username");
       this.displayName = localStorage.getItem("displayName");
+      this.loggedIn = true;
     }
   },
   methods: {
@@ -62,6 +66,7 @@ export default {
       localStorage.removeItem("username");
       localStorage.removeItem("displayName");
       localStorage.removeItem("mail");
+      this.loggedIn = false;
       this.$router.push({
         name: "Login"
       });
