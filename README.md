@@ -103,7 +103,7 @@ Open Web Browser and go to
 | axios | [axios] |
 | vuejs-datepicker | [vuejs-datepicker] |
 | bootstrap-vue | [bootstrap-vue] |
-| vue2-frappe | [vue2-frappe] |
+| vue-apexcharts | [vue-apexcharts] |
 
 
 ### JS Style Guide
@@ -133,7 +133,7 @@ Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.htm
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
    [bootstrap-vue]: <https://github.com/bootstrap-vue/bootstrap-vue>
-   [vue2-frappe]: <https://github.com/JustSteveKing/vue2-frappe>
+   [vue-apexcharts]: <https://github.com/apexcharts/vue-apexcharts>
    
    [winston]: <https://github.com/winstonjs/winston>
    [pm2]: <https://github.com/Unitech/pm2>

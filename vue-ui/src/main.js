@@ -5,12 +5,12 @@ import store from "./store";
 import BootstrapVue from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import Chart from "vue2-frappe";
+import VueApexCharts from "vue-apexcharts";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 
-Vue.use(Chart);
+Vue.component("apexchart", VueApexCharts);
 
 new Vue({
   router,

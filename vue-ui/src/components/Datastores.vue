@@ -1,39 +1,36 @@
 <template>
-  <div class="container">
+  <b-container>
     <h1>All datastores</h1>
-    <div class="row">
-      <div class="datastores">
-        <div v-for="(datastore, id) in datastores" :key="id">
-          <div class="col s12 m6">
-            <div class="card">
-              <div class="card-content">
-                <p>
-                  <span>
-                    <b>Name: {{ datastore.Name }}</b>
-                  </span>
-                </p>
-                <p>
-                  <span>Free: {{ datastore.FreeSpaceGB }} GB</span>
-                </p>
-                <p>
-                  <span>Capacity: {{ datastore.CapacityGB }} GB</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div v-if="loading">
+      <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
-  </div>
+    <div v-else>
+      <b-card-group deck>
+        <div v-for="(datastore) in this.datastores" v-bind:key="datastore.Id">
+          <b-card style="max-width: 20rem;" class="mb-2">
+            <b-card-text>Datastore Name: {{ datastore.Name }}</b-card-text>
+            <b-card-text>FreeSpace GB: {{ datastore.FreeSpaceGB }}</b-card-text>
+            <b-card-text>Capacity GB: {{ datastore.CapacityGB }}</b-card-text>
+            <apexchart type="pie" :options="chartOptions" :series="[datastore.FreeSpaceGB, datastore.CapacityGB]"/>
+          </b-card>
+        </div>
+      </b-card-group>
+    </div>
+  </b-container>
 </template>
 
 <script>
 import GetServices from "@/services/GetServices";
 export default {
-  name: "datastores",
+  name: "Datastores",
   data() {
     return {
-      datastores: []
+      datastores: [],
+      chartOptions: {
+        labels: ["FreeSpace GB", "Capacity GB"],
+        colors: ["#90ee02", "#e54304"]
+      },
+      loading: true
     };
   },
   mounted() {
@@ -41,8 +38,19 @@ export default {
   },
   methods: {
     async getDatastores() {
-      const response = await GetServices.fetchDatastores();
-      this.datastores = response.data;
+      await GetServices.fetchDatastores()
+        .then(res => {
+          this.datastores = res.data;
+          this.loading = false;
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            alert("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
     }
   }
 };

@@ -10,12 +10,5 @@ export default {
         "x-access-token": localStorage.getItem("token")
       }
     });
-  },
-  fetchVMStat(params) {
-    return Api().get("vmstat", params, {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
   }
 };

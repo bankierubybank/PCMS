@@ -10,11 +10,11 @@
         <div v-for="(vm) in this.data" v-bind:key="vm.name">
           <b-card style="max-width: 20rem;" class="mb-2">
             <b-card-text>VM Name: {{ vm.name }}</b-card-text>
-            <vue-apex-charts type="pie" :options="chartOptions" :series="vm.sum"/>
+            <apexchart type="pie" :options="chartOptions" :series="vm.sum"/>
             <b-button v-b-modal="vm.name">See Detail</b-button>
 
             <b-modal :id="vm.name" :title="'VM Name: ' + vm.name" hide-footer>
-              <vue-apex-charts
+              <apexchart
                 type="line"
                 :options="vm.lineOptions"
                 :series="[{ name: vm.name, data: vm.data}]"
@@ -29,10 +29,9 @@
 
 <script>
 import GetServices from "@/services/GetServices";
-import VueApexCharts from "vue-apexcharts";
 export default {
   name: "chart",
-  components: { VueApexCharts },
+  components: {},
   data() {
     return {
       chartData: [],
@@ -42,7 +41,8 @@ export default {
       maxLength: 0,
       series: [44, 55],
       chartOptions: {
-        labels: ["Power On", "Power Off"]
+        labels: ["Power On", "Power Off"],
+        colors: ["#90ee02", "#e54304"]
       }
     };
   },

@@ -1,11 +1,13 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Home from "./views/Home.vue";
+import About from "./views/About.vue";
 import Login from "@/components/Login";
 import NewVM from "@/components/NewVM";
 import Chart from "@/components/Chart";
 import Overview from "@/components/Overview";
 import RequestedVMs from "@/components/RequestedVMs";
+import Datastores from "@/components/Datastores";
 import Datacenters from "@/components/Datacenters";
 
 Vue.use(Router);
@@ -13,8 +15,7 @@ Vue.use(Router);
 export default new Router({
   mode: "history",
   base: process.env.BASE_URL,
-  routes: [
-    {
+  routes: [{
       path: "/",
       name: "home",
       component: Home
@@ -42,20 +43,22 @@ export default new Router({
     {
       path: "/about",
       name: "About",
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () =>
-        import(/* webpackChunkName: "about" */ "./views/About.vue")
+      component: About
     },
     {
       path: "/overview",
       name: "Overview",
       component: Overview
-    },{
+    },
+    {
       path: "/test",
       name: "Datacenters",
       component: Datacenters
+    },
+    {
+      path: "/datastores",
+      name: "Datastores",
+      component: Datastores
     }
   ]
 });
