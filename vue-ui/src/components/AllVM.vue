@@ -1,25 +1,5 @@
 <template>
-  <b-row>
-    <b-col cols="2">
-      <b-list-group>
-        <b-list-group-item>
-          <router-link to="/overview" class="collection-item"
-            >All VM</router-link
-          >
-        </b-list-group-item>
-        <b-list-group-item>
-          <router-link to="/newvm" class="collection-item"
-            >Request New VM</router-link
-          >
-        </b-list-group-item>
-        <b-list-group-item>
-          <router-link to="/requestedvms" class="collection-item"
-            >Requested VM</router-link
-          >
-        </b-list-group-item>
-      </b-list-group>
-    </b-col>
-    <b-col cols="8">
+  <b-container>
       <h1>Virtual Machines</h1>
       <div>
         <b-table :items="vms" :fields="fields" :busy="loading" class="mt-3">
@@ -29,15 +9,14 @@
           </div>
         </b-table>
       </div>
-    </b-col>
-  </b-row>
+  </b-container>
 </template>
 
 <script>
 import GetServices from "@/services/GetServices";
 import router from "@/router";
 export default {
-  name: "vms",
+  name: "AllVM",
   components: {},
   data() {
     return {

@@ -50,7 +50,7 @@ export default {
             localStorage.setItem("displayName", res.data.displayName);
             localStorage.setItem("mail", res.data.mail);
             router.push({
-              name: "Overview"
+              name: "Landing"
             });
           }
         })

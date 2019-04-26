@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h3>IT KMITL Private Cloud Management System</h3>
+    <h3>ระบบบริหารจัดการ Private Cloud คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง</h3>
   </div>
 </template>
 

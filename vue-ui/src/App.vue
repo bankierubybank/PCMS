@@ -32,7 +32,39 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <router-view/>
+    <b-row>
+      <b-col cols="2">
+        <div v-if="loggedIn">
+          <div v-if="this.type === 'Staff'">
+            <b-list-group>
+              <b-list-group-item>
+                <router-link to="/chart" class="collection-item">Monitor</router-link>
+              </b-list-group-item>
+              <b-list-group-item>
+                <router-link to="/datastores" class="collection-item">All Datastores</router-link>
+              </b-list-group-item>
+              <b-list-group-item>
+                <router-link to="/allvm" class="collection-item">All VM</router-link>
+              </b-list-group-item>
+            </b-list-group>
+          </div>
+          <div v-else>
+            <b-list-group>
+              <b-list-group-item>
+                <router-link to="/myvm" class="collection-item">My VM</router-link>
+              </b-list-group-item>
+              <b-list-group-item>
+                <router-link to="/newvm" class="collection-item">เขียนคำขอใช้งาน VM</router-link>
+              </b-list-group-item>
+            </b-list-group>
+          </div>
+        </div>
+        <div v-else></div>
+      </b-col>
+      <b-col cols="8">
+        <router-view/>
+      </b-col>
+    </b-row>
   </div>
 </template>
 
@@ -41,6 +73,7 @@ import GetServices from "@/services/GetServices";
 export default {
   data() {
     return {
+      type: "",
       username: "",
       displayName: "",
       loggedIn: false
@@ -53,6 +86,7 @@ export default {
       });
       alert("Please Login!");
     } else {
+      this.type = localStorage.getItem("type");
       this.username = localStorage.getItem("username");
       this.displayName = localStorage.getItem("displayName");
       this.loggedIn = true;
@@ -60,13 +94,13 @@ export default {
   },
   methods: {
     async logout() {
-      await GetServices.logout();
       localStorage.removeItem("token");
       localStorage.removeItem("type");
       localStorage.removeItem("username");
       localStorage.removeItem("displayName");
       localStorage.removeItem("mail");
       this.loggedIn = false;
+      await GetServices.logout();
       this.$router.push({
         name: "Login"
       });

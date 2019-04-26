@@ -8,7 +8,7 @@
     <div v-else>
       <b-card-group deck>
         <div v-for="(vm) in this.data" v-bind:key="vm.name">
-          <b-card style="max-width: 20rem;" class="mb-2">
+          <b-card>
             <b-card-text>VM Name: {{ vm.name }}</b-card-text>
             <apexchart type="pie" :options="chartOptions" :series="vm.sum"/>
             <b-button v-b-modal="vm.name">See Detail</b-button>
@@ -42,7 +42,7 @@ export default {
       series: [44, 55],
       chartOptions: {
         labels: ["Power On", "Power Off"],
-        colors: ["#90ee02", "#e54304"]
+        colors: ["#28a745", "#dc3545"]
       }
     };
   },

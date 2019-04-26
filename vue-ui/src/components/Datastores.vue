@@ -7,7 +7,7 @@
     <div v-else>
       <b-card-group deck>
         <div v-for="(datastore) in this.datastores" v-bind:key="datastore.Id">
-          <b-card style="max-width: 20rem;" class="mb-2">
+          <b-card>
             <b-card-text>Datastore Name: {{ datastore.Name }}</b-card-text>
             <b-card-text>FreeSpace GB: {{ datastore.FreeSpaceGB }}</b-card-text>
             <b-card-text>Capacity GB: {{ datastore.CapacityGB }}</b-card-text>
@@ -27,8 +27,8 @@ export default {
     return {
       datastores: [],
       chartOptions: {
-        labels: ["FreeSpace GB", "Capacity GB"],
-        colors: ["#90ee02", "#e54304"]
+        labels: ["FreeSpace GB", "Used GB"],
+        colors: ["#28a745", "#dc3545"]
       },
       loading: true
     };

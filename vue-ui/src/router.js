@@ -5,10 +5,10 @@ import About from "./views/About.vue";
 import Login from "@/components/Login";
 import NewVM from "@/components/NewVM";
 import Chart from "@/components/Chart";
-import Overview from "@/components/Overview";
-import RequestedVMs from "@/components/RequestedVMs";
+import Landing from "./views/Landing.vue";
+import MyVM from "@/components/MyVM";
+import AllVM from "@/components/AllVM";
 import Datastores from "@/components/Datastores";
-import Datacenters from "@/components/Datacenters";
 
 Vue.use(Router);
 
@@ -26,9 +26,9 @@ export default new Router({
       component: Login
     },
     {
-      path: "/requestedvms",
-      name: "RequestedVMs",
-      component: RequestedVMs
+      path: "/myvm",
+      name: "MyVM",
+      component: MyVM
     },
     {
       path: "/newvm",
@@ -46,19 +46,23 @@ export default new Router({
       component: About
     },
     {
-      path: "/overview",
-      name: "Overview",
-      component: Overview
+      path: "/landing",
+      name: "Landing",
+      component: Landing
     },
     {
-      path: "/test",
-      name: "Datacenters",
-      component: Datacenters
+      path: "/allvm",
+      name: "AllVM",
+      component: AllVM
     },
     {
       path: "/datastores",
       name: "Datastores",
       component: Datastores
+    },
+    {
+      path: "*",
+      redirect: "/"
     }
   ]
 });
