@@ -294,10 +294,10 @@ class Core {
    * then configure virtual machine's spec
    * @param {JSON} spec A JSON object contains virtual machine's spec.
    */
-  async newVMfromTemplate(vmSpec, templateSpec, Host, Datastore) {
-    this.PS.addCommand('$vmhost = Get-VMHost')
+  async newVMfromTemplate(vmSpec, templateSpec, ResourcePool, Datastore) {
+    this.PS.addCommand('$resourcepool = Get-ResourcePool')
       .then(this.PS.addParameters([{
-        Name: Host
+        Name: ResourcePool
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
@@ -321,7 +321,7 @@ class Core {
           Name: vmSpec.Name
         },
         {
-          ResourcePool: '$vmhost'
+          ResourcePool: '$resourcepool'
         },
         {
           Datastore: '$datastore'

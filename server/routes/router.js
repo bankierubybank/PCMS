@@ -118,10 +118,9 @@ async function main() {
         });
     });
 
-    router.get('/content', verifyToken, async (req, res) => {
+    router.get('/checktoken', verifyToken, async (req, res) => {
         res.status(200).json({
-            status: true,
-            content: 'Quality Content by: ' + (req.decoded.username)
+            status: true
         })
     })
 
@@ -195,7 +194,7 @@ async function getVMPowerState(core) {
     //Set Interval for 1 hour (1000 ms * 60 * 60)
     setInterval(async () => {
         await core.getVMs().then(output => {
-            output.forEach(async (vm) => {
+            output.forEach((vm) => {
                 VMPerfSchema.findOneAndUpdate({
                     Name: vm.Name
                 }, {
@@ -434,7 +433,7 @@ async function vmOperation(core, jobs) {
         }).then((templates) => {
             vmTemplate = templates;
         }).catch(err => logger.error(err));
-        await core.newVMfromTemplate(req.body, vmTemplate[0], '10.30.22.9', 'datastore1')
+        await core.newVMfromTemplate(req.body, vmTemplate[0], 'Requested VM', 'datastore1')
             .then(() => {
                 res.status(200).send('VM creation in progress!');
                 let newVM = new registeredVmSchema({
