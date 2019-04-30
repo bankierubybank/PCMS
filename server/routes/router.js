@@ -193,38 +193,58 @@ async function reScheduleVM(core, jobs) {
 async function getVMPowerState(core) {
     //Set Interval for 1 hour (1000 ms * 60 * 60)
     setInterval(async () => {
-        await core.getVMs().then(output => {
-            output.forEach((vm) => {
-                VMPerfSchema.findOneAndUpdate({
-                    Name: vm.Name
-                }, {
-                    $addToSet: {
-                        stats: {
+        let vms = await core.getVMs().catch(err => logger.error(err));
+        for (let vm of vms) {
+            let cpu; //Percentage
+            let mem; //Percentage
+            let disk; //KBps
+            if (vm.PowerState) {
+                cpu = await core.getLatestVMStat(vm.Name, 'cpu.usage.average').catch(err => logger.error(err));
+                mem = await core.getLatestVMStat(vm.Name, 'mem.usage.average').catch(err => logger.error(err));
+                disk = await core.getLatestVMStat(vm.Name, 'disk.usage.average').catch(err => logger.error(err));
+                cpu = cpu[0].Value;
+                mem = mem[0].Value;
+                disk = disk[0].Value;
+            } else {
+                cpu = 0;
+                mem = 0;
+                disk = 0;
+            }
+            VMPerfSchema.findOneAndUpdate({
+                Name: vm.Name
+            }, {
+                $addToSet: {
+                    stats: {
+                        timestamp: new Date(),
+                        PowerState: vm.PowerState,
+                        CPU: cpu,
+                        Memory: mem,
+                        Disk: disk
+                    }
+                }
+            }, {
+                new: true
+            }, (err, data) => {
+                if (err) {
+                    logger.error(err);
+                }
+                if (!data) {
+                    let vmPerf = new VMPerfSchema({
+                        Name: vm.Name,
+                        stats: [{
                             timestamp: new Date(),
-                            PowerState: vm.PowerState
-                        }
-                    }
-                }, {
-                    new: true
-                }, (err, data) => {
-                    if (err) {
-                        logger.error(err);
-                    }
-                    if (!data) {
-                        let vmPerf = new VMPerfSchema({
-                            Name: vm.Name,
-                            stats: [{
-                                timestamp: new Date(),
-                                PowerState: vm.PowerState
-                            }]
-                        });
-                        vmPerf.save(logger.info('Saved New VM PowerState')).catch(err => logger.error(err));
-                    } else {
-                        logger.info('Saved Existing VM PowerState');
-                    }
-                })
+                            PowerState: vm.PowerState,
+                            CPU: cpu,
+                            Memory: mem,
+                            Disk: disk
+                        }]
+                    });
+                    vmPerf.save(logger.info('Saved New VM PowerState')).catch(err => logger.error(err));
+                } else {
+                    logger.info('Saved Existing VM PowerState');
+                }
             })
-        })
+        }
     }, (1000 * 60 * 60));
 }
 

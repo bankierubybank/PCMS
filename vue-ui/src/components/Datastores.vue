@@ -38,6 +38,7 @@ export default {
   },
   methods: {
     async getDatastores() {
+      this.datastores = [];
       await GetServices.fetchDatastores()
         .then(res => {
           this.datastores = res.data;

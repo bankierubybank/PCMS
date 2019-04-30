@@ -221,7 +221,32 @@ class Core {
       }, {
         Stat: stat
       }]))
-      .then(this.PS.addArgument('| Select-Object -Property Timestamp, Value | Sort-Object -Property Timestamp | ConvertTo-Json -Depth 1 -AsArray'));
+      .then(this.PS.addArgument('| Select-Object -Property * | Sort-Object -Property Timestamp | ConvertTo-Json -Depth 1 -AsArray'));
+    await this.PS.invoke()
+      .then(output => {
+        vmstat = JSON.parse(output);
+      }).catch(err => this.logger.error(err));
+    return vmstat;
+  }
+
+  /**
+   * Get virtual machine's latest stat.
+   * @param {String} vmName A string of virtual machine's name.
+   * @param {String} stat A string of wanted stat. (Ex. cpu.usage.average)
+   */
+  async getLatestVMStat(vmName, stat) {
+    let vmstat;
+    this.PS.addCommand('Get-VM')
+      .then(this.PS.addParameters([{
+        Name: vmName
+      }]))
+      .then(this.PS.addArgument('| Get-Stat -Realtime'))
+      .then(this.PS.addParameters([{
+        Stat: stat
+      }, {
+        MaxSamples: 1
+      }]))
+      .then(this.PS.addArgument('| Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray'));
     await this.PS.invoke()
       .then(output => {
         vmstat = JSON.parse(output);

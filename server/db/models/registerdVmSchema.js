@@ -2,6 +2,7 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 let registeredVmSchema = new Schema({
     Name: String,
+    Id: String,
     Guest: String,
     NumCpu: Number,
     MemoryGB: Number,
