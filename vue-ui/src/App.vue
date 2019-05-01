@@ -21,7 +21,7 @@
               <template slot="button-content">
                 <em>{{this.username}}</em>
               </template>
-              <b-dropdown-item v-on:click="logout">Sign Out</b-dropdown-item>
+              <b-dropdown-item v-on:click="logout()">Sign Out</b-dropdown-item>
             </b-nav-item-dropdown>
           </div>
           <div v-else>
@@ -38,7 +38,7 @@
           <div v-if="this.type === 'Staff'">
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/chart" class="collection-item">Monitor</router-link>
+                <router-link to="/monitor" class="collection-item">Monitor</router-link>
               </b-list-group-item>
               <b-list-group-item>
                 <router-link to="/datastores" class="collection-item">All Datastores</router-link>
@@ -94,16 +94,17 @@ export default {
   },
   methods: {
     async logout() {
+      await GetServices.logout();
       localStorage.removeItem("token");
       localStorage.removeItem("type");
       localStorage.removeItem("username");
       localStorage.removeItem("displayName");
       localStorage.removeItem("mail");
       this.loggedIn = false;
-      await GetServices.logout();
       this.$router.push({
-        name: "Login"
+        name: "Home"
       });
+      location.reload();
     }
   }
 };

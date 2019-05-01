@@ -27,7 +27,6 @@
 
 <script>
 import PostServices from "@/services/PostServices";
-import router from "@/router";
 export default {
   name: "Login",
   data() {
@@ -49,9 +48,10 @@ export default {
             localStorage.setItem("username", res.data.username);
             localStorage.setItem("displayName", res.data.displayName);
             localStorage.setItem("mail", res.data.mail);
-            router.push({
+            this.$router.push({
               name: "Landing"
             });
+            location.reload();
           }
         })
         .catch(err => {

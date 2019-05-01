@@ -34,7 +34,7 @@ import GetServices from "@/services/GetServices";
 import PostServices from "@/services/PostServices";
 import Datepicker from "vuejs-datepicker";
 export default {
-  name: "newvm",
+  name: "NewVM",
   components: {
     Datepicker
   },

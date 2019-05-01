@@ -4,7 +4,7 @@ import Home from "./views/Home.vue";
 import About from "./views/About.vue";
 import Login from "@/components/Login";
 import NewVM from "@/components/NewVM";
-import Chart from "@/components/Chart";
+import Monitor from "@/components/Monitor";
 import Landing from "./views/Landing.vue";
 import MyVM from "@/components/MyVM";
 import AllVM from "@/components/AllVM";
@@ -17,7 +17,7 @@ export default new Router({
   base: process.env.BASE_URL,
   routes: [{
       path: "/",
-      name: "home",
+      name: "Home",
       component: Home
     },
     {
@@ -36,9 +36,9 @@ export default new Router({
       component: NewVM
     },
     {
-      path: "/chart",
-      name: "Chart",
-      component: Chart
+      path: "/monitor",
+      name: "Monitor",
+      component: Monitor
     },
     {
       path: "/about",
