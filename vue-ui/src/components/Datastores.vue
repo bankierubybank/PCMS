@@ -6,13 +6,17 @@
     </div>
     <div v-else>
       <b-card-group deck>
-        <div v-for="(datastore) in this.datastores" v-bind:key="datastore.Id">
+        <div v-for="datastore in this.datastores" v-bind:key="datastore.Id">
           <b-card>
             <b-card-text>Datastore Name: {{ datastore.Name }}</b-card-text>
             <b-card-text>FreeSpace GB: {{ datastore.FreeSpaceGB }}</b-card-text>
             <b-card-text>UsedSpace GB: {{ datastore.UsedSpaceGB }}</b-card-text>
             <b-card-text>Capacity GB: {{ datastore.CapacityGB }}</b-card-text>
-            <apexchart type="pie" :options="chartOptions" :series="[datastore.FreeSpaceGB, datastore.UsedSpaceGB]"/>
+            <apexchart
+              type="pie"
+              :options="chartOptions"
+              :series="[datastore.FreeSpaceGB, datastore.UsedSpaceGB]"
+            />
           </b-card>
         </div>
       </b-card-group>
@@ -47,14 +51,14 @@ export default {
               Name: datastore.Name,
               FreeSpaceGB: datastore.FreeSpaceGB,
               CapacityGB: datastore.CapacityGB,
-              UsedSpaceGB: (datastore.CapacityGB - datastore.FreeSpaceGB)
-            })
-          })
+              UsedSpaceGB: datastore.CapacityGB - datastore.FreeSpaceGB
+            });
+          });
           this.loading = false;
         })
         .catch(err => {
           if (err.response.status == 403) {
-            alert("Session Timeout!");
+            this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
             });

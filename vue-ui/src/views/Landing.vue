@@ -1,6 +1,6 @@
 <template>
   <b-container>
-    <h1>ยินดีต้อนรับ {{this.displayName}}</h1>
+    <h1>ยินดีต้อนรับ {{ this.displayName }}</h1>
   </b-container>
 </template>
 
@@ -10,7 +10,6 @@ export default {
   components: {},
   data() {
     return {
-      username: "",
       displayName: ""
     };
   },

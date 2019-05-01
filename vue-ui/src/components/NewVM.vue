@@ -52,24 +52,22 @@ export default {
       OSs: []
     };
   },
-  mounted() {
-    if (localStorage.getItem("token") == null) {
-      router.push({
-        name: "Login"
-      });
-      alert("Please Login!");
-    } else {
-      this.username = localStorage.getItem("username");
-      this.displayName = localStorage.getItem("displayName");
-    }
-  },
+  mounted() {},
   methods: {
     onSubmit(evt) {
       evt.preventDefault();
       PostServices.newVM(this.vmSpec);
+      this.$swal("กำลังสร้าง VM");
     },
     async getVMTemplates() {
-      const response = await GetServices.fetchVMTemplates();
+      const response = await GetServices.fetchVMTemplates().catch(err => {
+        if (err.response.status == 403) {
+          this.$swal("Session Timeout!");
+          this.$router.push({
+            name: "Login"
+          });
+        }
+      });
       this.OSs = response.data;
     }
   }

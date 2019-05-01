@@ -2,7 +2,7 @@
   <b-container>
     <h1>My VM</h1>
     <b-card-group deck>
-      <div v-for="(vm) in vms" v-bind:key="vm.Name">
+      <div v-for="vm in vms" v-bind:key="vm.Name">
         <b-card style="max-width: 20rem;" class="mb-2">
           <b-card-text>Name: {{ vm.Name }}</b-card-text>
           <b-card-text>NumCpu: {{ vm.NumCpu }}</b-card-text>
@@ -46,7 +46,6 @@ export default {
   methods: {
     onSubmit(evt) {
       evt.preventDefault();
-      console.log(this.EndDate);
     },
     async getVMs() {
       await GetServices.fetchRegisteredVMs()
@@ -55,7 +54,7 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
-            alert("Session Timeout!");
+            this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
             });

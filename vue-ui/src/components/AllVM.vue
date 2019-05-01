@@ -21,7 +21,6 @@
 
 <script>
 import GetServices from "@/services/GetServices";
-import router from "@/router";
 export default {
   name: "AllVM",
   components: {},
@@ -72,7 +71,7 @@ export default {
       this.data = [];
       let v = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
-          alert("Session Timeout!");
+          this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
           });
@@ -80,7 +79,7 @@ export default {
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
         if (err.response.status == 403) {
-          alert("Session Timeout!");
+          this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
           });

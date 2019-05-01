@@ -7,7 +7,7 @@
     </div>
     <div v-else>
       <b-card-group deck>
-        <div v-for="(vm) in this.data" v-bind:key="vm.Name">
+        <div v-for="vm in this.data" v-bind:key="vm.Name">
           <b-card>
             <b-card-text>VM Name: {{ vm.Name }}</b-card-text>
             <apexchart type="pie" :options="chartOptions" :series="vm.PowerStateSumary"/>
@@ -21,7 +21,7 @@
                     <apexchart
                       type="line"
                       :options="vm.lineOptions"
-                      :series="[{ name: vm.Name, data: vm.PowerStateData}]"
+                      :series="[{ name: vm.Name, data: vm.PowerStateData }]"
                     />
                   </b-col>
                   <b-col>
@@ -29,7 +29,7 @@
                     <apexchart
                       type="line"
                       :options="vm.lineOptions"
-                      :series="[{ name: vm.Name, data: vm.CPUData}]"
+                      :series="[{ name: vm.Name, data: vm.CPUData }]"
                     />
                   </b-col>
                 </b-row>
@@ -39,7 +39,7 @@
                     <apexchart
                       type="line"
                       :options="vm.lineOptions"
-                      :series="[{ name: vm.Name, data: vm.MemoryData}]"
+                      :series="[{ name: vm.Name, data: vm.MemoryData }]"
                     />
                   </b-col>
                   <b-col>
@@ -47,7 +47,7 @@
                     <apexchart
                       type="line"
                       :options="vm.lineOptions"
-                      :series="[{ name: vm.Name, data: vm.DiskData}]"
+                      :series="[{ name: vm.Name, data: vm.DiskData }]"
                     />
                   </b-col>
                 </b-row>
@@ -102,7 +102,7 @@ export default {
               lineOptions: {
                 chart: {
                   zoom: {
-                    type: 'x',
+                    type: "x",
                     enabled: true
                   }
                 },
@@ -117,7 +117,7 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
-            alert("Session Timeout!");
+            this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
             });

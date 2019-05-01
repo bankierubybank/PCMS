@@ -19,7 +19,7 @@
           <div v-if="loggedIn">
             <b-nav-item-dropdown right>
               <template slot="button-content">
-                <em>{{this.username}}</em>
+                <em>{{ this.username }}</em>
               </template>
               <b-dropdown-item v-on:click="logout()">Sign Out</b-dropdown-item>
             </b-nav-item-dropdown>
@@ -38,23 +38,33 @@
           <div v-if="this.type === 'Staff'">
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/monitor" class="collection-item">Monitor</router-link>
+                <router-link to="/monitor" class="collection-item"
+                  >Monitor</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item">All Datastores</router-link>
+                <router-link to="/datastores" class="collection-item"
+                  >All Datastores</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/allvm" class="collection-item">All VM</router-link>
+                <router-link to="/allvm" class="collection-item"
+                  >All VM</router-link
+                >
               </b-list-group-item>
             </b-list-group>
           </div>
           <div v-else>
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/myvm" class="collection-item">My VM</router-link>
+                <router-link to="/myvm" class="collection-item"
+                  >My VM</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/newvm" class="collection-item">เขียนคำขอใช้งาน VM</router-link>
+                <router-link to="/newvm" class="collection-item"
+                  >เขียนคำขอใช้งาน VM</router-link
+                >
               </b-list-group-item>
             </b-list-group>
           </div>
@@ -62,7 +72,7 @@
         <div v-else></div>
       </b-col>
       <b-col cols="8">
-        <router-view/>
+        <router-view />
       </b-col>
     </b-row>
   </div>
@@ -84,7 +94,7 @@ export default {
       this.$router.push({
         name: "Login"
       });
-      alert("Please Login!");
+      this.$swal("Please Login!");
     } else {
       this.type = localStorage.getItem("type");
       this.username = localStorage.getItem("username");
