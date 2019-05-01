@@ -102,6 +102,7 @@ export default {
               lineOptions: {
                 chart: {
                   zoom: {
+                    type: 'x',
                     enabled: true
                   }
                 },

@@ -10,8 +10,9 @@
           <b-card>
             <b-card-text>Datastore Name: {{ datastore.Name }}</b-card-text>
             <b-card-text>FreeSpace GB: {{ datastore.FreeSpaceGB }}</b-card-text>
+            <b-card-text>UsedSpace GB: {{ datastore.UsedSpaceGB }}</b-card-text>
             <b-card-text>Capacity GB: {{ datastore.CapacityGB }}</b-card-text>
-            <apexchart type="pie" :options="chartOptions" :series="[datastore.FreeSpaceGB, datastore.CapacityGB]"/>
+            <apexchart type="pie" :options="chartOptions" :series="[datastore.FreeSpaceGB, datastore.UsedSpaceGB]"/>
           </b-card>
         </div>
       </b-card-group>
@@ -41,7 +42,14 @@ export default {
       this.datastores = [];
       await GetServices.fetchDatastores()
         .then(res => {
-          this.datastores = res.data;
+          res.data.forEach(datastore => {
+            this.datastores.push({
+              Name: datastore.Name,
+              FreeSpaceGB: datastore.FreeSpaceGB,
+              CapacityGB: datastore.CapacityGB,
+              UsedSpaceGB: (datastore.CapacityGB - datastore.FreeSpaceGB)
+            })
+          })
           this.loading = false;
         })
         .catch(err => {
