@@ -181,6 +181,10 @@ async function reScheduleVM(core, jobs) {
                             await backupCore.disconnectVIServer(config.vcenter_url);
                             backupCore.disposePS();
                         }).catch(err => logger.error(err));
+
+                    await registeredVmSchema.deleteOne({
+                        Name: vm.Name
+                    }).catch(err => logger.error(err));
                 })
             })
         }).catch(err => logger.error(err));
@@ -290,15 +294,26 @@ async function vmRoutes(core) {
 
     router.get('/registeredvm', verifyToken, async (req, res) => {
         let vms;
-        await registeredVmSchema.find({
-            Requestor: req.decoded.username
-        }).then((registeredVMs) => {
-            vms = registeredVMs;
-        }).catch(err => logger.error(err))
-        if (vms[0]) {
-            res.status(200).json(vms)
+        if (req.decoded.type == 'Staff') {
+            await registeredVmSchema.find().then((registeredVMs) => {
+                vms = registeredVMs;
+            }).catch(err => logger.error(err))
+            if (vms[0]) {
+                res.status(200).json(vms)
+            } else {
+                res.status(200).send('No registered VM!')
+            }
         } else {
-            res.status(200).send('No registered VM!')
+            await registeredVmSchema.find({
+                Requestor: req.decoded.username
+            }).then((registeredVMs) => {
+                vms = registeredVMs;
+            }).catch(err => logger.error(err))
+            if (vms[0]) {
+                res.status(200).json(vms)
+            } else {
+                res.status(200).send('No registered VM!')
+            }
         }
     })
 
@@ -416,36 +431,6 @@ async function vmOperation(core, jobs) {
 
     })
 
-    //Tempory for testing
-    router.get('/vm/:vmName/backup', verifyToken, async (req, res) => {
-        let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-        backupCore.addLogger(logger);
-        backupCore.createPS(debugging)
-            .then(await backupCore.connectVIServer())
-            .catch(err => logger.error(err));
-        res.status(200).send('VM backup queued!');
-        await backupCore.backUpVM(req.params.vmName)
-            .then(async () => {
-                backupCore.disconnectVIServer(config.vcenter_url);
-                backupCore.disposePS();
-            }).catch(err => logger.error(err));
-    })
-
-    //Tempory for testing
-    router.get('/vm/:vmName/testCom', verifyToken, async (req, res) => {
-        let testComCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-        testComCore.addLogger(logger);
-        testComCore.createPS(debugging)
-            .then(await testComCore.connectVIServer())
-            .catch(err => logger.error(err));
-        res.status(200).send('VM backup queued!');
-        await testComCore.testCompress(req.params.vmName)
-            .then(async () => {
-                await testComCore.disconnectVIServer(config.vcenter_url);
-                testComCore.disposePS();
-            }).catch(err => logger.error(err));
-    })
-
     router.post('/newvm', urlencodedParser, verifyToken, async (req, res) => {
         let vmTemplate;
         await vmTemplateSchema.find({
@@ -454,10 +439,13 @@ async function vmOperation(core, jobs) {
             vmTemplate = templates;
         }).catch(err => logger.error(err));
         await core.newVMfromTemplate(req.body, vmTemplate[0], 'Requested VM', 'datastore1')
-            .then(() => {
+            .then(async () => {
                 res.status(200).send('VM creation in progress!');
+                let vm = await core.getVMbyName(req.body.Name).catch(err => logger.error(err));
                 let newVM = new registeredVmSchema({
                     Name: req.body.Name,
+                    Id: vm[0].Id,
+                    Guest: vm[0].Guest,
                     NumCpu: req.body.NumCpu,
                     MemoryGB: req.body.MemoryGB,
                     ProvisionedSpaceGB: req.body.DiskGB,
@@ -483,6 +471,10 @@ async function vmOperation(core, jobs) {
                             await backupCore.disconnectVIServer(config.vcenter_url);
                             backupCore.disposePS();
                         }).catch(err => logger.error(err));
+
+                    await registeredVmSchema.deleteOne({
+                        Name: req.body.Name
+                    }).catch(err => logger.error(err));
                 })
             }).catch(err => logger.error(err));
     })
@@ -508,7 +500,10 @@ async function vmOperation(core, jobs) {
 
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {
         await core.removeVM(req.params.vmName)
-            .then(() => {
+            .then(async () => {
+                await registeredVmSchema.deleteOne({
+                    Name: req.param.vmName
+                }).catch(err => logger.error(err));
                 res.status(200).send('VM deleted!');
             }).catch(err => logger.error(err));
     })

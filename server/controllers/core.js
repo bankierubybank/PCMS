@@ -442,6 +442,8 @@ class Core {
         ]));
       await this.PS.invoke()
         .then({}).catch(err => this.logger.error(err));
+    } else {
+      await this.powerOnVM(vmSpec.Name);
     }
   }
 
