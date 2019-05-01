@@ -7,8 +7,7 @@
     <div v-else>
       <b-card-group deck>
         <div v-for="datastore in this.datastores" v-bind:key="datastore.Id">
-          <b-card>
-            <b-card-text>Datastore Name: {{ datastore.Name }}</b-card-text>
+          <b-card :title="datastore.Name">
             <b-card-text>FreeSpace GB: {{ datastore.FreeSpaceGB }}</b-card-text>
             <b-card-text>UsedSpace GB: {{ datastore.UsedSpaceGB }}</b-card-text>
             <b-card-text>Capacity GB: {{ datastore.CapacityGB }}</b-card-text>

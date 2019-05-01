@@ -38,33 +38,23 @@
           <div v-if="this.type === 'Staff'">
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/monitor" class="collection-item"
-                  >Monitor</router-link
-                >
+                <router-link to="/monitor" class="collection-item">Monitor</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item"
-                  >All Datastores</router-link
-                >
+                <router-link to="/datastores" class="collection-item">All Datastores</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/allvm" class="collection-item"
-                  >All VM</router-link
-                >
+                <router-link to="/allvm" class="collection-item">All VM</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>
           <div v-else>
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/myvm" class="collection-item"
-                  >My VM</router-link
-                >
+                <router-link to="/myvm" class="collection-item">My VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/newvm" class="collection-item"
-                  >เขียนคำขอใช้งาน VM</router-link
-                >
+                <router-link to="/newvm" class="collection-item">เขียนคำขอใช้งาน VM</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>
@@ -72,7 +62,7 @@
         <div v-else></div>
       </b-col>
       <b-col cols="8">
-        <router-view />
+        <router-view/>
       </b-col>
     </b-row>
   </div>
@@ -119,3 +109,10 @@ export default {
   }
 };
 </script>
+
+<style>
+@import url("https://fonts.googleapis.com/css?family=Pridi:300");
+#app {
+  font-family: "Pridi", sans-serif;
+}
+</style>

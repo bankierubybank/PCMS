@@ -8,10 +8,9 @@
     <div v-else>
       <b-card-group deck>
         <div v-for="vm in this.data" v-bind:key="vm.Name">
-          <b-card>
-            <b-card-text>VM Name: {{ vm.Name }}</b-card-text>
+          <b-card :title="vm.Name">
             <apexchart type="pie" :options="chartOptions" :series="vm.PowerStateSumary"/>
-            <b-button v-b-modal="vm.Name">See Detail</b-button>
+            <b-button v-b-modal="vm.Name" variant="primary">ดูข้อมูลโดยละเอียด</b-button>
 
             <b-modal :id="vm.Name" :title="vm.Name + ' Stats'" size="lg" hide-footer>
               <b-container>
@@ -62,6 +61,7 @@
 
 <script>
 import GetServices from "@/services/GetServices";
+import moment from "moment";
 export default {
   name: "Monitor",
   components: {},
@@ -107,7 +107,7 @@ export default {
                   }
                 },
                 xaxis: {
-                  categories: vm.stats.map(x => x.timestamp)
+                  categories: vm.stats.map(x => moment(x.timestamp).locale("th").format("lll"))
                 }
               },
               PowerStateSumary: [PowerOnCount, vm.stats.length - PowerOnCount]
