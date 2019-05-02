@@ -81,6 +81,7 @@ export default {
   },
   mounted() {
     if (localStorage.getItem("token") == null) {
+      this.loggedIn = false;
       this.$router.push({
         name: "Login"
       });

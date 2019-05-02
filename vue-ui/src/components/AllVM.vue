@@ -95,6 +95,7 @@ export default {
       this.data = [];
       let v = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
+          localStorage.removeItem("token");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
@@ -103,6 +104,7 @@ export default {
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
         if (err.response.status == 403) {
+          localStorage.removeItem("token");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"

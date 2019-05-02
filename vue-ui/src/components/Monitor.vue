@@ -117,6 +117,7 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
+            localStorage.removeItem("token");
             this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
