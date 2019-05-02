@@ -132,9 +132,7 @@ class Core {
    */
   async getVMHarddiskbyName(vmName) {
     let vmharddisk;
-    this.PS.addCommand('Get-VM', [{
-        Name: vmName
-      }])
+    this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
         Name: vmName
       }]))
