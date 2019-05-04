@@ -57,7 +57,7 @@ export default {
         },
         {
           key: "PowerState",
-          label: "PowerState",
+          label: "Power State",
           sortable: true
         },
         { key: "IPv4", label: "IPv4", sortable: true },

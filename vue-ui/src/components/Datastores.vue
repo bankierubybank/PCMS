@@ -9,29 +9,29 @@
         <d3-network :net-nodes="nodes" :net-links="links" :options="options"/>
       </b-jumbotron>
 
-      <b-card-group deck>
-        <div v-for="datastore in this.datastores" v-bind:key="datastore.Id">
-          <b-card :title="datastore.Name">
-            <b-card-text>FreeSpace GB: {{ datastore.FreeSpaceGB }}</b-card-text>
-            <b-card-text>UsedSpace GB: {{ datastore.UsedSpaceGB }}</b-card-text>
-            <b-card-text>Capacity GB: {{ datastore.CapacityGB }}</b-card-text>
-            <b-card-text>VMsUsedSpace GB: {{ datastore.VMsUsedSpaceGB }}</b-card-text>
-            <b-card-text>VMsProvisionedSpace GB: {{ datastore.VMsProvisionedSpaceGB }}</b-card-text>
+      <b-table :items="datastores" :fields="dsfields" class="mt-3">
+        <template slot="FreeUsedRatio" slot-scope="data">
+          <div>
             <apexchart
-              type="pie"
-              :options="chartOptions"
-              :series="[datastore.FreeSpaceGB, datastore.UsedSpaceGB]"
+              type="bar"
+              height="100"
+              :options="barchartOptions"
+              :series="[{ name: 'Used Space', data: [data.item.FreeUsedRatio.UsedSpaceGB]}, { name: 'Free Space', data: [data.item.FreeUsedRatio.FreeSpaceGB]}]"
             />
-            <b-button v-b-modal="datastore.Name" variant="primary">ดูข้อมูลโดยละเอียด</b-button>
+          </div>
+        </template>
+        <template slot="VMs" slot-scope="data">
+          <div>
+            <b-button v-b-modal="data.item.Name" variant="primary">ดู VM ใน Datastore นี้</b-button>
 
-            <b-modal :id="datastore.Name" :title="datastore.Name + ' Stats'" size="lg" hide-footer>
+            <b-modal :id="data.item.Name" :title="data.item.Name + ' Stats'" size="lg" hide-footer>
               <b-container>
-                <b-table :items="datastore.VMs" :fields="fields" class="mt-3"></b-table>
+                <b-table :items="data.item.VMs" :fields="fields" class="mt-3"></b-table>
               </b-container>
             </b-modal>
-          </b-card>
-        </div>
-      </b-card-group>
+          </div>
+        </template>
+      </b-table>
     </div>
   </b-container>
 </template>
@@ -50,12 +50,28 @@ export default {
         labels: ["FreeSpace GB", "Used GB"],
         colors: ["#28a745", "#dc3545"]
       },
+      barchartOptions: {
+        colors: ["#dc3545", "#28a745"],
+        chart: {
+          stacked: true,
+          stackType: "100%",
+          sparkline: {
+            enabled: true
+          }
+        },
+        plotOptions: {
+          bar: {
+            horizontal: true,
+            barHeight: "20%"
+          }
+        }
+      },
       loading: true,
       nodes: [],
       links: [],
       options: {
-        force: 3000,
-        nodeSize: 20,
+        force: 1500,
+        nodeSize: 13,
         nodeLabels: true,
         linkWidth: 5
       },
@@ -67,13 +83,48 @@ export default {
         },
         {
           key: "UsedSpaceGB",
-          label: "UsedSpaceGB",
+          label: "Used Space in GB",
           sortable: true
         },
         {
           key: "ProvisionedSpaceGB",
-          label: "ProvisionedSpaceGB",
+          label: "Provisioned Space in GB",
           sortable: true
+        }
+      ],
+      dsfields: [
+        {
+          key: "Name",
+          label: "Datastore Name",
+          sortable: true
+        },
+        {
+          key: "Id",
+          label: "Id",
+          sortable: true
+        },
+        {
+          key: "FreeSpaceGB",
+          label: "Free Space in GB",
+          sortable: true
+        },
+        {
+          key: "CapacityGB",
+          label: "Capacity in GB",
+          sortable: true
+        },
+        {
+          key: "UsedSpaceGB",
+          label: "Used Space in GB",
+          sortable: true
+        },
+        {
+          key: "FreeUsedRatio",
+          label: "Chart"
+        },
+        {
+          key: "VMs",
+          label: "VM in Datastore"
         }
       ]
     };
@@ -85,6 +136,7 @@ export default {
   methods: {
     async getDetailedDatastores() {
       this.datastores = [];
+      this.loading = true;
       this.nodes = [];
       this.links = [];
       let datastores = await GetServices.fetchDatastores().catch(err => {
@@ -112,20 +164,22 @@ export default {
           name: vm.Name,
           _color: "#0074D9"
         });
-        this.links.push({
-          sid: vm.Id,
-          tid: vm.DatastoreIdList,
-          _color: "#7FDBFF"
+        vm.DatastoreIdList.split(" ").forEach(ds => {
+          this.links.push({
+            sid: vm.Id,
+            tid: ds,
+            _color: "#7FDBFF"
+          });
         });
         this.vms.push({
           Name: vm.Name,
           Id: vm.Id,
-          UsedSpaceGB: vm.UsedSpaceGB,
-          ProvisionedSpaceGB: vm.ProvisionedSpaceGB,
+          UsedSpaceGB: this.round(vm.UsedSpaceGB, 2),
+          ProvisionedSpaceGB: this.round(vm.ProvisionedSpaceGB, 2),
           DatastoreIdList: vm.DatastoreIdList
         });
       });
-      datastores.data.forEach(datastore => {
+      Array.prototype.forEach.call(datastores.data, datastore => {
         //Push datastore nodes
         this.nodes.push({
           id: datastore.Id,
@@ -138,9 +192,19 @@ export default {
         this.datastores.push({
           Name: datastore.Name,
           Id: datastore.Id,
-          FreeSpaceGB: datastore.FreeSpaceGB,
-          CapacityGB: datastore.CapacityGB,
-          UsedSpaceGB: datastore.CapacityGB - datastore.FreeSpaceGB,
+          FreeSpaceGB: this.round(datastore.FreeSpaceGB, 2),
+          CapacityGB: this.round(datastore.CapacityGB, 2),
+          UsedSpaceGB: this.round(
+            datastore.CapacityGB - datastore.FreeSpaceGB,
+            2
+          ),
+          FreeUsedRatio: {
+            FreeSpaceGB: this.round(datastore.FreeSpaceGB, 2),
+            UsedSpaceGB: this.round(
+              datastore.CapacityGB - datastore.FreeSpaceGB,
+              2
+            )
+          },
           VMs: VMsInDatastore,
           VMsUsedSpaceGB: VMsInDatastore.map(x => x.UsedSpaceGB).reduce(
             (x, y) => x + y,
@@ -152,6 +216,9 @@ export default {
         });
       });
       this.loading = false;
+    },
+    round(value, decimals) {
+      return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
     }
   }
 };
