@@ -7,6 +7,7 @@ import NewVM from "@/components/NewVM";
 import Monitor from "@/components/Monitor";
 import Landing from "./views/Landing.vue";
 import MyVM from "@/components/MyVM";
+import RequestedVM from "@/components/RequestedVM";
 import AllVM from "@/components/AllVM";
 import Datastores from "@/components/Datastores";
 
@@ -50,6 +51,11 @@ export default new Router({
       path: "/landing",
       name: "Landing",
       component: Landing
+    },
+    {
+      path: "/requestedvm",
+      name: "RequestedVM",
+      component: RequestedVM
     },
     {
       path: "/allvm",

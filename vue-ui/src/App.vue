@@ -41,10 +41,13 @@
                 <router-link to="/monitor" class="collection-item">Monitor</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item">All Datastores</router-link>
+                <router-link to="/requestedvm" class="collection-item">ดูคำขอใช้งาน VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/allvm" class="collection-item">All VM</router-link>
+                <router-link to="/datastores" class="collection-item">ดู Datastores ทั้งหมดในระบบ</router-link>
+              </b-list-group-item>
+              <b-list-group-item>
+                <router-link to="/allvm" class="collection-item">ดู VM ทั้งหมดในระบบ</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>

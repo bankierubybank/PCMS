@@ -45,38 +45,36 @@ export default {
   },
   data() {
     return {
-      fields: {
-        Name: {
+      fields: [
+        {
+          key: "Name",
           label: "VM Name",
           sortable: true
         },
-        NumCpu: {
+        {
+          key: "NumCpu",
           label: "CPU Cores",
           sortable: true
         },
-        MemoryGB: {
+        {
+          key: "MemoryGB",
           label: "Memory in GB",
           sortable: true
         },
-        PowerState: {
-          label: "PowerState",
+        {
+          key: "ProvisionedSpaceGB",
+          label: "Disk in GB",
           sortable: true
         },
-        IPv4: { sortable: true },
-        IPv6: { sortable: true },
-        Requestor: {
-          label: "ผู้ขอใช้",
-          sortable: true
-        },
-        StartDate: {
+        { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
+        {
+          key: "StartDate",
           label: "วันที่ขอ",
           sortable: true
         },
-        EndDate: {
-          label: "วันสิ้นสุดการใช้งาน",
-          sortable: true
-        }
-      },
+        { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true },
+        { key: "Status", label: "สถานะ", sortable: true }
+      ],
       data: [],
       EndDate: null,
       loading: true
@@ -112,20 +110,15 @@ export default {
       r.data.forEach(registeredVMs => {
         let vm = v.data.find(vm => vm.Name == registeredVMs.Name);
         let vmData = {
-          Name: vm.Name,
-          Id: vm.Id,
-          NumCpu: vm.NumCpu,
-          MemoryGB: vm.MemoryGB,
+          Name: registeredVMs.Name,
+          NumCpu: registeredVMs.NumCpu,
+          MemoryGB: registeredVMs.MemoryGB,
           IPv4: "NOT POWERED ON",
           IPv6: "NOT POWERED ON",
-          Guest: vm.Guest,
-          Notes: vm.Notes,
-          UsedSpaceGB: vm.UsedSpaceGB,
-          ProvisionedSpaceGB: vm.ProvisionedSpaceGB,
-          PowerState: vm.PowerState,
           Requestor: "NOT REGISTERED",
           StartDate: "NOT REGISTERED",
           EndDate: "NOT REGISTERED",
+          Status: registeredVMs.Status,
           _rowVariant: ""
         };
         if (registeredVMs) {
@@ -142,10 +135,10 @@ export default {
         } else {
           vmData._rowVariant = "warning";
         }
-        if (vm.PowerState) {
+        /*if (vm.PowerState) {
           vmData.IPv4 = vm["IP Address"].split("|")[0];
           vmData.IPv6 = vm["IP Address"].split("|")[1];
-        }
+        }*/
         this.data.push(vmData);
       });
       this.loading = false;
