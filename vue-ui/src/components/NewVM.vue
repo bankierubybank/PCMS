@@ -2,29 +2,46 @@
   <b-container>
     <h1>Create New VM</h1>
     <b-form @submit="onSubmit">
-      <b-form-group id="input-group-1" label="Name:" label-for="input-1">
+      <b-form-group label="VM Name:">
         <b-form-input id="input-1" v-model="vmSpec.Name" required></b-form-input>
       </b-form-group>
 
-      <b-form-group id="input-group-2" label="NumCPU:" label-for="input-2">
+      <b-form-group label="จำนวน Core CPU:">
         <b-form-input id="input-2" v-model="vmSpec.NumCpu" type="number" required></b-form-input>
       </b-form-group>
 
-      <b-form-group id="input-group-3" label="MemoryGB:" label-for="input-3">
-        <b-form-input id="input-3" v-model="vmSpec.MemoryGB" type="number" required></b-form-input>
+      <b-form-group label="จำนวน RAM (GB):">
+        <b-form-input v-model="vmSpec.MemoryGB" type="number" required></b-form-input>
       </b-form-group>
 
-      <b-form-group id="input-group-4" label="DiskGB:" label-for="input-4">
-        <b-form-input id="input-4" v-model="vmSpec.DiskGB" type="number" required></b-form-input>
+      <b-form-group label="ขนาด Harddisk (GB):">
+        <b-form-input v-model="vmSpec.DiskGB" type="number" required></b-form-input>
       </b-form-group>
 
-      <b-form-group label="StartDate">
+      <b-form-group label="OS:">
+        <template slot="first">
+          <option :value="null" disabled>-- Please select OS --</option>
+        </template>
+        <b-form-select v-model="vmSpec.OS" :options="OSs" required class></b-form-select>
+      </b-form-group>
+
+      <b-form-group label="วันเริ่มใช้งาน">
         <datepicker v-model="vmSpec.StartDate" name="StartDate"></datepicker>
       </b-form-group>
-      <b-form-group label="EndDate">
+      <b-form-group label="วันสิ้นสุดการใช้งาน">
         <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
       </b-form-group>
-      <b-button type="submit" variant="primary">Submit</b-button>
+
+      <b-form-checkbox v-model="Accpeted" value="true" unchecked-value="false">
+        I accept the
+        <b-link v-b-modal.terms>terms</b-link>and use
+        <b-modal
+          id="terms"
+          hide-footer
+        >การขอใช้งาน ระบบจะยังไม่สร้าง VM ให้ทันที จะต้องรอเจ้าหน้าที่ IT Support อนุมัติคำขอใช้ก่อน</b-modal>
+      </b-form-checkbox>
+
+      <b-button type="submit" variant="primary">ส่งคำขอใช้งาน</b-button>
     </b-form>
   </b-container>
 </template>
@@ -45,19 +62,31 @@ export default {
         NumCpu: "",
         MemoryGB: "",
         DiskGB: "",
-        OS: "UbuntuTemplate",
+        OS: null,
         StartDate: null,
         EndDate: null
       },
-      OSs: []
+      OSs: [
+        { value: "Ubuntu", text: "Ubuntu" },
+        { value: "CentOS", text: "CentOS" },
+        { value: "Windows 7", text: "Windows 7" },
+        { value: "Windows 10", text: "Windows 10" }
+      ],
+      Accpeted: false
     };
   },
   mounted() {},
   methods: {
     onSubmit(evt) {
       evt.preventDefault();
-      PostServices.newVM(this.vmSpec);
-      this.$swal("กำลังสร้าง VM");
+      if (this.Accpeted) {
+        PostServices.newVM(this.vmSpec);
+        this.$swal("ส่งคำขอใช้งาน VM แล้ว").then(
+          this.$router.push({ name: "MyVM" })
+        );
+      } else {
+        this.$swal("กรุณายอมรับกฎ");
+      }
     },
     async getVMTemplates() {
       const response = await GetServices.fetchVMTemplates().catch(err => {
