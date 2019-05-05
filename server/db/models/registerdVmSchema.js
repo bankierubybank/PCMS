@@ -9,6 +9,7 @@ let registeredVmSchema = new Schema({
     ProvisionedSpaceGB: Number,
     OS: String,
     Requestor: String,
+    Status: String,
     StartDate: Date,
     EndDate: Date
 }, {

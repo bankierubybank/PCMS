@@ -432,51 +432,52 @@ async function vmOperation(core, jobs) {
     })
 
     router.post('/newvm', urlencodedParser, verifyToken, async (req, res) => {
-        let vmTemplate;
-        await vmTemplateSchema.find({
-            Name: req.body.OS
-        }).then((templates) => {
-            vmTemplate = templates;
-        }).catch(err => logger.error(err));
-        await core.newVMfromTemplate(req.body, vmTemplate[0], 'Requested VM', 'datastore1')
-            .then(async () => {
-                res.status(200).send('VM creation in progress!');
-                let vm = await core.getVMbyName(req.body.Name).catch(err => logger.error(err));
-                let newVM = new registeredVmSchema({
-                    Name: req.body.Name,
-                    Id: vm[0].Id,
-                    Guest: vm[0].Guest,
-                    NumCpu: req.body.NumCpu,
-                    MemoryGB: req.body.MemoryGB,
-                    ProvisionedSpaceGB: req.body.DiskGB,
-                    OS: req.body.OS,
-                    Requestor: req.decoded.username,
-                    StartDate: new Date(req.body.StartDate),
-                    EndDate: new Date(req.body.EndDate)
-                })
-                newVM.save(logger.info('Registered New VM!')).catch(err => logger.error(err));
+        let newVM = new registeredVmSchema({
+            Name: req.body.Name,
+            NumCpu: req.body.NumCpu,
+            MemoryGB: req.body.MemoryGB,
+            ProvisionedSpaceGB: req.body.DiskGB,
+            OS: req.body.OS,
+            Requestor: req.decoded.username,
+            Status: 'Pending',
+            StartDate: new Date(req.body.StartDate),
+            EndDate: new Date(req.body.EndDate)
+        })
+        newVM.save(res.status(200).send('VM Requested!')).catch(err => logger.error(err));
+    })
 
-                logger.info('Schedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
-                jobs.scheduleJob(req.body.Name, req.body.EndDate, async function () {
-                    await core.shutdownVMGuest(req.body.Name)
-                        .then(async () => logger.info('VM: ' + req.body.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
+    router.post('/vm/:vmName/approve', verifyToken, async (req, res) => {
+        await registeredVmSchema.findOneAndUpdate({
+            Name: req.params.vmName
+        }, {
+            $set: {
+                Status: 'Approved'
+            }
+        }, {
+            new: true
+        }, (err) => {
+            if (err) {
+                logger.error(err)
+            }
+        });
+        res.status(200).send('VM Approved!');
+    })
 
-                    let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-                    backupCore.addLogger(logger);
-                    backupCore.createPS(debugging)
-                        .then(await backupCore.connectVIServer())
-                        .catch(err => logger.error(err));
-                    await backupCore.backUpVM(req.params.vmName)
-                        .then(async () => {
-                            await backupCore.disconnectVIServer(config.vcenter_url);
-                            backupCore.disposePS();
-                        }).catch(err => logger.error(err));
-
-                    await registeredVmSchema.deleteOne({
-                        Name: req.body.Name
-                    }).catch(err => logger.error(err));
-                })
-            }).catch(err => logger.error(err));
+    router.post('/vm/:vmName/reject', verifyToken, async (req, res) => {
+        await registeredVmSchema.findOneAndUpdate({
+            Name: req.params.vmName
+        }, {
+            $set: {
+                Status: 'Rejected'
+            }
+        }, {
+            new: true
+        }, (err) => {
+            if (err) {
+                logger.error(err)
+            }
+        });
+        res.status(200).send('VM Rejected!');
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
@@ -492,10 +493,10 @@ async function vmOperation(core, jobs) {
             if (err) {
                 logger.error(err)
             }
-        })
+        });
         logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
-        jobs.rescheduleJob(req.body.Name, req.body.EndDate)
-        res.status(200).send('Extended VM Duration')
+        jobs.rescheduleJob(req.body.Name, req.body.EndDate);
+        res.status(200).send('Extended VM Duration');
     })
 
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {
