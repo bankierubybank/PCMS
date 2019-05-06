@@ -16,7 +16,7 @@
         </template>
         <template slot="EndDate" slot-scope="data">
           {{data.item.EndDate}}
-          <div v-if="data.item._rowVariant != 'danger'">
+          <div v-if="data.item._rowVariant != 'danger' && data.item.Status == 'Approved'">
             <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ต่ออายุ VM</b-button>
 
             <b-modal :id="data.item.Name" :title="'VM Name: ' + data.item.Name" hide-footer>
@@ -41,6 +41,7 @@
           </div>
         </template>
       </b-table>
+      <b-alert show variant="primary" v-if="data.length == 0">ไม่มีข้อมูล</b-alert>
     </div>
   </b-container>
 </template>

@@ -5,6 +5,7 @@
       <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
     <div v-else>
+      <b-alert show variant="danger">*** ตอนนี้ฟังก์ชั่น Auto Create VM ใช้งานได้เฉพาะ Ubuntu Desktop 18.04 เท่านั้น ***</b-alert>
       <b-row>
         <b-col md="6" class="my-1">
           <b-form-group label-cols-sm="3" label="ค้นหา" class="mb-0">
@@ -21,6 +22,7 @@
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
             <b-button variant="primary" v-on:click="approveVM(data.item.Name)" size="sm">Approve</b-button>
+            <b-button variant="success" v-on:click="autoCreateVM(data.item.Name)" size="sm">Auto Create</b-button>
             <b-button variant="danger" v-on:click="rejectVM(data.item.Name)" size="sm">Reject</b-button>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
@@ -31,6 +33,7 @@
           </div>
         </template>
       </b-table>
+      <b-alert show variant="primary" v-if="data.length == 0">ไม่มีข้อมูล</b-alert>
     </div>
   </b-container>
 </template>
@@ -65,6 +68,7 @@ export default {
           label: "Disk (GB)",
           sortable: true
         },
+        { key: "OS", label: "OS", sortable: true },
         { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
         {
           key: "StartDate",
@@ -113,6 +117,7 @@ export default {
           NumCpu: vm.NumCpu,
           MemoryGB: vm.MemoryGB,
           ProvisionedSpaceGB: vm.ProvisionedSpaceGB,
+          OS: vm.OS,
           Status: vm.Status,
           Requestor: vm.Requestor,
           StartDate: moment(vm.StartDate)
@@ -139,6 +144,21 @@ export default {
     },
     async approveVM(vmName) {
       await PostServices.approveVM(vmName)
+        .then(() => {
+          location.reload();
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("token");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
+    },
+    async autoCreateVM(vmName) {
+      await PostServices.autoCreateVM(vmName)
         .then(() => {
           location.reload();
         })

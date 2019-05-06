@@ -22,6 +22,17 @@ export default {
       }
     );
   },
+  autoCreateVM(vmName) {
+    return Api().post(
+      "vm/" + vmName + "/autocreate",
+      {},
+      {
+        headers: {
+          "x-access-token": localStorage.getItem("token")
+        }
+      }
+    );
+  },
   rejectVM(vmName) {
     return Api().post(
       "vm/" + vmName + "/reject",
