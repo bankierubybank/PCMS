@@ -6,7 +6,7 @@ const Core = require('../controllers/core.js');
 const config = require('../config/environments/test.json');
 const logger = require('../controllers/logger.js');
 const debugging = true;
-const registeredVmSchema = require('../db/models/registerdVmSchema.js');
+const requestedVmSchema = require('../db/models/requestedVmSchema.js');
 const vmTemplateSchema = require('../db/models/vmTemplateSchema.js');
 const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
@@ -75,25 +75,25 @@ async function main() {
                 //filter: '(&(displayName=นายก*))'
             };
 
-            let Lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
-            let Staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
-            let Students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
+            let lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
+            let staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
+            let students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
 
-            if (Lecturers.length != 0) {
+            if (lecturers.length != 0) {
                 accountData.type = 'Lecturer';
-                accountData.username = Lecturers[0].sAMAccountName;
-                accountData.displayName = Lecturers[0].displayName;
-                accountData.mail = Lecturers[0].mail;
-            } else if (Staffs.length != 0) {
+                accountData.username = lecturers[0].sAMAccountName;
+                accountData.displayName = lecturers[0].displayName;
+                accountData.mail = lecturers[0].mail;
+            } else if (staffs.length != 0) {
                 accountData.type = 'Staff';
-                accountData.username = Staffs[0].sAMAccountName;
-                accountData.displayName = Staffs[0].displayName;
-                accountData.mail = Staffs[0].mail;
-            } else if (Students.length != 0) {
+                accountData.username = staffs[0].sAMAccountName;
+                accountData.displayName = staffs[0].displayName;
+                accountData.mail = staffs[0].mail;
+            } else if (students.length != 0) {
                 accountData.type = 'Student';
-                accountData.username = Students[0].sAMAccountName;
-                accountData.displayName = Students[0].displayName;
-                accountData.mail = Students[0].mail;
+                accountData.username = students[0].sAMAccountName;
+                accountData.displayName = students[0].displayName;
+                accountData.mail = students[0].mail;
             }
 
             await client.destroy().catch(err => logger.error(err));
@@ -158,7 +158,10 @@ async function verifyToken(req, res, next) {
  * @param {schedule} jobs Node-schedule jobs.
  */
 async function reScheduleVM(core, jobs) {
-    await registeredVmSchema.find({
+    await requestedVmSchema.find({
+            Status: {
+                $eq: 'Approved'
+            },
             EndDate: {
                 $gte: new Date()
             }
@@ -178,13 +181,10 @@ async function reScheduleVM(core, jobs) {
                         .catch(err => logger.error(err));
                     await backupCore.backUpVM(vm.Name)
                         .then(async () => {
+                            await backupCore.removeVM(vm.Name);
                             await backupCore.disconnectVIServer(config.vcenter_url);
                             backupCore.disposePS();
                         }).catch(err => logger.error(err));
-
-                    await registeredVmSchema.deleteOne({
-                        Name: vm.Name
-                    }).catch(err => logger.error(err));
                 })
             })
         }).catch(err => logger.error(err));
@@ -264,47 +264,19 @@ async function vmRoutes(core) {
             }).catch(err => logger.error(err));
     })
 
-    router.get('/vms/:vmhost', verifyToken, async (req, res) => {
-        await core.getVMsbyHostName(req.params.vmhost)
-            .then(output => {
-                res.status(200).json(output);
-            }).catch(err => logger.error(err));
-    })
-
-    router.get('/vm/:vmName', verifyToken, async (req, res) => {
-        await core.getVMbyName(req.params.vmName)
-            .then(output => {
-                res.status(200).json(output);
-            }).catch(err => logger.error(err));
-    })
-
-    router.get('/vm/:vmName/registered', verifyToken, async (req, res) => {
-        let vms;
-        await registeredVmSchema.find({
-            Name: req.params.vmName
-        }).then((registeredVMs) => {
-            vms = registeredVMs;
-        }).catch(err => logger.error(err))
-        if (vms[0]) {
-            res.status(200).json(vms[0])
-        } else {
-            res.status(200).send('VM not registered!')
-        }
-    })
-
     router.get('/registeredvm', verifyToken, async (req, res) => {
         let vms;
         if (req.decoded.type == 'Staff') {
-            await registeredVmSchema.find().then((registeredVMs) => {
+            await requestedVmSchema.find().then((registeredVMs) => {
                 vms = registeredVMs;
             }).catch(err => logger.error(err))
             if (vms[0]) {
                 res.status(200).json(vms)
             } else {
-                res.status(200).send('No registered VM!')
+                res.status(200).json([])
             }
         } else {
-            await registeredVmSchema.find({
+            await requestedVmSchema.find({
                 Requestor: req.decoded.username
             }).then((registeredVMs) => {
                 vms = registeredVMs;
@@ -312,7 +284,8 @@ async function vmRoutes(core) {
             if (vms[0]) {
                 res.status(200).json(vms)
             } else {
-                res.status(200).send('No registered VM!')
+                logger.info(vms)
+                res.status(200).json([])
             }
         }
     })
@@ -321,37 +294,6 @@ async function vmRoutes(core) {
         await VMPerfSchema.find().then((data) => {
             res.status(200).json(data);
         }).catch(err => logger.error(err));
-
-    })
-
-    router.get('/powerstatestat', verifyToken, async (req, res) => {
-        let data = [];
-        await VMPerfSchema.find().then((vms) => {
-            vms.forEach((vm) => {
-                let length = vm.stats.length;
-                let trueCount = 0;
-                vm.stats.map(x => {
-                    if (x.PowerState) {
-                        trueCount++;
-                    }
-                })
-                let falseCount = length - trueCount;
-                data.push({
-                    Name: vm.Name,
-                    statCount: length,
-                    trueCount: trueCount,
-                    falseCount: falseCount
-                });
-            })
-        }).catch(err => logger.error(err));
-        res.status(200).json(data);
-    })
-
-    router.get('/vmharddisk/:vmName', verifyToken, async (req, res) => {
-        await core.getVMHarddiskbyName(req.params.vmName)
-            .then(output => {
-                res.status(200).json(output);
-            }).catch(err => logger.error(err));
     })
 
     router.get('/vmhosts', verifyToken, async (req, res) => {
@@ -414,25 +356,8 @@ async function vmRoutes(core) {
  * @param {schedule} jobs Node-schedule jobs.
  */
 async function vmOperation(core, jobs) {
-    router.post('/vm/:vmName/poweron', verifyToken, async (req, res) => {
-        await core.powerOnVM(req.params.vmName)
-            .then(res.status(200).send('VM powered on!')).catch(err => logger.error(err));
-    })
-
-    router.post('/vm/:vmName/shutdown', verifyToken, async (req, res) => {
-        await core.shutdownVMGuest(req.params.vmName)
-            .then(res.status(200).send('VM guest shutted down!')).catch(err => logger.error(err));
-
-    })
-
-    router.post('/vm/:vmName/poweroff', verifyToken, async (req, res) => {
-        await core.powerOffVM(req.params.vmName)
-            .then(res.status(200).send('VM powered off!')).catch(err => logger.error(err));
-
-    })
-
     router.post('/newvm', urlencodedParser, verifyToken, async (req, res) => {
-        let newVM = new registeredVmSchema({
+        let newVM = new requestedVmSchema({
             Name: req.body.Name,
             NumCpu: req.body.NumCpu,
             MemoryGB: req.body.MemoryGB,
@@ -447,7 +372,7 @@ async function vmOperation(core, jobs) {
     })
 
     router.post('/vm/:vmName/approve', verifyToken, async (req, res) => {
-        await registeredVmSchema.findOneAndUpdate({
+        await requestedVmSchema.findOneAndUpdate({
             Name: req.params.vmName
         }, {
             $set: {
@@ -460,11 +385,67 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        logger.info('Schedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
+        jobs.scheduleJob(req.body.Name, req.body.EndDate, async function () {
+            await core.shutdownVMGuest(req.body.Name)
+                .then(async () => logger.info('VM: ' + req.body.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
+            let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+            backupCore.addLogger(logger);
+            backupCore.createPS(debugging)
+                .then(await backupCore.connectVIServer())
+                .catch(err => logger.error(err));
+            await backupCore.backUpVM(req.params.vmName)
+                .then(async () => {
+                    await backupCore.removeVM(req.body.Name);
+                    await backupCore.disconnectVIServer(config.vcenter_url);
+                    backupCore.disposePS();
+                }).catch(err => logger.error(err));
+        })
+        res.status(200).send('VM Approved!');
+    })
+
+    router.post('/vm/:vmName/autocreate', verifyToken, async (req, res) => {
+        let vmSpec = await requestedVmSchema.findOneAndUpdate({
+            Name: req.params.vmName
+        }, {
+            $set: {
+                Status: 'Approved'
+            }
+        }, {
+            new: true
+        }, (err) => {
+            if (err) {
+                logger.error(err)
+            }
+        });
+        let vmTemplate;
+        await vmTemplateSchema.find({
+            Name: 'UbuntuTemplate'
+        }).then((templates) => {
+            vmTemplate = templates;
+        }).catch(err => logger.error(err));
+        await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM', 'datastore1').catch(err => logger.error(err));
+        logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
+        jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
+            await core.shutdownVMGuest(vmSpec.Name)
+                .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
+            let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+            backupCore.addLogger(logger);
+            backupCore.createPS(debugging)
+                .then(await backupCore.connectVIServer())
+                .catch(err => logger.error(err));
+            await backupCore.backUpVM(vmSpec.vmName)
+                .then(async () => {
+                    await backupCore.removeVM(vmSpec.Name);
+                    await backupCore.disconnectVIServer(config.vcenter_url);
+                    backupCore.disposePS();
+                }).catch(err => logger.error(err));
+        })
         res.status(200).send('VM Approved!');
     })
 
     router.post('/vm/:vmName/reject', verifyToken, async (req, res) => {
-        await registeredVmSchema.findOneAndUpdate({
+        await requestedVmSchema.findOneAndUpdate({
             Name: req.params.vmName
         }, {
             $set: {
@@ -481,7 +462,7 @@ async function vmOperation(core, jobs) {
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
-        await registeredVmSchema.findOneAndUpdate({
+        await requestedVmSchema.findOneAndUpdate({
             Name: req.body.Name
         }, {
             $set: {
@@ -502,7 +483,7 @@ async function vmOperation(core, jobs) {
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {
         await core.removeVM(req.params.vmName)
             .then(async () => {
-                await registeredVmSchema.deleteOne({
+                await requestedVmSchema.deleteOne({
                     Name: req.param.vmName
                 }).catch(err => logger.error(err));
                 res.status(200).send('VM deleted!');

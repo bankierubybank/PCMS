@@ -1,6 +1,6 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
-let registeredVmSchema = new Schema({
+let requestedVmSchema = new Schema({
     Name: String,
     Id: String,
     Guest: String,
@@ -16,4 +16,4 @@ let registeredVmSchema = new Schema({
     collection: 'registered_vms'
 })
 
-module.exports = mongoose.model('registeredVmSchema', registeredVmSchema);
+module.exports = mongoose.model('requestedVmSchema', requestedVmSchema);

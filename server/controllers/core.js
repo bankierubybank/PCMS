@@ -70,63 +70,6 @@ class Core {
   }
 
   /**
-   * Get a virtual machine data.
-   * @param {String} vmName A string of virtual machine's name.
-   * @returns {JSON} Data of a virtual machine.
-   */
-  async getVMbyName(vmName) {
-    let vm;
-    this.PS.addCommand('Get-VM')
-      .then(this.PS.addParameters([{
-        Name: vmName
-      }]))
-      .then(this.PS.addArgument('| Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray'));
-    await this.PS.invoke()
-      .then(output => {
-        vm = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
-    return vm;
-  }
-
-  /**
-   * Get data of all virtual machines from single ESXi Host.
-   * @param {String} VMHostName A string of ESXi hostname.
-   */
-  async getVMsbyHostName(VMHostName) {
-    let vms;
-    this.PS.addCommand('Get-VM | where VMHost')
-      .then(this.PS.addParameters([{
-        Match: VMHostName
-      }]))
-      .then(this.PS.addArgument('| Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray'));
-    await this.PS.invoke()
-      .then(output => {
-        vms = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
-    return vms;
-  }
-
-  /**
-   * Get total memory allocated in single ESXi host in GB.
-   * @param {String} VMHostName A string of ESXi hostname.
-   */
-  async getTotalMemoryGBAllocatedbyHost(VMHostName) {
-    let totalMemoryGBAllocated;
-    this.PS.addCommand('$totalMemoryGBAllocated = 0; $vms = Get-VM | where VMHost')
-      .then(this.PS.addParameters([{
-        Match: VMHostName
-      }]));
-    await this.PS.invoke()
-      .then({}).catch(err => this.logger.error(err));
-    this.PS.addCommand('foreach ($vm in $vms) { $totalMemoryGBAllocated += $vm.MemoryGB }; Write-Host $totalMemoryGBAllocated');
-    await this.PS.invoke()
-      .then(output => {
-        totalMemoryGBAllocated = output;
-      }).catch(err => this.logger.error(err));
-    return totalMemoryGBAllocated;
-  }
-
-  /**
    * Get virtual machine harddisk data.
    * @param {String} vmName A string of virtual machine's name.
    */
@@ -155,24 +98,6 @@ class Core {
         vmhosts = JSON.parse(output);
       }).catch(err => this.logger.error(err));
     return vmhosts;
-  }
-
-  /**
-   * Get ESXi host data.
-   * @param {String} VMHostName A string of ESXi hostname.
-   */
-  async getVMHostbyName(VMHostName) {
-    let vmhost;
-    this.PS.addCommand('Get-VMHost')
-      .then(this.PS.addParameters([{
-        Name: VMHostName
-      }]))
-      .then(this.PS.addArgument('| Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray'));
-    await this.PS.invoke()
-      .then(output => {
-        vmhost = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
-    return vmhost;
   }
 
   /**
@@ -536,18 +461,6 @@ class Core {
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
       .then(this.logger.info('CREATED FILE! COMPRESSING IS IN PROGRESS!')).catch(err => this.logger.error(err));
-  }
-
-  /**
-   * Temporary for testing compressing module.
-   * @param {String} vmName A string of virtual machine's name.
-   */
-  async testCompress(vmName) {
-    const path = require('path');
-    let dir = path.join(process.cwd(), 'vmbackup', vmName);
-    const compressing = require('compressing');
-    await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
-      .then(this.logger.info('CREATED FILE! COMPRESSING IS IN PROGRESS')).catch(err => this.logger.error(err));
   }
 
   /**
