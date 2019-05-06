@@ -10,7 +10,7 @@
         <div v-for="vm in this.data" v-bind:key="vm.Name">
           <b-card :title="vm.Name">
             <apexchart type="pie" :options="chartOptions" :series="vm.PowerStateSumary"/>
-            <b-button v-b-modal="vm.Name" variant="primary">ดูข้อมูลโดยละเอียด</b-button>
+            <b-button v-b-modal="vm.Name" variant="primary" size="sm">ดูข้อมูลโดยละเอียด</b-button>
 
             <b-modal :id="vm.Name" :title="vm.Name + ' Stats'" size="lg" hide-footer>
               <b-container>

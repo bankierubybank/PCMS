@@ -33,14 +33,15 @@
       </b-form-group>
 
       <b-form-checkbox v-model="Accpeted" value="true" unchecked-value="false">
-        I accept the
-        <b-link v-b-modal.terms>terms</b-link>and use
-        <b-modal
-          id="terms"
-          hide-footer
-        >การขอใช้งาน ระบบจะยังไม่สร้าง VM ให้ทันที จะต้องรอเจ้าหน้าที่ IT Support อนุมัติคำขอใช้ก่อน</b-modal>
+        ฉันได้ยอมรับ
+        <b-link v-b-modal.terms>ข้อตกลงในการใช้งาน</b-link>
+        <b-modal id="terms" hide-footer>
+          1. การขอใช้งาน ระบบจะยังไม่สร้าง VM ให้ทันที จะต้องรอเจ้าหน้าที่ IT Support อนุมัติคำขอใช้ก่อน<br>
+          2. เมื่อ VM ใกล้จะครบกำหนดระยะเวลาที่ขอใช้ไว้ หากไม่ทำการต่ออายุ เมื่อครบกำหนดระบบจะลบ VM ทันทีเพื่อคืนพื้นที่ให้กับผู้ใช้ท่านอื่น<br>
+          3. หากมีข้อมูลใน VM ถูกลบไปเนื่อจากครบกำหนดระยะเวลาใช้งาน ทาง IT Support จะไม่รับผิดชอบใด ๆ กับข้อมูลเหล่านั้น<br>
+        </b-modal>
       </b-form-checkbox>
-
+      <br>
       <b-button type="submit" variant="primary">ส่งคำขอใช้งาน</b-button>
     </b-form>
   </b-container>

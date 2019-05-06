@@ -7,9 +7,9 @@
     <div v-else>
       <b-row>
         <b-col md="6" class="my-1">
-          <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
+          <b-form-group label-cols-sm="3" label="ค้นหา" class="mb-0">
             <b-input-group>
-              <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
+              <b-form-input v-model="filter" placeholder="พิมพ์เพื่อค้นหา"></b-form-input>
               <b-input-group-append>
                 <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
               </b-input-group-append>
@@ -42,17 +42,17 @@ export default {
       fields: [
         {
           key: "Name",
-          label: "VM Name",
+          label: "ชื่อ VM",
           sortable: true
         },
         {
           key: "NumCpu",
-          label: "CPU Cores",
+          label: "จำนวน Core CPU",
           sortable: true
         },
         {
           key: "MemoryGB",
-          label: "Memory in GB",
+          label: "Memory (GB)",
           sortable: true
         },
         {
@@ -65,7 +65,7 @@ export default {
         { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
         {
           key: "StartDate",
-          label: "วันที่ขอ",
+          label: "วันที่เริ่มใช้งาน",
           sortable: true
         },
         { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true }

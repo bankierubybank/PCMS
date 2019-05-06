@@ -1,11 +1,12 @@
 <template>
   <b-container>
-    <h1>All datastores</h1>
+    <h1>ดู Datastores ทั้งหมดใน Private Cloud</h1>
     <div v-if="loading">
       <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
     <div v-else>
       <b-jumbotron border-variant="primary">
+        <p>Chart แสดงความสัมพันธ์ระหว่าง VM และ Datastore</p>
         <d3-network :net-nodes="nodes" :net-links="links" :options="options"/>
       </b-jumbotron>
 
@@ -22,7 +23,7 @@
         </template>
         <template slot="VMs" slot-scope="data">
           <div>
-            <b-button v-b-modal="data.item.Name" variant="primary">ดู VM ใน Datastore นี้</b-button>
+            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ดู VM ใน Datastore นี้</b-button>
 
             <b-modal :id="data.item.Name" :title="data.item.Name + ' Stats'" size="lg" hide-footer>
               <b-container>

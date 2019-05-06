@@ -20,7 +20,7 @@ $ pwsh
 $ Set-ExecutionPolicy RemoteSigned
 $ Install-Module -Name VMware.PowerCLI
 $ Import-Module VMware.PowerCLI
-$ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip $false
+$ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip $false -DisplayDeprecationWarnings:$false
 ```
 * Install [MongoDB]
 * Install [Node.js]

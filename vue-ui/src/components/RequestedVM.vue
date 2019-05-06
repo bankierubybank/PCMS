@@ -7,9 +7,9 @@
     <div v-else>
       <b-row>
         <b-col md="6" class="my-1">
-          <b-form-group label-cols-sm="3" label="Filter" class="mb-0">
+          <b-form-group label-cols-sm="3" label="ค้นหา" class="mb-0">
             <b-input-group>
-              <b-form-input v-model="filter" placeholder="Type to Search"></b-form-input>
+              <b-form-input v-model="filter" placeholder="พิมพ์เพื่อค้นหา"></b-form-input>
               <b-input-group-append>
                 <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
               </b-input-group-append>
@@ -20,14 +20,14 @@
       <b-table :items="data" :fields="fields" :filter="filter" @filtered="onFiltered" class="mt-3">
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
-            <b-button variant="primary" v-on:click="approveVM(data.item.Name)">Approve</b-button>
-            <b-button variant="danger" v-on:click="rejectVM(data.item.Name)">Reject</b-button>
+            <b-button variant="primary" v-on:click="approveVM(data.item.Name)" size="sm">Approve</b-button>
+            <b-button variant="danger" v-on:click="rejectVM(data.item.Name)" size="sm">Reject</b-button>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
-            <b-badge variant="danger">Rejected</b-badge>
+            <b-badge variant="danger">ไม่อนุมัติ</b-badge>
           </div>
           <div v-else>
-            <b-badge variant="success">Approved</b-badge>
+            <b-badge variant="success">อนุมัติ</b-badge>
           </div>
         </template>
       </b-table>
@@ -47,28 +47,28 @@ export default {
       fields: [
         {
           key: "Name",
-          label: "VM Name",
+          label: "ชื่อ VM",
           sortable: true
         },
         {
           key: "NumCpu",
-          label: "CPU Cores",
+          label: "จำนวน Core CPU",
           sortable: true
         },
         {
           key: "MemoryGB",
-          label: "Memory in GB",
+          label: "Memory (GB)",
           sortable: true
         },
         {
           key: "ProvisionedSpaceGB",
-          label: "Disk in GB",
+          label: "Disk (GB)",
           sortable: true
         },
         { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
         {
           key: "StartDate",
-          label: "วันที่ขอ",
+          label: "วันที่เริ่มใช้งาน",
           sortable: true
         },
         { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true },

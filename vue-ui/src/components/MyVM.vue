@@ -15,9 +15,9 @@
           </div>
         </template>
         <template slot="EndDate" slot-scope="data">
-          <div>
-            {{data.item.EndDate}}
-            <b-button v-b-modal="data.item.Name" variant="primary">ต่ออายุ VM</b-button>
+          {{data.item.EndDate}}
+          <div v-if="data.item._rowVariant != 'danger'">
+            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ต่ออายุ VM</b-button>
 
             <b-modal :id="data.item.Name" :title="'VM Name: ' + data.item.Name" hide-footer>
               <b-form @submit="onSubmit">
@@ -27,6 +27,17 @@
                 <b-button type="submit" variant="primary">Submit</b-button>
               </b-form>
             </b-modal>
+          </div>
+        </template>
+        <template slot="Status" slot-scope="data">
+          <div v-if="data.item.Status == 'Pending'">
+            <b-badge variant="warning">รอการอนุมัติ</b-badge>
+          </div>
+          <div v-else-if="data.item.Status == 'Rejected'">
+            <b-badge variant="danger">ไม่อนุมัติ</b-badge>
+          </div>
+          <div v-else>
+            <b-badge variant="success">อนุมัติ</b-badge>
           </div>
         </template>
       </b-table>
@@ -48,28 +59,27 @@ export default {
       fields: [
         {
           key: "Name",
-          label: "VM Name",
+          label: "ชื่อ VM",
           sortable: true
         },
         {
           key: "NumCpu",
-          label: "CPU Cores",
+          label: "จำนวน Core CPU",
           sortable: true
         },
         {
           key: "MemoryGB",
-          label: "Memory in GB",
+          label: "Memory (GB)",
           sortable: true
         },
         {
-          key: "ProvisionedSpaceGB",
-          label: "Disk in GB",
+          key: "DiskGB",
+          label: "Disk (GB)",
           sortable: true
         },
-        { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
         {
           key: "StartDate",
-          label: "วันที่ขอ",
+          label: "วันที่เริ่มใช้งาน",
           sortable: true
         },
         { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true },
@@ -113,6 +123,7 @@ export default {
           Name: registeredVMs.Name,
           NumCpu: registeredVMs.NumCpu,
           MemoryGB: registeredVMs.MemoryGB,
+          DiskGB: registeredVMs.ProvisionedSpaceGB,
           IPv4: "NOT POWERED ON",
           IPv6: "NOT POWERED ON",
           Requestor: "NOT REGISTERED",
@@ -122,6 +133,7 @@ export default {
           _rowVariant: ""
         };
         if (registeredVMs) {
+          vmData.Requestor = registeredVMs.Requestor;
           vmData.StartDate = moment(registeredVMs.StartDate)
             .locale("th")
             .format("LL");
