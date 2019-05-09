@@ -11,6 +11,7 @@ const vmTemplateSchema = require('../db/models/vmTemplateSchema.js');
 const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
 const jwt = require('jsonwebtoken');
+const mailer = require('../controllers/mailer.js');
 
 express().use(bodyParser.json());
 
@@ -123,7 +124,7 @@ async function main() {
             status: true
         })
     })
-
+    
     router.get('/logout', verifyToken, async (req, res) => {
         res.status(200).json({
             status: false,
@@ -372,7 +373,7 @@ async function vmOperation(core, jobs) {
     })
 
     router.post('/vm/:vmName/approve', verifyToken, async (req, res) => {
-        await requestedVmSchema.findOneAndUpdate({
+        let vmSpec = await requestedVmSchema.findOneAndUpdate({
             Name: req.params.vmName
         }, {
             $set: {
@@ -385,18 +386,19 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
-        logger.info('Schedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
-        jobs.scheduleJob(req.body.Name, req.body.EndDate, async function () {
-            await core.shutdownVMGuest(req.body.Name)
-                .then(async () => logger.info('VM: ' + req.body.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
+        await mailer.send(req.decoded.mail, vmSpec.Name, 'Approved');
+        logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
+        jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
+            await core.shutdownVMGuest(vmSpec.Name)
+                .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
             let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
             backupCore.addLogger(logger);
             backupCore.createPS(debugging)
                 .then(await backupCore.connectVIServer())
                 .catch(err => logger.error(err));
-            await backupCore.backUpVM(req.params.vmName)
+            await backupCore.backUpVM(vmSpec.vmName)
                 .then(async () => {
-                    await backupCore.removeVM(req.body.Name);
+                    await backupCore.removeVM(vmSpec.Name);
                     await backupCore.disconnectVIServer(config.vcenter_url);
                     backupCore.disposePS();
                 }).catch(err => logger.error(err));
@@ -425,6 +427,7 @@ async function vmOperation(core, jobs) {
             vmTemplate = templates;
         }).catch(err => logger.error(err));
         await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM', 'datastore1').catch(err => logger.error(err));
+        await mailer.send(req.decoded.mail, vmSpec.Name, 'Approved');
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
             await core.shutdownVMGuest(vmSpec.Name)
@@ -445,7 +448,7 @@ async function vmOperation(core, jobs) {
     })
 
     router.post('/vm/:vmName/reject', verifyToken, async (req, res) => {
-        await requestedVmSchema.findOneAndUpdate({
+        let vmSpec = await requestedVmSchema.findOneAndUpdate({
             Name: req.params.vmName
         }, {
             $set: {
@@ -458,6 +461,7 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        await mailer.send(req.decoded.mail, vmSpec.Name, 'Rejected');
         res.status(200).send('VM Rejected!');
     })
 
