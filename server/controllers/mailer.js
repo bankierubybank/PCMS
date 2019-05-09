@@ -32,13 +32,7 @@ const send = async (receiverMail, vmName, status) => {
         mailOptions.text = `VM: ${vmName} ไม่ได้รับการอนุมัติ\nโปรดติดต่อเจ้าหน้าที่ IT Support`
     }
 
-    transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-            logger.error(err);
-        } else {
-            logger.info(info);
-        }
-    })
+    transporter.sendMail(mailOptions).catch(err => logger.error(err));
 }
 
 module.exports = {

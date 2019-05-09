@@ -16,10 +16,10 @@
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
-          <div v-if="loggedIn">
+          <div v-if="this.user">
             <b-nav-item-dropdown right>
               <template slot="button-content">
-                <em>{{ this.username }}</em>
+                <em>{{ this.user.username }}</em>
               </template>
               <b-dropdown-item v-on:click="logout()">Sign Out</b-dropdown-item>
             </b-nav-item-dropdown>
@@ -34,30 +34,42 @@
     </b-navbar>
     <b-row>
       <b-col cols="2">
-        <div v-if="loggedIn">
-          <div v-if="this.type === 'Staff'">
+        <div v-if="this.user">
+          <div v-if="this.user.type === 'Staff'">
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/monitor" class="collection-item">Monitor</router-link>
+                <router-link to="/monitor" class="collection-item"
+                  >Monitor</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/requestedvm" class="collection-item">ดูคำขอใช้งาน VM</router-link>
+                <router-link to="/requestedvm" class="collection-item"
+                  >ดูคำขอใช้งาน VM</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item">ดู Datastores ทั้งหมดในระบบ</router-link>
+                <router-link to="/datastores" class="collection-item"
+                  >ดู Datastores ทั้งหมดในระบบ</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/allvm" class="collection-item">ดู VM ทั้งหมดในระบบ</router-link>
+                <router-link to="/allvm" class="collection-item"
+                  >ดู VM ทั้งหมดในระบบ</router-link
+                >
               </b-list-group-item>
             </b-list-group>
           </div>
           <div v-else>
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/myvm" class="collection-item">My VM</router-link>
+                <router-link to="/myvm" class="collection-item"
+                  >My VM</router-link
+                >
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/newvm" class="collection-item">เขียนคำขอใช้งาน VM</router-link>
+                <router-link to="/newvm" class="collection-item"
+                  >เขียนคำขอใช้งาน VM</router-link
+                >
               </b-list-group-item>
             </b-list-group>
           </div>
@@ -65,7 +77,7 @@
         <div v-else></div>
       </b-col>
       <b-col cols="8">
-        <router-view/>
+        <router-view />
       </b-col>
     </b-row>
   </div>
@@ -76,35 +88,23 @@ import GetServices from "@/services/GetServices";
 export default {
   data() {
     return {
-      type: "",
-      username: "",
-      displayName: "",
-      loggedIn: false
+      user: null
     };
   },
   mounted() {
-    if (localStorage.getItem("token") == null) {
-      this.loggedIn = false;
+    if (JSON.parse(localStorage.getItem("user")) == null) {
       this.$router.push({
         name: "Login"
       });
       this.$swal("Please Login!");
     } else {
-      this.type = localStorage.getItem("type");
-      this.username = localStorage.getItem("username");
-      this.displayName = localStorage.getItem("displayName");
-      this.loggedIn = true;
+      this.user = JSON.parse(localStorage.getItem("user"));
     }
   },
   methods: {
     async logout() {
       await GetServices.logout();
-      localStorage.removeItem("token");
-      localStorage.removeItem("type");
-      localStorage.removeItem("username");
-      localStorage.removeItem("displayName");
-      localStorage.removeItem("mail");
-      this.loggedIn = false;
+      localStorage.removeItem("user");
       this.$router.push({
         name: "Home"
       });

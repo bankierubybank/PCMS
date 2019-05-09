@@ -96,6 +96,8 @@ Open Web Browser and go to
 | compression | [compression] | Compress Response's Body |
 | googleapis | [googleapis] | Upload backup files to Google Drive |
 | ldapjs-client | [ldapjs-client] | Authentication with Active Directory |
+| nodemailer | [nodemailer] | Send E-Mail |
+
 
 ### Vue.js Module
 | Module Name | Source |
@@ -129,6 +131,7 @@ Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.htm
    [googleapis]: <https://github.com/googleapis/google-api-nodejs-client>
    [ldapjs-client]: <https://github.com/zont/ldapjs-client>
    [jsonwebtoken]: <https://github.com/auth0/node-jsonwebtoken>
+   [nodemailer]: <https://github.com/nodemailer/nodemailer>
    
    [axios]: <https://github.com/axios/axios>
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>

@@ -7,7 +7,7 @@
     <div v-else>
       <b-jumbotron border-variant="primary">
         <p>Chart แสดงความสัมพันธ์ระหว่าง VM และ Datastore</p>
-        <d3-network :net-nodes="nodes" :net-links="links" :options="options"/>
+        <d3-network :net-nodes="nodes" :net-links="links" :options="options" />
       </b-jumbotron>
 
       <b-table :items="datastores" :fields="dsfields" class="mt-3">
@@ -17,17 +17,37 @@
               type="bar"
               height="100"
               :options="barchartOptions"
-              :series="[{ name: 'Used Space', data: [data.item.FreeUsedRatio.UsedSpaceGB]}, { name: 'Free Space', data: [data.item.FreeUsedRatio.FreeSpaceGB]}]"
+              :series="[
+                {
+                  name: 'Used Space',
+                  data: [data.item.FreeUsedRatio.UsedSpaceGB]
+                },
+                {
+                  name: 'Free Space',
+                  data: [data.item.FreeUsedRatio.FreeSpaceGB]
+                }
+              ]"
             />
           </div>
         </template>
         <template slot="VMs" slot-scope="data">
           <div>
-            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ดู VM ใน Datastore นี้</b-button>
+            <b-button v-b-modal="data.item.Name" variant="primary" size="sm"
+              >ดู VM ใน Datastore นี้</b-button
+            >
 
-            <b-modal :id="data.item.Name" :title="data.item.Name + ' Stats'" size="lg" hide-footer>
+            <b-modal
+              :id="data.item.Name"
+              :title="data.item.Name + ' Stats'"
+              size="lg"
+              hide-footer
+            >
               <b-container>
-                <b-table :items="data.item.VMs" :fields="fields" class="mt-3"></b-table>
+                <b-table
+                  :items="data.item.VMs"
+                  :fields="fields"
+                  class="mt-3"
+                ></b-table>
               </b-container>
             </b-modal>
           </div>
@@ -142,7 +162,7 @@ export default {
       this.links = [];
       let datastores = await GetServices.fetchDatastores().catch(err => {
         if (err.response.status == 403) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
@@ -151,7 +171,7 @@ export default {
       });
       let vms = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"

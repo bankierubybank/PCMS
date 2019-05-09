@@ -9,15 +9,26 @@
         <b-col md="6" class="my-1">
           <b-form-group label-cols-sm="3" label="ค้นหา" class="mb-0">
             <b-input-group>
-              <b-form-input v-model="filter" placeholder="พิมพ์เพื่อค้นหา"></b-form-input>
+              <b-form-input
+                v-model="filter"
+                placeholder="พิมพ์เพื่อค้นหา"
+              ></b-form-input>
               <b-input-group-append>
-                <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+                <b-button :disabled="!filter" @click="filter = ''"
+                  >Clear</b-button
+                >
               </b-input-group-append>
             </b-input-group>
           </b-form-group>
         </b-col>
       </b-row>
-      <b-table :items="data" :fields="fields" :filter="filter" @filtered="onFiltered" class="mt-3">
+      <b-table
+        :items="data"
+        :fields="fields"
+        :filter="filter"
+        @filtered="onFiltered"
+        class="mt-3"
+      >
         <template slot="PowerState" slot-scope="data">
           <div v-if="data.item.PowerState">
             <b-badge variant="success">Powered On</b-badge>
@@ -95,7 +106,7 @@ export default {
       this.data = [];
       let v = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
@@ -104,7 +115,7 @@ export default {
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
         if (err.response.status == 403) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"

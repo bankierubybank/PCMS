@@ -2,46 +2,22 @@ import Api from "@/services/Api";
 
 export default {
   login(params) {
-    return Api().post("login", params);
-  },
-  newVM(params) {
-    return Api().post("newvm", params, {
+    return Api().post("login", params, {
       headers: {
-        "x-access-token": localStorage.getItem("token")
+        "x-access-token": null
       }
     });
   },
+  newVM(params) {
+    return Api().post("newvm", params);
+  },
   approveVM(vmName) {
-    return Api().post(
-      "vm/" + vmName + "/approve",
-      {},
-      {
-        headers: {
-          "x-access-token": localStorage.getItem("token")
-        }
-      }
-    );
+    return Api().post("vm/" + vmName + "/approve", {});
   },
   autoCreateVM(vmName) {
-    return Api().post(
-      "vm/" + vmName + "/autocreate",
-      {},
-      {
-        headers: {
-          "x-access-token": localStorage.getItem("token")
-        }
-      }
-    );
+    return Api().post("vm/" + vmName + "/autocreate", {});
   },
   rejectVM(vmName) {
-    return Api().post(
-      "vm/" + vmName + "/reject",
-      {},
-      {
-        headers: {
-          "x-access-token": localStorage.getItem("token")
-        }
-      }
-    );
+    return Api().post("vm/" + vmName + "/reject", {});
   }
 };

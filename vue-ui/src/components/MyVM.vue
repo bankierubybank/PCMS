@@ -15,8 +15,13 @@
           </div>
         </template>
         <template slot="EndDate" slot-scope="data">
-          {{data.item.EndDate}}
-          <div v-if="data.item._rowVariant != 'danger' && data.item.Status == 'Approved'">
+          {{ data.item.EndDate }}
+          <div
+            v-if="
+              data.item._rowVariant != 'danger' &&
+                data.item.Status == 'Approved'
+            "
+          >
             <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ต่ออายุ VM</b-button>
 
             <b-modal :id="data.item.Name" :title="'VM Name: ' + data.item.Name" hide-footer>
@@ -79,6 +84,13 @@ export default {
           sortable: true
         },
         {
+          key: "PowerState",
+          label: "Power State",
+          sortable: true
+        },
+        { key: "IPv4", sortable: true },
+        { key: "IPv6", sortable: true },
+        {
           key: "StartDate",
           label: "วันที่เริ่มใช้งาน",
           sortable: true
@@ -102,7 +114,7 @@ export default {
       this.data = [];
       let v = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
@@ -111,7 +123,7 @@ export default {
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
         if (err.response.status == 403) {
-          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           this.$swal("Session Timeout!");
           this.$router.push({
             name: "Login"
@@ -125,6 +137,7 @@ export default {
           NumCpu: registeredVMs.NumCpu,
           MemoryGB: registeredVMs.MemoryGB,
           DiskGB: registeredVMs.ProvisionedSpaceGB,
+          PowerState: 0,
           IPv4: "NOT POWERED ON",
           IPv6: "NOT POWERED ON",
           Requestor: "NOT REGISTERED",
@@ -148,10 +161,11 @@ export default {
         } else {
           vmData._rowVariant = "warning";
         }
-        /*if (vm.PowerState) {
+        if (vm) {
+          vmData.PowerState = vm.PowerState;
           vmData.IPv4 = vm["IP Address"].split("|")[0];
           vmData.IPv6 = vm["IP Address"].split("|")[1];
-        }*/
+        }
         this.data.push(vmData);
       });
       this.loading = false;

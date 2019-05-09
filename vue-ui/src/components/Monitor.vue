@@ -9,10 +9,21 @@
       <b-card-group deck>
         <div v-for="vm in this.data" v-bind:key="vm.Name">
           <b-card :title="vm.Name">
-            <apexchart type="pie" :options="chartOptions" :series="vm.PowerStateSumary"/>
-            <b-button v-b-modal="vm.Name" variant="primary" size="sm">ดูข้อมูลโดยละเอียด</b-button>
+            <apexchart
+              type="pie"
+              :options="chartOptions"
+              :series="vm.PowerStateSumary"
+            />
+            <b-button v-b-modal="vm.Name" variant="primary" size="sm"
+              >ดูข้อมูลโดยละเอียด</b-button
+            >
 
-            <b-modal :id="vm.Name" :title="vm.Name + ' Stats'" size="lg" hide-footer>
+            <b-modal
+              :id="vm.Name"
+              :title="vm.Name + ' Stats'"
+              size="lg"
+              hide-footer
+            >
               <b-container>
                 <b-row>
                   <b-col>
@@ -107,7 +118,11 @@ export default {
                   }
                 },
                 xaxis: {
-                  categories: vm.stats.map(x => moment(x.timestamp).locale("th").format("lll"))
+                  categories: vm.stats.map(x =>
+                    moment(x.timestamp)
+                      .locale("th")
+                      .format("lll")
+                  )
                 }
               },
               PowerStateSumary: [PowerOnCount, vm.stats.length - PowerOnCount]
@@ -117,7 +132,7 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"

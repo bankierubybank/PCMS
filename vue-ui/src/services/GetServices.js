@@ -2,73 +2,33 @@ import Api from "@/services/Api";
 
 export default {
   fetchVMs() {
-    return Api().get("vms", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("vms");
   },
   fetchVMbyName(vmName) {
-    return Api().get("vm/" + vmName, {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("vm/" + vmName);
   },
   fetchVMHosts() {
-    return Api().get("vmhosts", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("vmhosts");
   },
   fetchDatastores() {
-    return Api().get("datastores", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("datastores");
   },
   fetchDatacenters() {
-    return Api().get("datacenters", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("datacenters");
   },
   fetchRegisteredVMs() {
-    return Api().get("registeredvm", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("registeredvm");
   },
   fetchVMTemplates() {
-    return Api().get("templates", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("templates");
   },
   fetchPowerState() {
-    return Api().get("powerstate", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("powerstate");
   },
   fetchVMStat(params) {
-    return Api().post("vmstat", params, {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().post("vmstat", params);
   },
   logout() {
-    return Api().get("logout", {
-      headers: {
-        "x-access-token": localStorage.getItem("token")
-      }
-    });
+    return Api().get("logout");
   }
 };
