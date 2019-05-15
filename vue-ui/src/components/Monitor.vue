@@ -9,28 +9,17 @@
       <b-card-group deck>
         <div v-for="vm in this.data" v-bind:key="vm.Name">
           <b-card :title="vm.Name">
-            <apexchart
-              type="pie"
-              :options="chartOptions"
-              :series="vm.PowerStateSumary"
-            />
-            <b-button v-b-modal="vm.Name" variant="primary" size="sm"
-              >ดูข้อมูลโดยละเอียด</b-button
-            >
+            <apexchart type="pie" :options="chartOptions" :series="vm.PowerStateSumary"/>
+            <b-button v-b-modal="vm.Name" variant="primary" size="sm">ดูข้อมูลโดยละเอียด</b-button>
 
-            <b-modal
-              :id="vm.Name"
-              :title="vm.Name + ' Stats'"
-              size="lg"
-              hide-footer
-            >
+            <b-modal :id="vm.Name" :title="vm.Name + ' Stats'" size="lg" hide-footer>
               <b-container>
                 <b-row>
                   <b-col>
                     PowerState
                     <apexchart
                       type="line"
-                      :options="vm.lineOptions"
+                      :options="lineOptions"
                       :series="[{ name: vm.Name, data: vm.PowerStateData }]"
                     />
                   </b-col>
@@ -38,7 +27,7 @@
                     CPU Usage in Percentage
                     <apexchart
                       type="line"
-                      :options="vm.lineOptions"
+                      :options="lineOptions"
                       :series="[{ name: vm.Name, data: vm.CPUData }]"
                     />
                   </b-col>
@@ -48,7 +37,7 @@
                     Memory Usage in Percentage
                     <apexchart
                       type="line"
-                      :options="vm.lineOptions"
+                      :options="lineOptions"
                       :series="[{ name: vm.Name, data: vm.MemoryData }]"
                     />
                   </b-col>
@@ -56,7 +45,7 @@
                     Disk Usage in KBps
                     <apexchart
                       type="line"
-                      :options="vm.lineOptions"
+                      :options="lineOptions"
                       :series="[{ name: vm.Name, data: vm.DiskData }]"
                     />
                   </b-col>
@@ -83,6 +72,14 @@ export default {
       chartOptions: {
         labels: ["Power On", "Power Off"],
         colors: ["#28a745", "#dc3545"]
+      },
+      lineOptions: {
+        toolbar: {
+          show: true
+        },
+        xaxis: {
+          type: "datetime"
+        }
       }
     };
   },
@@ -99,32 +96,17 @@ export default {
             let MappingPowerState = vm.stats.map(x => {
               if (x.PowerState) {
                 PowerOnCount++;
-                return 1;
+                return [new Date(x.timestamp), 1];
               } else {
-                return 0;
+                return [new Date(x.timestamp), 0];
               }
             });
             this.data.push({
               Name: vm.Name,
               PowerStateData: MappingPowerState,
-              CPUData: vm.stats.map(x => x.CPU),
-              MemoryData: vm.stats.map(x => x.Memory),
-              DiskData: vm.stats.map(x => x.Disk),
-              lineOptions: {
-                chart: {
-                  zoom: {
-                    type: "x",
-                    enabled: true
-                  }
-                },
-                xaxis: {
-                  categories: vm.stats.map(x =>
-                    moment(x.timestamp)
-                      .locale("th")
-                      .format("lll")
-                  )
-                }
-              },
+              CPUData: vm.stats.map(x => [new Date(x.timestamp), x.CPU]),
+              MemoryData: vm.stats.map(x => [new Date(x.timestamp), x.Memory]),
+              DiskData: vm.stats.map(x => [new Date(x.timestamp), x.Disk]),
               PowerStateSumary: [PowerOnCount, vm.stats.length - PowerOnCount]
             });
           });

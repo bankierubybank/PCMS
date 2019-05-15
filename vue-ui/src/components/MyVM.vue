@@ -29,7 +29,7 @@
                 <b-form-group label="EndDate">
                   <datepicker v-model="EndDate" name="EndDate"></datepicker>
                 </b-form-group>
-                <b-button type="submit" variant="primary">Submit</b-button>
+                <b-button type="submit" variant="primary">ขอเพิ่มระยะเวลาใช้งาน</b-button>
               </b-form>
             </b-modal>
           </div>
