@@ -87,6 +87,7 @@ export default {
       },
       range: null,
       rangeOptions: [
+        { text: "--- Please select range ---", value: null, disabled: true },
         { text: "1 Day", value: { days: 1 } },
         { text: "1 Week", value: { weeks: 1 } },
         { text: "1 Month", value: { months: 1 } }

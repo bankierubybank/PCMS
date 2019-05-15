@@ -5,11 +5,6 @@
       <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
     <div v-else>
-      <b-jumbotron border-variant="primary">
-        <p>Chart แสดงความสัมพันธ์ระหว่าง VM และ Datastore</p>
-        <d3-network :net-nodes="nodes" :net-links="links" :options="options" />
-      </b-jumbotron>
-
       <b-table :items="datastores" :fields="dsfields" class="mt-3">
         <template slot="FreeUsedRatio" slot-scope="data">
           <div>
