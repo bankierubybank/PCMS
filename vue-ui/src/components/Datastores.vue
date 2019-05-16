@@ -27,22 +27,11 @@
         </template>
         <template slot="VMs" slot-scope="data">
           <div>
-            <b-button v-b-modal="data.item.Name" variant="primary" size="sm"
-              >ดู VM ใน Datastore นี้</b-button
-            >
+            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ดู VM ใน Datastore นี้</b-button>
 
-            <b-modal
-              :id="data.item.Name"
-              :title="data.item.Name + ' Stats'"
-              size="lg"
-              hide-footer
-            >
+            <b-modal :id="data.item.Name" :title="data.item.Name + ' Stats'" size="lg" hide-footer>
               <b-container>
-                <b-table
-                  :items="data.item.VMs"
-                  :fields="fields"
-                  class="mt-3"
-                ></b-table>
+                <b-table :items="data.item.VMs" :fields="fields" class="mt-3"></b-table>
               </b-container>
             </b-modal>
           </div>
@@ -172,7 +161,7 @@ export default {
           });
         }
       });
-      vms.data.forEach(vm => {
+      Array.prototype.forEach.call(vms.data, vm => {
         //Push VM nodes
         this.nodes.push({
           id: vm.Id,

@@ -25,7 +25,8 @@
                 <p class="text-primary">{{notification.Subject}}</p>
                 <p class="text-body">
                   {{notification.Message}}
-                  <br>Requested by {{notification.Requestor.Student}}
+                  <br>
+                  Requested by {{notification.Requestor.Student}}
                 </p>
               </b-dropdown-item>
             </b-nav-item-dropdown>
@@ -103,8 +104,10 @@ export default {
       this.$swal("Please Login!");
     } else {
       this.user = JSON.parse(localStorage.getItem("user"));
+      if (this.user.Type != "Staff") {
+        this.getNotifications();
+      }
     }
-    this.getNotifications();
   },
   methods: {
     async logout() {
