@@ -132,19 +132,27 @@ async function main() {
     })
 
     router.get('/notification', verifyToken, async (req, res) => {
-        await notificationSchema.find({
-            Requestor: {
-                Lecturer: req.decoded.username,
-                Student: req.decoded.username
-            }
-        }).then((notifications) => {
-            if (notifications[0]) {
-                res.status(200).json(notifications)
-            } else {
-                res.status(200).json([])
-            }
-        }).catch(err => logger.error(err))
-
+        if (req.decoded.type == 'Lecturer') {
+            await notificationSchema.find({
+                'Requestor.Lecturer': req.decoded.username
+            }).then((notifications) => {
+                if (notifications[0]) {
+                    res.status(200).json(notifications)
+                } else {
+                    res.status(200).json([])
+                }
+            }).catch(err => logger.error(err))
+        } else if (req.decoded.type == 'Student') {
+            await notificationSchema.find({
+                'Requestor.Student': req.decoded.username
+            }).then((notifications) => {
+                if (notifications[0]) {
+                    res.status(200).json(notifications)
+                } else {
+                    res.status(200).json([])
+                }
+            }).catch(err => logger.error(err))
+        }
     })
 
     router.get('/registeredvm', verifyToken, async (req, res) => {

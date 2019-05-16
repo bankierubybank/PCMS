@@ -146,7 +146,6 @@ export default {
     };
   },
   mounted() {
-    //this.getDatastores();
     this.getDetailedDatastores();
   },
   methods: {

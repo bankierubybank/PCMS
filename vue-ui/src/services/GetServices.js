@@ -22,6 +22,9 @@ export default {
   fetchLecturers() {
     return Api().get("lecturer");
   },
+  fetchNotifications() {
+    return Api().get("notification");
+  },
   fetchVMTemplates() {
     return Api().get("templates");
   },

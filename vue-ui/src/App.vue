@@ -62,6 +62,11 @@
           <div v-else>
             <b-list-group>
               <b-list-group-item>
+                <router-link to="/notification" class="collection-item"
+                  >Noti</router-link
+                >
+              </b-list-group-item>
+              <b-list-group-item>
                 <router-link to="/myvm" class="collection-item"
                   >My VM</router-link
                 >
