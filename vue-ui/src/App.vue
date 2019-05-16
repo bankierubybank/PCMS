@@ -17,6 +17,18 @@
 
         <b-navbar-nav class="ml-auto">
           <div v-if="this.user">
+            <b-nav-item-dropdown text="Notification" v-if="this.user.type != 'Staff'" right>
+              <b-dropdown-item
+                v-for="notification in this.notifications"
+                v-bind:key="notification.id"
+              >
+                <p class="text-primary">{{notification.Subject}}</p>
+                <p class="text-body">
+                  {{notification.Message}}
+                  <br>Requested by {{notification.Requestor.Student}}
+                </p>
+              </b-dropdown-item>
+            </b-nav-item-dropdown>
             <b-nav-item-dropdown right>
               <template slot="button-content">
                 <em>{{ this.user.username }}</em>
@@ -38,43 +50,29 @@
           <div v-if="this.user.type === 'Staff'">
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/monitor" class="collection-item"
-                  >Monitor</router-link
-                >
+                <router-link to="/monitor" class="collection-item">Monitor</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/requestedvm" class="collection-item"
-                  >ดูคำขอใช้งาน VM</router-link
-                >
+                <router-link to="/requestedvm" class="collection-item">ดูคำขอใช้งาน VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item"
-                  >ดู Datastores ทั้งหมดในระบบ</router-link
-                >
+                <router-link to="/datastores" class="collection-item">ดู Datastores ทั้งหมดในระบบ</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/allvm" class="collection-item"
-                  >ดู VM ทั้งหมดในระบบ</router-link
-                >
+                <router-link to="/allvm" class="collection-item">ดู VM ทั้งหมดในระบบ</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>
           <div v-else>
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/notification" class="collection-item"
-                  >Noti</router-link
-                >
+                <router-link to="/notification" class="collection-item">Noti</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/myvm" class="collection-item"
-                  >My VM</router-link
-                >
+                <router-link to="/myvm" class="collection-item">My VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/newvm" class="collection-item"
-                  >เขียนคำขอใช้งาน VM</router-link
-                >
+                <router-link to="/newvm" class="collection-item">เขียนคำขอใช้งาน VM</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>
@@ -82,7 +80,7 @@
         <div v-else></div>
       </b-col>
       <b-col cols="8">
-        <router-view />
+        <router-view/>
       </b-col>
     </b-row>
   </div>
@@ -93,7 +91,8 @@ import GetServices from "@/services/GetServices";
 export default {
   data() {
     return {
-      user: null
+      user: null,
+      notifications: []
     };
   },
   mounted() {
@@ -105,6 +104,7 @@ export default {
     } else {
       this.user = JSON.parse(localStorage.getItem("user"));
     }
+    this.getNotifications();
   },
   methods: {
     async logout() {
@@ -114,6 +114,21 @@ export default {
         name: "Home"
       });
       location.reload();
+    },
+    async getNotifications() {
+      await GetServices.fetchNotifications()
+        .then(res => {
+          this.notifications = res.data;
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("token");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
     }
   }
 };
