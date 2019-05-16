@@ -30,6 +30,9 @@ const send = async (receiverMail, vmName, status) => {
     } else if (status == 'Rejected') {
         mailOptions.subject = `VM: ${vmName} ไม่ได้รับการอนุมัติ`
         mailOptions.text = `VM: ${vmName} ไม่ได้รับการอนุมัติ\nโปรดติดต่อเจ้าหน้าที่ IT Support`
+    } else if (status == 'Extended') {
+        mailOptions.subject = `VM: ${vmName} ได้รับการอนุมัติการต่ออายุ`
+        mailOptions.text = `VM: ${vmName} ได้รับการอนุมัติการต่ออายุ`
     }
 
     transporter.sendMail(mailOptions).catch(err => logger.error(err));
