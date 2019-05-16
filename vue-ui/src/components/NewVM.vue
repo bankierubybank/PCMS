@@ -3,23 +3,23 @@
     <h1>Create New VM</h1>
     <b-form @submit="onSubmit">
       <b-form-group label="VM Name:">
-        <b-form-input id="input-1" v-model="vmSpec.Name" required></b-form-input>
+        <b-form-input v-model="vmSpec.Name" required></b-form-input>
       </b-form-group>
 
       <b-form-group label="จำนวน Core CPU:">
-        <b-form-select v-model="vmSpec.NumCpu" :options="cpuOptions" required class></b-form-select>
+        <b-form-select v-model="vmSpec.NumCpu" :options="cpuOptions" required></b-form-select>
       </b-form-group>
 
       <b-form-group label="จำนวน RAM (GB):">
-        <b-form-select v-model="vmSpec.MemoryGB" :options="memOptions" required class></b-form-select>
+        <b-form-select v-model="vmSpec.MemoryGB" :options="memOptions" required></b-form-select>
       </b-form-group>
 
       <b-form-group label="ขนาด Harddisk (GB):">
-        <b-form-select v-model="vmSpec.DiskGB" :options="diskOptions" required class></b-form-select>
+        <b-form-select v-model="vmSpec.DiskGB" :options="diskOptions" required></b-form-select>
       </b-form-group>
 
       <b-form-group label="OS:">
-        <b-form-select v-model="vmSpec.OS" :options="OSs" required class></b-form-select>
+        <b-form-select v-model="vmSpec.OS" :options="OSs" required></b-form-select>
       </b-form-group>
 
       <b-form-group label="วันเริ่มใช้งาน">
@@ -27,6 +27,18 @@
       </b-form-group>
       <b-form-group label="วันสิ้นสุดการใช้งาน">
         <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
+      </b-form-group>
+
+      <b-form-group label="อาจารย์ที่ปรึกษา:">
+        <b-form-select v-model="vmSpec.Requestor.Lecturer" :options="lecturers" required></b-form-select>
+      </b-form-group>
+
+      <b-form-group label="ประเภทการใช้:">
+        <b-form-select v-model="vmSpec.Type" :options="types" required></b-form-select>
+      </b-form-group>
+
+      <b-form-group label="วิชา:">
+        <b-form-input v-model="vmSpec.Requestor.Course"></b-form-input>
       </b-form-group>
 
       <b-form-checkbox v-model="Accpeted" value="true" unchecked-value="false">
@@ -65,6 +77,12 @@ export default {
         MemoryGB: "",
         DiskGB: "",
         OS: null,
+        Requestor: {
+          Lecturer: "",
+          Student: "",
+          Course: ""
+        },
+        Type: "",
         StartDate: null,
         EndDate: null
       },
@@ -102,14 +120,21 @@ export default {
       OSs: [
         { value: null, text: "--- Please select OS ---", disabled: true },
         { value: "Ubuntu", text: "Ubuntu" },
-        { value: "CentOS", text: "CentOS" },
-        { value: "Windows 7", text: "Windows 7" },
         { value: "Windows 10", text: "Windows 10" }
       ],
-      Accpeted: false
+      Accpeted: false,
+      loading: true,
+      lecturers: [{ value: "lecturer", text: "lecturer" }],
+      types: [
+        { value: "Senior Project", text: "โปรเจคจบ" },
+        { value: "Project", text: "โปรเจครายวิชา" },
+        { value: "Research", text: "งานวิจัย" }
+      ]
     };
   },
-  mounted() {},
+  mounted() {
+    this.getLecturer();
+  },
   methods: {
     onSubmit(evt) {
       evt.preventDefault();
@@ -133,6 +158,28 @@ export default {
         }
       });
       this.OSs = response.data;
+    },
+    async getLecturer() {
+      this.lecturers = [{ value: "lecturer", text: "lecturer" }];
+      await GetServices.fetchLecturers()
+        .then(res => {
+          res.data.forEach(t =>
+            this.lecturers.push({
+              value: t.sAMAccountName,
+              text: t.displayName
+            })
+          );
+          this.loading = false;
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("user");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
     }
   }
 };

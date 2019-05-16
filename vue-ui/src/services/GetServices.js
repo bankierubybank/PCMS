@@ -19,6 +19,9 @@ export default {
   fetchRegisteredVMs() {
     return Api().get("registeredvm");
   },
+  fetchLecturers() {
+    return Api().get("lecturer");
+  },
   fetchVMTemplates() {
     return Api().get("templates");
   },

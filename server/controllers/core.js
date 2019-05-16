@@ -59,13 +59,23 @@ class Core {
    * Get data of all virtual machines from vCenter server.
    * @returns {JSON} Data of all virtual machines.
    */
-  async getVMs() {
+  async getVMs(params) {
     let vms;
-    this.PS.addCommand('Get-VM | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray');
-    await this.PS.invoke()
-      .then(output => {
-        vms = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
+    if (typeof params !== "undefined") {
+      this.PS.addCommand('Get-VM')
+        .then(this.PS.addParameters([params]))
+        .then(this.PS.addArgument('| Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray'));
+      await this.PS.invoke()
+        .then(output => {
+          vms = JSON.parse(output);
+        }).catch(err => this.logger.error(err));
+    } else {
+      this.PS.addCommand('Get-VM | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray');
+      await this.PS.invoke()
+        .then(output => {
+          vms = JSON.parse(output);
+        }).catch(err => this.logger.error(err));
+    }
     return vms;
   }
 

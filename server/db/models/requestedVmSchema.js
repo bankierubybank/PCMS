@@ -8,12 +8,17 @@ let requestedVmSchema = new Schema({
     MemoryGB: Number,
     ProvisionedSpaceGB: Number,
     OS: String,
-    Requestor: String,
+    Requestor: {
+        Lecturer: String,
+        Student: String,
+        Course: String
+    },
+    Type: String,
     Status: String,
     StartDate: Date,
     EndDate: Date
 }, {
-    collection: 'registered_vms'
+    collection: 'requested_vms'
 })
 
 module.exports = mongoose.model('requestedVmSchema', requestedVmSchema);

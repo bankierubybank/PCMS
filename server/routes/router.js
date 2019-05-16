@@ -7,6 +7,7 @@ const config = require('../config/environments/test.json');
 const logger = require('../controllers/logger.js');
 const debugging = true;
 const requestedVmSchema = require('../db/models/requestedVmSchema.js');
+const notificationSchema = require('../db/models/notificationSchema.js');
 const vmTemplateSchema = require('../db/models/vmTemplateSchema.js');
 const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
@@ -55,6 +56,11 @@ async function main() {
             accountData.type = 'Staff';
             accountData.username = 'admin';
             accountData.displayName = 'admin';
+            accountData.mail = '58070020@kmitl.ac.th';
+        } else if (req.body.username == 'lecturer' && req.body.password == 'lecturer') {
+            accountData.type = 'Lecturer';
+            accountData.username = 'lecturer';
+            accountData.displayName = 'lecturer';
             accountData.mail = '58070020@kmitl.ac.th';
         } else {
             let client = new LdapClient({
@@ -124,7 +130,70 @@ async function main() {
             status: true
         })
     })
-    
+
+    router.get('/notification', verifyToken, async (req, res) => {
+        await notificationSchema.find({
+            Requestor: {
+                Lecturer: req.decoded.username,
+                Student: req.decoded.username
+            }
+        }).then((notifications) => {
+            if (notifications[0]) {
+                res.status(200).json(notifications)
+            } else {
+                res.status(200).json([])
+            }
+        }).catch(err => logger.error(err))
+
+    })
+
+    router.get('/registeredvm', verifyToken, async (req, res) => {
+        if (req.decoded.type == 'Staff') {
+            await requestedVmSchema.find().then((registeredVMs) => {
+                if (registeredVMs[0]) {
+                    res.status(200).json(registeredVMs)
+                } else {
+                    res.status(200).json([])
+                }
+            }).catch(err => logger.error(err))
+        } else if (req.decoded.type == 'Lecturer') {
+            await requestedVmSchema.find({
+                'Requestor.Lecturer': req.decoded.username
+            }).then((registeredVMs) => {
+                if (registeredVMs[0]) {
+                    res.status(200).json(registeredVMs)
+                } else {
+                    res.status(200).json([])
+                }
+            }).catch(err => logger.error(err))
+        } else if (req.decoded.type == 'Student') {
+            await requestedVmSchema.find({
+                'Requestor.Student': req.decoded.username
+            }).then((registeredVMs) => {
+                if (registeredVMs[0]) {
+                    res.status(200).json(registeredVMs)
+                } else {
+                    res.status(200).json([])
+                }
+            }).catch(err => logger.error(err))
+        }
+    })
+
+    router.get('/template', verifyToken, async (req, res) => {
+        await vmTemplateSchema.find().then((templates) => {
+            res.status(200).json(templates);
+        }).catch(err => logger.error(err));
+    })
+
+    router.get('/lecturer', verifyToken, async (req, res) => {
+        await searchAD({
+            scope: 'sub',
+            attributes: ['sAMAccountName', 'displayName']
+        }, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th').then((lecturer) => {
+            res.status(200).json(lecturer);
+        }).catch(err => logger.error(err));
+    })
+
     router.get('/logout', verifyToken, async (req, res) => {
         res.status(200).json({
             status: false,
@@ -138,6 +207,19 @@ async function main() {
     router.use((req, res) => {
         res.status(404).send('Not found.');
     });
+}
+
+async function searchAD(options, OU) {
+    let client = new LdapClient({
+        url: config.ldap_url
+    });
+
+    await client.bind('bind-ldap-web@it.kmitl.ac.th', `IT]kfdit[y'`)
+        .catch(err => {
+            logger.error(err);
+        });
+
+    return await client.search(OU, options);
 }
 
 async function verifyToken(req, res, next) {
@@ -265,32 +347,6 @@ async function vmRoutes(core) {
             }).catch(err => logger.error(err));
     })
 
-    router.get('/registeredvm', verifyToken, async (req, res) => {
-        let vms;
-        if (req.decoded.type == 'Staff') {
-            await requestedVmSchema.find().then((registeredVMs) => {
-                vms = registeredVMs;
-            }).catch(err => logger.error(err))
-            if (vms[0]) {
-                res.status(200).json(vms)
-            } else {
-                res.status(200).json([])
-            }
-        } else {
-            await requestedVmSchema.find({
-                Requestor: req.decoded.username
-            }).then((registeredVMs) => {
-                vms = registeredVMs;
-            }).catch(err => logger.error(err))
-            if (vms[0]) {
-                res.status(200).json(vms)
-            } else {
-                logger.info(vms)
-                res.status(200).json([])
-            }
-        }
-    })
-
     router.get('/powerstate', verifyToken, async (req, res) => {
         await VMPerfSchema.find().then((data) => {
             res.status(200).json(data);
@@ -343,12 +399,6 @@ async function vmRoutes(core) {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
-
-    router.get('/templates', verifyToken, async (req, res) => {
-        await vmTemplateSchema.find().then((templates) => {
-            res.status(200).json(templates);
-        }).catch(err => logger.error(err));
-    })
 }
 
 /**
@@ -358,17 +408,29 @@ async function vmRoutes(core) {
  */
 async function vmOperation(core, jobs) {
     router.post('/newvm', urlencodedParser, verifyToken, async (req, res) => {
-        let newVM = new requestedVmSchema({
+        let requestDoc = {
             Name: req.body.Name,
             NumCpu: req.body.NumCpu,
             MemoryGB: req.body.MemoryGB,
             ProvisionedSpaceGB: req.body.DiskGB,
             OS: req.body.OS,
-            Requestor: req.decoded.username,
+            Requestor: {
+                Lecturer: '',
+                Student: '',
+                Course: req.body.Requestor.Course
+            },
+            Type: req.body.Type,
             Status: 'Pending',
             StartDate: new Date(req.body.StartDate),
             EndDate: new Date(req.body.EndDate)
-        })
+        }
+        if (req.decoded.type == 'Lecturer') {
+            requestDoc.Requestor.Lecturer = req.decoded.username
+        } else if (req.decoded.type == 'Student') {
+            requestDoc.Requestor.Lecturer = req.body.Requestor.Lecturer
+            requestDoc.Requestor.Student = req.decoded.username
+        }
+        let newVM = new requestedVmSchema(requestDoc)
         newVM.save(res.status(200).send('VM Requested!')).catch(err => logger.error(err));
     })
 
@@ -386,7 +448,29 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
-        await mailer.send(req.decoded.mail, vmSpec.Name, 'Approved');
+        let noti = new notificationSchema({
+            Name: req.params.vmName,
+            Requestor: vmSpec.Requestor,
+            Subject: `VM ${req.params.vmName} Approved!`,
+            Message: `VM ${req.params.vmName} Approved!`
+        })
+        noti.save().catch(err => logger.error(err))
+        let loptions = {
+            scope: 'sub',
+            attributes: ['sAMAccountName', 'displayName', 'mail'],
+            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+        };
+        let lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+        await mailer.send(lecturerEmail[0].mail, vmSpec.Name, 'Approved');
+        if (vmSpec.Requestor.Student) {
+            let soptions = {
+                scope: 'sub',
+                attributes: ['sAMAccountName', 'displayName', 'mail'],
+                filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
+            };
+            let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
+            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Approved');
+        }
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
             await core.shutdownVMGuest(vmSpec.Name)
