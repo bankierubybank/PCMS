@@ -24,13 +24,17 @@
       <b-table :items="data" :fields="fields" :filter="filter" @filtered="onFiltered" class="mt-3">
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
-            <b-button v-b-modal="data.item.Name" v-on:click="getDatastores()">Check Resource</b-button>
+            <b-button
+              v-b-modal="data.item.Name"
+              v-on:click="getDatastores(data.item)"
+            >Check Resource</b-button>
             <b-modal
               :id="data.item.Name"
               :title="'Check Resource: ' + data.item.Name"
               hide-footer
               size="lg"
             >
+              Please select designated datastore.
               <b-table
                 selectable
                 select-mode="single"
@@ -126,7 +130,7 @@ export default {
           sortable: true
         },
         {
-          key: "FreeSpaceAfter",
+          key: "FreeSpaceAfterGB",
           label: "Free Space After Create this VM",
           sortable: true
         }
@@ -145,7 +149,6 @@ export default {
     }
   },
   mounted() {
-    this.getDatastores();
     this.getDetailedCurrentVMs();
   },
   methods: {
@@ -192,10 +195,27 @@ export default {
       this.totalRows = filteredItems.length;
       this.currentPage = 1;
     },
-    async getDatastores() {
+    async getDatastores(request) {
+      this.datastores = [];
       await GetServices.fetchDatastores()
         .then(res => {
-          this.datastores = res.data;
+          Array.prototype.forEach.call(res.data, datastore => {
+            let data = {
+              Name: datastore.Name,
+              Id: datastore.Id,
+              FreeSpaceGB: this.round(datastore.FreeSpaceGB, 2),
+              CapacityGB: this.round(datastore.CapacityGB, 2),
+              FreeSpaceAfterGB: this.round(
+                datastore.FreeSpaceGB - request.ProvisionedSpaceGB,
+                2
+              ),
+              _rowVariant: ""
+            };
+            if (datastore.FreeSpaceGB - request.ProvisionedSpaceGB <= 0) {
+              data._rowVariant = "danger";
+            }
+            this.datastores.push(data);
+          });
         })
         .catch(err => {
           if (err.response.status == 403) {
@@ -209,7 +229,6 @@ export default {
     },
     async rowSelected(items) {
       this.selected = items[0];
-      console.log(this.selected)
     },
     async approveVM(vmName) {
       await PostServices.approveVM(vmName)
@@ -218,7 +237,7 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
@@ -227,13 +246,16 @@ export default {
         });
     },
     async autoCreateVM(vmName) {
-      await PostServices.autoCreateVM(vmName)
+      await PostServices.autoCreateVM({
+        Name: vmName,
+        Datastore: this.selected.Name
+      })
         .then(() => {
           location.reload();
         })
         .catch(err => {
           if (err.response.status == 403) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
@@ -248,13 +270,16 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"
             });
           }
         });
+    },
+    round(value, decimals) {
+      return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
     }
   }
 };

@@ -10,7 +10,6 @@ import MyVM from "@/components/MyVM";
 import RequestedVM from "@/components/RequestedVM";
 import AllVM from "@/components/AllVM";
 import Datastores from "@/components/Datastores";
-import Notification from "@/components/Notifications";
 
 Vue.use(Router);
 
@@ -57,11 +56,6 @@ export default new Router({
       path: "/requestedvm",
       name: "RequestedVM",
       component: RequestedVM
-    },
-    {
-      path: "/notification",
-      name: "Notification",
-      component: Notification
     },
     {
       path: "/allvm",

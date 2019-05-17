@@ -463,13 +463,19 @@ async function vmOperation(core, jobs) {
             Message: `VM ${req.params.vmName} Approved!`
         })
         noti.save().catch(err => logger.error(err))
-        let loptions = {
-            scope: 'sub',
-            attributes: ['sAMAccountName', 'displayName', 'mail'],
-            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-        };
-        let lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-        await mailer.send(lecturerEmail[0].mail, vmSpec.Name, 'Approved');
+        let lecturerEmail;
+        if (vmSpec.Requestor.Lecturer == 'lecturer') {
+            lecturerEmail = '58070020@kmitl.ac.th'
+        } else {
+            let loptions = {
+                scope: 'sub',
+                attributes: ['sAMAccountName', 'displayName', 'mail'],
+                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+            };
+            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+            lecturerEmail = lecturerEmail[0].mail
+        }
+        await mailer.send(lecturerEmail, vmSpec.Name, 'Approved');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -518,7 +524,7 @@ async function vmOperation(core, jobs) {
         }).then((templates) => {
             vmTemplate = templates;
         }).catch(err => logger.error(err));
-        await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM', 'datastore1').catch(err => logger.error(err));
+        await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', req.body.Datastore).catch(err => logger.error(err));
         let noti = new notificationSchema({
             Name: req.params.vmName,
             Requestor: vmSpec.Requestor,
@@ -526,13 +532,19 @@ async function vmOperation(core, jobs) {
             Message: `VM ${req.params.vmName} Approved!`
         })
         noti.save().catch(err => logger.error(err))
-        let loptions = {
-            scope: 'sub',
-            attributes: ['sAMAccountName', 'displayName', 'mail'],
-            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-        };
-        let lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-        await mailer.send(lecturerEmail[0].mail, vmSpec.Name, 'Approved');
+        let lecturerEmail;
+        if (vmSpec.Requestor.Lecturer == 'lecturer') {
+            lecturerEmail = '58070020@kmitl.ac.th'
+        } else {
+            let loptions = {
+                scope: 'sub',
+                attributes: ['sAMAccountName', 'displayName', 'mail'],
+                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+            };
+            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+            lecturerEmail = lecturerEmail[0].mail
+        }
+        await mailer.send(lecturerEmail, vmSpec.Name, 'Approved');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -582,13 +594,19 @@ async function vmOperation(core, jobs) {
             Message: `VM ${req.params.vmName} Rejected!`
         })
         noti.save().catch(err => logger.error(err))
-        let loptions = {
-            scope: 'sub',
-            attributes: ['sAMAccountName', 'displayName', 'mail'],
-            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-        };
-        let lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-        await mailer.send(lecturerEmail[0].mail, vmSpec.Name, 'Rejected');
+        let lecturerEmail;
+        if (vmSpec.Requestor.Lecturer == 'lecturer') {
+            lecturerEmail = '58070020@kmitl.ac.th'
+        } else {
+            let loptions = {
+                scope: 'sub',
+                attributes: ['sAMAccountName', 'displayName', 'mail'],
+                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+            };
+            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+            lecturerEmail = lecturerEmail[0].mail
+        }
+        await mailer.send(lecturerEmail, vmSpec.Name, 'Rejected');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -622,13 +640,19 @@ async function vmOperation(core, jobs) {
             Message: `VM ${req.params.vmName} Extended!`
         })
         noti.save().catch(err => logger.error(err))
-        let loptions = {
-            scope: 'sub',
-            attributes: ['sAMAccountName', 'displayName', 'mail'],
-            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-        };
-        let lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-        await mailer.send(lecturerEmail[0].mail, vmSpec.Name, 'Extended');
+        let lecturerEmail;
+        if (vmSpec.Requestor.Lecturer == 'lecturer') {
+            lecturerEmail = '58070020@kmitl.ac.th'
+        } else {
+            let loptions = {
+                scope: 'sub',
+                attributes: ['sAMAccountName', 'displayName', 'mail'],
+                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+            };
+            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+            lecturerEmail = lecturerEmail[0].mail
+        }
+        await mailer.send(lecturerEmail, vmSpec.Name, 'Extended');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',

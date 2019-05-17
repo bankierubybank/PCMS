@@ -1,62 +1,69 @@
 <template>
   <b-container>
     <h1>Create New VM</h1>
-    <b-form @submit="onSubmit">
-      <b-form-group label="VM Name:">
-        <b-form-input v-model="vmSpec.Name" required></b-form-input>
-      </b-form-group>
+    <div v-if="loading">
+      <b-spinner variant="primary" label="Spinning"></b-spinner>
+    </div>
+    <div v-else>
+      <b-form @submit="onSubmit">
+        <b-form-group label="VM Name:">
+          <b-form-input v-model="vmSpec.Name" required></b-form-input>
+        </b-form-group>
 
-      <b-form-group label="จำนวน Core CPU:">
-        <b-form-select v-model="vmSpec.NumCpu" :options="cpuOptions" required></b-form-select>
-      </b-form-group>
+        <b-form-group label="จำนวน Core CPU:">
+          <b-form-select v-model="vmSpec.NumCpu" :options="cpuOptions" required></b-form-select>
+        </b-form-group>
 
-      <b-form-group label="จำนวน RAM (GB):">
-        <b-form-select v-model="vmSpec.MemoryGB" :options="memOptions" required></b-form-select>
-      </b-form-group>
+        <b-form-group label="จำนวน RAM (GB):">
+          <b-form-select v-model="vmSpec.MemoryGB" :options="memOptions" required></b-form-select>
+        </b-form-group>
 
-      <b-form-group label="ขนาด Harddisk (GB):">
-        <b-form-select v-model="vmSpec.DiskGB" :options="diskOptions" required></b-form-select>
-      </b-form-group>
+        <b-form-group label="ขนาด Harddisk (GB):">
+          <b-form-select v-model="vmSpec.DiskGB" :options="diskOptions" required></b-form-select>
+        </b-form-group>
 
-      <b-form-group label="OS:">
-        <b-form-select v-model="vmSpec.OS" :options="OSs" required></b-form-select>
-      </b-form-group>
+        <b-form-group label="OS:">
+          <b-form-select v-model="vmSpec.OS" :options="OSs" required></b-form-select>
+        </b-form-group>
 
-      <b-form-group label="วันเริ่มใช้งาน">
-        <datepicker v-model="vmSpec.StartDate" name="StartDate"></datepicker>
-      </b-form-group>
-      <b-form-group label="วันสิ้นสุดการใช้งาน">
-        <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
-      </b-form-group>
+        <b-form-group label="วันเริ่มใช้งาน">
+          <datepicker v-model="vmSpec.StartDate" name="StartDate"></datepicker>
+        </b-form-group>
+        <b-form-group label="วันสิ้นสุดการใช้งาน">
+          <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
+        </b-form-group>
 
-      <b-form-group label="อาจารย์ที่ปรึกษา:">
-        <b-form-select v-model="vmSpec.Requestor.Lecturer" :options="lecturers" required></b-form-select>
-      </b-form-group>
+        <b-form-group label="ประเภทการใช้:">
+          <b-form-select v-model="vmSpec.Type" :options="types" required></b-form-select>
+        </b-form-group>
 
-      <b-form-group label="ประเภทการใช้:">
-        <b-form-select v-model="vmSpec.Type" :options="types" required></b-form-select>
-      </b-form-group>
+        <div v-if="this.user.type === 'Student'">
+          <b-form-group label="อาจารย์ที่ปรึกษา:">
+            <b-form-select v-model="vmSpec.Requestor.Lecturer" :options="lecturers" required></b-form-select>
+          </b-form-group>
 
-      <b-form-group label="วิชา:">
-        <b-form-input v-model="vmSpec.Requestor.Course"></b-form-input>
-      </b-form-group>
+          <b-form-group label="วิชา:">
+            <b-form-input v-model="vmSpec.Requestor.Course"></b-form-input>
+          </b-form-group>
+        </div>
 
-      <b-form-checkbox v-model="Accpeted" value="true" unchecked-value="false">
-        ฉันได้ยอมรับ
-        <b-link v-b-modal.terms>ข้อตกลงในการใช้งาน</b-link>
-        <b-modal id="terms" hide-footer>
-          1. การขอใช้งาน ระบบจะยังไม่สร้าง VM ให้ทันที จะต้องรอเจ้าหน้าที่ IT
-          Support อนุมัติคำขอใช้ก่อน
-          <br>2. เมื่อ VM ใกล้จะครบกำหนดระยะเวลาที่ขอใช้ไว้ หากไม่ทำการต่ออายุ
-          เมื่อครบกำหนดระบบจะลบ VM ทันทีเพื่อคืนพื้นที่ให้กับผู้ใช้ท่านอื่น
-          <br>3. หากมีข้อมูลใน VM ถูกลบไปเนื่อจากครบกำหนดระยะเวลาใช้งาน ทาง IT
-          Support จะไม่รับผิดชอบใด ๆ กับข้อมูลเหล่านั้น
-          <br>
-        </b-modal>
-      </b-form-checkbox>
-      <br>
-      <b-button type="submit" variant="primary">ส่งคำขอใช้งาน</b-button>
-    </b-form>
+        <b-form-checkbox v-model="Accpeted" value="true" unchecked-value="false">
+          ฉันได้ยอมรับ
+          <b-link v-b-modal.terms>ข้อตกลงในการใช้งาน</b-link>
+          <b-modal id="terms" hide-footer>
+            1. การขอใช้งาน ระบบจะยังไม่สร้าง VM ให้ทันที จะต้องรอเจ้าหน้าที่ IT
+            Support อนุมัติคำขอใช้ก่อน
+            <br>2. เมื่อ VM ใกล้จะครบกำหนดระยะเวลาที่ขอใช้ไว้ หากไม่ทำการต่ออายุ
+            เมื่อครบกำหนดระบบจะลบ VM ทันทีเพื่อคืนพื้นที่ให้กับผู้ใช้ท่านอื่น
+            <br>3. หากมีข้อมูลใน VM ถูกลบไปเนื่อจากครบกำหนดระยะเวลาใช้งาน ทาง IT
+            Support จะไม่รับผิดชอบใด ๆ กับข้อมูลเหล่านั้น
+            <br>
+          </b-modal>
+        </b-form-checkbox>
+        <br>
+        <b-button type="submit" variant="primary">ส่งคำขอใช้งาน</b-button>
+      </b-form>
+    </div>
   </b-container>
 </template>
 
@@ -129,11 +136,15 @@ export default {
         { value: "Senior Project", text: "โปรเจคจบ" },
         { value: "Project", text: "โปรเจครายวิชา" },
         { value: "Research", text: "งานวิจัย" }
-      ]
+      ],
+      user: null
     };
   },
   mounted() {
+    this.loading = true;
+    this.user = JSON.parse(localStorage.getItem("user"));
     this.getLecturer();
+    this.loading = false;
   },
   methods: {
     onSubmit(evt) {
@@ -169,7 +180,6 @@ export default {
               text: t.displayName
             })
           );
-          this.loading = false;
         })
         .catch(err => {
           if (err.response.status == 403) {

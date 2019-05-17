@@ -67,9 +67,6 @@
           <div v-else>
             <b-list-group>
               <b-list-group-item>
-                <router-link to="/notification" class="collection-item">Noti</router-link>
-              </b-list-group-item>
-              <b-list-group-item>
                 <router-link to="/myvm" class="collection-item">My VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
@@ -104,7 +101,7 @@ export default {
       this.$swal("Please Login!");
     } else {
       this.user = JSON.parse(localStorage.getItem("user"));
-      if (this.user.Type != "Staff") {
+      if (this.user.type != "Staff") {
         this.getNotifications();
       }
     }
@@ -125,7 +122,7 @@ export default {
         })
         .catch(err => {
           if (err.response.status == 403) {
-            localStorage.removeItem("token");
+            localStorage.removeItem("user");
             this.$swal("Session Timeout!");
             this.$router.push({
               name: "Login"

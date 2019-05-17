@@ -14,8 +14,8 @@ export default {
   approveVM(vmName) {
     return Api().post("vm/" + vmName + "/approve", {});
   },
-  autoCreateVM(vmName) {
-    return Api().post("vm/" + vmName + "/autocreate", {});
+  autoCreateVM(params) {
+    return Api().post("vm/" + params.Name + "/autocreate", params, {});
   },
   rejectVM(vmName) {
     return Api().post("vm/" + vmName + "/reject", {});
