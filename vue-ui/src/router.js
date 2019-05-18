@@ -4,7 +4,7 @@ import Home from "./views/Home.vue";
 import About from "./views/About.vue";
 import Login from "@/components/Login";
 import NewVM from "@/components/NewVM";
-import Monitor from "@/components/Monitor";
+import Monitor from "./views/Monitor.vue";
 import Landing from "./views/Landing.vue";
 import MyVM from "@/components/MyVM";
 import RequestedVM from "@/components/RequestedVM";

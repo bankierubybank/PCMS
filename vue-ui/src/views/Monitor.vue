@@ -1,14 +1,34 @@
 <template>
   <b-container>
-    <h1>VM Stat Chart</h1>
-
-    <div v-if="loading">
-      <b-spinner variant="primary" label="Spinning"></b-spinner>
-    </div>
-    <div v-else>
-        <b-form-select v-model="range" :options="rangeOptions" @change="onChange()"></b-form-select>
-      <b-row>
-        <b-col>
+    <h1>Monitor Dashboard</h1>
+    <b-row>
+      <b-col>
+        <div v-if="elements.chartLoading">
+          <b-spinner variant="primary" label="Spinning"></b-spinner>
+        </div>
+        <div v-else>
+          <b-card-group deck>
+            <b-card title="Storage Summary">
+              <apexchart
+                type="donut"
+                width="75%"
+                :options="pieChartOptions"
+                :series="[storageSummary.totalFree, storageSummary.totalUsed]"
+              />
+            </b-card>
+          </b-card-group>
+        </div>
+      </b-col>
+      <b-col></b-col>
+    </b-row>
+    <b-row>
+      <b-col>
+        Top Powered Off VM
+        <div v-if="elements.poweredOffVMLoading">
+          <b-spinner variant="primary" label="Spinning"></b-spinner>
+        </div>
+        <div v-else>
+          <b-form-select v-model="range" :options="rangeOptions" @change="onChange()"></b-form-select>
           <b-table
             :items="queryData"
             :fields="psfields"
@@ -16,7 +36,7 @@
             :sort-by.sync="sortBy"
             :sort-desc.sync="sortDesc"
           >
-            <template slot="FreeUsedRatio" slot-scope="vm">
+            <template slot="detail" slot-scope="vm">
               <div>
                 <b-button v-b-modal="vm.item.Name" variant="primary" size="sm">ดูข้อมูลโดยละเอียด</b-button>
 
@@ -63,21 +83,28 @@
               </div>
             </template>
           </b-table>
-          <div>
-            Sorting By:
-            <b>{{ sortBy }}</b>, Sort Direction:
-            <b>{{ sortDesc ? 'Descending' : 'Ascending' }}</b>
-          </div>
-        </b-col>
-        <b-col>
-          <b-table :items="datastores" :fields="dsfields" class="mt-3">
-        <template slot="FreeUsedRatio" slot-scope="data">
-          <div>
-            <apexchart
-              type="bar"
-              height="100"
-              :options="barchartOptions"
-              :series="[
+        </div>
+      </b-col>
+      <b-col>
+        Top Used Datastores
+        <div v-if="elements.topDatastoresLoading">
+          <b-spinner variant="primary" label="Spinning"></b-spinner>
+        </div>
+        <div v-else>
+          <b-table
+            :items="datastores"
+            :fields="dsfields"
+            class="mt-3"
+            :sort-by.sync="sortBy2"
+            :sort-desc.sync="sortDesc"
+          >
+            <template slot="FreeUsedRatio" slot-scope="data">
+              <div>
+                <apexchart
+                  type="bar"
+                  height="100"
+                  :options="barchartOptions"
+                  :series="[
                 {
                   name: 'Used Space',
                   data: [data.item.FreeUsedRatio.UsedSpaceGB]
@@ -87,17 +114,13 @@
                   data: [data.item.FreeUsedRatio.FreeSpaceGB]
                 }
               ]"
-            />
-          </div>
-        </template>
-      </b-table>
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col></b-col>
-        <b-col></b-col>
-      </b-row>
-    </div>
+                />
+              </div>
+            </template>
+          </b-table>
+        </div>
+      </b-col>
+    </b-row>
   </b-container>
 </template>
 
@@ -109,10 +132,72 @@ export default {
   components: {},
   data() {
     return {
-      data: [],
-      loading: true,
-      chartOptions: {
-        labels: ["Power On", "Power Off"],
+      //Elements loading state
+      elements: {
+        chartLoading: true,
+        poweredOffVMLoading: true,
+        topDatastoresLoading: true
+      },
+      //Data from API
+      vmStat: [],
+      queryData: [],
+      datastores: [],
+      storageSummary: {
+        totalFree: 0,
+        totalCapacity: 0,
+        totalUsed: 0,
+        Storage: []
+      },
+      //Data scope
+      range: null,
+      rangeOptions: [
+        { text: "--- Please select range ---", value: null, disabled: true },
+        { text: "Last Day", value: { days: 1 } },
+        { text: "Last Week", value: { weeks: 1 } },
+        { text: "Last Month", value: { months: 1 } }
+      ],
+      //Table key
+      psfields: [
+        {
+          key: "Name",
+          label: "VM Name"
+        },
+        {
+          key: "PowerStatePercentage",
+          label: "Power On Percentage"
+        },
+        {
+          key: "detail",
+          label: "Detail"
+        }
+      ],
+      dsfields: [
+        {
+          key: "Name",
+          label: "Datastore Name",
+          sortable: true
+        },
+        {
+          key: "FreeSpaceGB",
+          label: "Free Space (GB)",
+          sortable: true
+        },
+        {
+          key: "CapacityGB",
+          label: "Capacity (GB)",
+          sortable: true
+        },
+        {
+          key: "FreeUsedRatio",
+          label: "Chart"
+        }
+      ],
+      sortBy: "PowerStatePercentage",
+      sortBy2: "FreeSpacePercentage",
+      sortDesc: false,
+      //Chart options
+      pieChartOptions: {
+        labels: ["Free Space", "Used Space"],
         colors: ["#28a745", "#dc3545"]
       },
       lineOptions: {
@@ -123,58 +208,8 @@ export default {
           type: "datetime"
         }
       },
-      range: null,
-      rangeOptions: [
-        { text: "--- Please select range ---", value: null, disabled: true },
-        { text: "1 Day", value: { days: 1 } },
-        { text: "1 Week", value: { weeks: 1 } },
-        { text: "1 Month", value: { months: 1 } }
-      ],
-      queryData: [],
-      psfields: [
-        {
-          key: "Name",
-          label: "Datastore Name"
-        },
-        {
-          key: "PowerStatePercentage",
-          label: "Power On Percentage"
-        },
-        {
-          key: "FreeUsedRatio",
-          label: "Chart"
-        }
-      ],
-      sortBy: "PowerStatePercentage",
-      sortDesc: false,
-      dsfields: [
-        {
-          key: "Name",
-          label: "Datastore Name",
-          sortable: true
-        },
-        {
-          key: "FreeSpaceGB",
-          label: "Free Space in GB",
-          sortable: true
-        },
-        {
-          key: "CapacityGB",
-          label: "Capacity in GB",
-          sortable: true
-        },
-        {
-          key: "UsedSpaceGB",
-          label: "Used Space in GB",
-          sortable: true
-        },
-        {
-          key: "FreeUsedRatio",
-          label: "Chart"
-        }
-      ],
-      datastores: [],
       barchartOptions: {
+        labels: ["Free Space Percentage"],
         colors: ["#dc3545", "#28a745"],
         chart: {
           stacked: true,
@@ -186,7 +221,7 @@ export default {
         plotOptions: {
           bar: {
             horizontal: true,
-            barHeight: "20%"
+            barHeight: "15%"
           }
         }
       }
@@ -198,9 +233,9 @@ export default {
   },
   methods: {
     async onChange() {
-      this.loading = true;
+      this.elements.poweredOffVMLoading = true;
       this.queryData = [];
-      this.data.forEach(vm => {
+      this.vmStat.forEach(vm => {
         let PowerOnCount = 0;
         let MappingPowerState = vm.PowerStateData.map(x => {
           if (moment(x[0]).isBetween(moment().subtract(this.range), moment())) {
@@ -244,10 +279,11 @@ export default {
           )
         });
       });
-      this.loading = false;
+      this.elements.poweredOffVMLoading = false;
     },
     async getPowerState() {
-      this.data = [];
+      this.elements.poweredOffVMLoading = true;
+      this.vmStat = [];
       await GetServices.fetchPowerState()
         .then(res => {
           res.data.forEach(vm => {
@@ -260,7 +296,7 @@ export default {
                 return [new Date(x.timestamp), 0];
               }
             });
-            this.data.push({
+            this.vmStat.push({
               Name: vm.Name,
               PowerStateData: MappingPowerState,
               CPUData: vm.stats.map(x => [new Date(x.timestamp), x.CPU]),
@@ -273,8 +309,8 @@ export default {
               )
             });
           });
-          this.queryData = this.data;
-          this.loading = false;
+          this.queryData = this.vmStat;
+          this.elements.poweredOffVMLoading = false;
         })
         .catch(err => {
           if (err.response.status == 403) {
@@ -290,8 +326,14 @@ export default {
       return Number(Math.round(value + "e" + decimals) + "e-" + decimals);
     },
     async getDetailedDatastores() {
+      this.elements.chartLoading = true;
+      this.elements.topDatastoresLoading = true;
       this.datastores = [];
-      this.loading = true;
+      this.storageSummary = {
+        totalFree: 0,
+        totalCapacity: 0,
+        totalUsed: 0
+      };
       let datastores = await GetServices.fetchDatastores().catch(err => {
         if (err.response.status == 403) {
           localStorage.removeItem("user");
@@ -317,10 +359,31 @@ export default {
               datastore.CapacityGB - datastore.FreeSpaceGB,
               2
             )
-          }
+          },
+          FreeSpacePercentage: this.round(
+            (datastore.FreeSpaceGB / datastore.CapacityGB) * 100,
+            2
+          )
         });
+        this.storageSummary.totalFree += datastore.FreeSpaceGB;
+        this.storageSummary.totalCapacity += datastore.CapacityGB;
+        this.storageSummary.totalUsed +=
+          datastore.CapacityGB - datastore.FreeSpaceGB;
       });
-      this.loading = false;
+      this.storageSummary.totalFree = this.round(
+        this.storageSummary.totalFree,
+        2
+      );
+      this.storageSummary.totalCapacity = this.round(
+        this.storageSummary.totalCapacity,
+        2
+      );
+      this.storageSummary.totaltotalUsed = this.round(
+        this.storageSummary.totalUsed,
+        2
+      );
+      this.elements.chartLoading = false;
+      this.elements.topDatastoresLoading = false;
     }
   }
 };
