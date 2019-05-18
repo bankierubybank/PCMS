@@ -217,8 +217,9 @@ class Core {
   /**
    * Create a virtual machine.
    * @param {JSON} spec A JSON object contains virtual machine's spec.
+   * @param {JSON} Datastore A JSON object contains datastore's detail.
    */
-  async newVM(spec) {
+  async newVM(spec, Datastore) {
     this.PS.addCommand('$vmhost = Get-VMHost')
       .then(this.PS.addParameters([{
         Name: spec.VMHost
@@ -226,12 +227,21 @@ class Core {
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
-    this.PS.addCommand('$datastore = Get-DatastoreCluster')
-      .then(this.PS.addParameters([{
-        Name: spec.Datastore
-      }]));
-    await this.PS.invoke()
-      .then({}).catch(err => this.logger.error(err));
+    if (Datastore.Type == 'Datastore') {
+      this.PS.addCommand('$datastore = Get-Datastore')
+        .then(this.PS.addParameters([{
+          Name: Datastore.Name
+        }]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
+    } else if (Datastore.Type == 'DatastoreCluster') {
+      this.PS.addCommand('$datastore = Get-DatastoreCluster')
+        .then(this.PS.addParameters([{
+          Name: Datastore.Name
+        }]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
+    }
 
     this.PS.addCommand('New-VM CD')
       .then(this.PS.addParameters([{
@@ -264,6 +274,9 @@ class Core {
    * Create a virtual machine from existing template,
    * then configure virtual machine's spec
    * @param {JSON} spec A JSON object contains virtual machine's spec.
+   * @param {JSON} templateSpec A JSON object contains template's spec.
+   * @param {String} ResourcePool A string of resource pool's name.
+   * @param {JSON} Datastore A JSON object contains datastore's detail.
    */
   async newVMfromTemplate(vmSpec, templateSpec, ResourcePool, Datastore) {
     this.PS.addCommand('$resourcepool = Get-ResourcePool')
@@ -273,12 +286,21 @@ class Core {
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
-    this.PS.addCommand('$datastore = Get-Datastore')
-      .then(this.PS.addParameters([{
-        Name: Datastore
-      }]));
-    await this.PS.invoke()
-      .then({}).catch(err => this.logger.error(err));
+    if (Datastore.Type == 'Datastore') {
+      this.PS.addCommand('$datastore = Get-Datastore')
+        .then(this.PS.addParameters([{
+          Name: Datastore.Name
+        }]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
+    } else if (Datastore.Type == 'DatastoreCluster') {
+      this.PS.addCommand('$datastore = Get-DatastoreCluster')
+        .then(this.PS.addParameters([{
+          Name: Datastore.Name
+        }]));
+      await this.PS.invoke()
+        .then({}).catch(err => this.logger.error(err));
+    }
 
     this.PS.addCommand('$template = Get-Template')
       .then(this.PS.addParameters([{

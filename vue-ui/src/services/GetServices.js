@@ -13,6 +13,9 @@ export default {
   fetchDatastores() {
     return Api().get("datastores");
   },
+  fetchDatastoreClusters() {
+    return Api().get("datastoreclusters");
+  },
   fetchDatacenters() {
     return Api().get("datacenters");
   },

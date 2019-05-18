@@ -30,23 +30,31 @@
             >Check Resource</b-button>
             <b-modal
               :id="data.item.Name"
+              :ref="data.item.Name"
               :title="'Check Resource: ' + data.item.Name"
               hide-footer
               size="lg"
             >
               Please select designated datastore.
-              <b-table
-                selectable
-                select-mode="single"
-                selectedVariant="success"
-                @row-selected="rowSelected"
-                :items="datastores"
-                :fields="dsfields"
-                class="mt-3"
-              ></b-table>
-              <b-button variant="primary" v-on:click="approveVM(data.item.Name)">Approve</b-button>
-              <b-button variant="success" v-on:click="autoCreateVM(data.item.Name)">Auto Create</b-button>
-              <b-button variant="danger" v-on:click="rejectVM(data.item.Name)">Reject</b-button>
+              <div v-if="dsloading">
+                <b-spinner variant="primary" label="Spinning"></b-spinner>
+              </div>
+              <div v-else>
+                <b-table
+                  selectable
+                  select-mode="single"
+                  selectedVariant="success"
+                  @row-selected="rowSelected"
+                  :items="datastores"
+                  :fields="dsfields"
+                  class="mt-3"
+                  :sort-by.sync="sortBy"
+                  :sort-desc.sync="sortDesc"
+                ></b-table>
+                <b-button variant="primary" v-on:click="approveVM(data.item.Name)">Approve</b-button>
+                <b-button variant="success" v-on:click="autoCreateVM(data.item.Name)">Auto Create</b-button>
+                <b-button variant="danger" v-on:click="rejectVM(data.item.Name)">Reject</b-button>
+              </div>
             </b-modal>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
@@ -111,22 +119,20 @@ export default {
       dsfields: [
         {
           key: "Name",
-          label: "Datastore Name",
-          sortable: true
+          label: "Datastore Name"
         },
         {
-          key: "Id",
-          label: "Id",
-          sortable: true
+          key: "Type",
+          label: "Type"
         },
         {
           key: "FreeSpaceGB",
-          label: "Free Space in GB",
+          label: "Free Space (GB)",
           sortable: true
         },
         {
           key: "CapacityGB",
-          label: "Capacity in GB",
+          label: "Capacity (GB)",
           sortable: true
         },
         {
@@ -135,7 +141,10 @@ export default {
           sortable: true
         }
       ],
-      selected: {}
+      selected: {},
+      sortBy: "FreeSpaceAfterGB",
+      sortDesc: true,
+      dsloading: true
     };
   },
   computed: {
@@ -197,6 +206,7 @@ export default {
     },
     async getDatastores(request) {
       this.datastores = [];
+      this.dsloading = true;
       await GetServices.fetchDatastores()
         .then(res => {
           Array.prototype.forEach.call(res.data, datastore => {
@@ -209,6 +219,7 @@ export default {
                 datastore.FreeSpaceGB - request.ProvisionedSpaceGB,
                 2
               ),
+              Type: "Datastore",
               _rowVariant: ""
             };
             if (datastore.FreeSpaceGB - request.ProvisionedSpaceGB <= 0) {
@@ -226,12 +237,48 @@ export default {
             });
           }
         });
+
+      await GetServices.fetchDatastoreClusters()
+        .then(res => {
+          Array.prototype.forEach.call(res.data, dsCluster => {
+            let data = {
+              Name: dsCluster.Name,
+              Id: dsCluster.Id,
+              FreeSpaceGB: this.round(dsCluster.FreeSpaceGB, 2),
+              CapacityGB: this.round(dsCluster.CapacityGB, 2),
+              FreeSpaceAfterGB: this.round(
+                dsCluster.FreeSpaceGB - request.ProvisionedSpaceGB,
+                2
+              ),
+              Type: "DatastoreCluster",
+              _rowVariant: ""
+            };
+            if (dsCluster.FreeSpaceGB - request.ProvisionedSpaceGB <= 0) {
+              data._rowVariant = "danger";
+            }
+            this.datastores.push(data);
+          });
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("user");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        });
+      this.dsloading = false;
     },
     async rowSelected(items) {
       this.selected = items[0];
     },
     async approveVM(vmName) {
-      await PostServices.approveVM(vmName)
+      this.$refs[vmName].hide();
+      this.$swal("VM Approved!");
+      await PostServices.approveVM({
+        Name: vmName
+      })
         .then(() => {
           location.reload();
         })
@@ -246,9 +293,11 @@ export default {
         });
     },
     async autoCreateVM(vmName) {
+      this.$refs[vmName].hide();
+      this.$swal("VM Approved!");
       await PostServices.autoCreateVM({
         Name: vmName,
-        Datastore: this.selected.Name
+        Datastore: { Name: this.selected.Name, Type: this.selected.Type }
       })
         .then(() => {
           location.reload();
@@ -264,7 +313,11 @@ export default {
         });
     },
     async rejectVM(vmName) {
-      await PostServices.rejectVM(vmName)
+      this.$refs[vmName].hide();
+      this.$swal("VM Rejected!");
+      await PostServices.rejectVM({
+        Name: vmName
+      })
         .then(() => {
           location.reload();
         })

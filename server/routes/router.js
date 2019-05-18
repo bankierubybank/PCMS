@@ -449,9 +449,9 @@ async function vmOperation(core, jobs) {
         newVM.save(res.status(200).send('VM Requested!')).catch(err => logger.error(err));
     })
 
-    router.post('/vm/:vmName/approve', verifyToken, async (req, res) => {
+    router.post('/vm/approve', verifyToken, async (req, res) => {
         let vmSpec = await requestedVmSchema.findOneAndUpdate({
-            Name: req.params.vmName
+            Name: req.body.Name
         }, {
             $set: {
                 Status: 'Approved'
@@ -464,10 +464,10 @@ async function vmOperation(core, jobs) {
             }
         });
         let noti = new notificationSchema({
-            Name: req.params.vmName,
+            Name: req.body.Name,
             Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.params.vmName} Approved!`,
-            Message: `VM ${req.params.vmName} Approved!`
+            Subject: `VM ${req.body.Name} Approved!`,
+            Message: `VM ${req.body.Name} Approved!`
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;
@@ -511,9 +511,9 @@ async function vmOperation(core, jobs) {
         res.status(200).send('VM Approved!');
     })
 
-    router.post('/vm/:vmName/autocreate', verifyToken, async (req, res) => {
+    router.post('/vm/autocreate', verifyToken, async (req, res) => {
         let vmSpec = await requestedVmSchema.findOneAndUpdate({
-            Name: req.params.vmName
+            Name: req.body.Name
         }, {
             $set: {
                 Status: 'Approved'
@@ -533,10 +533,10 @@ async function vmOperation(core, jobs) {
         }).catch(err => logger.error(err));
         await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', req.body.Datastore).catch(err => logger.error(err));
         let noti = new notificationSchema({
-            Name: req.params.vmName,
+            Name: req.body.Name,
             Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.params.vmName} Approved!`,
-            Message: `VM ${req.params.vmName} Approved!`
+            Subject: `VM ${req.body.Name} Approved!`,
+            Message: `VM ${req.body.Name} Approved!`
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;
@@ -580,9 +580,9 @@ async function vmOperation(core, jobs) {
         res.status(200).send('VM Approved!');
     })
 
-    router.post('/vm/:vmName/reject', verifyToken, async (req, res) => {
+    router.post('/vm/reject', verifyToken, async (req, res) => {
         let vmSpec = await requestedVmSchema.findOneAndUpdate({
-            Name: req.params.vmName
+            Name: req.body.Name
         }, {
             $set: {
                 Status: 'Rejected'
@@ -595,10 +595,10 @@ async function vmOperation(core, jobs) {
             }
         });
         let noti = new notificationSchema({
-            Name: req.params.vmName,
+            Name: req.body.Name,
             Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.params.vmName} Rejected!`,
-            Message: `VM ${req.params.vmName} Rejected!`
+            Subject: `VM ${req.body.Name} Rejected!`,
+            Message: `VM ${req.body.Name} Rejected!`
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;

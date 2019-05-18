@@ -135,8 +135,8 @@ export default {
 </script>
 
 <style>
-@import url("https://fonts.googleapis.com/css?family=Pridi:300");
+@import url('https://fonts.googleapis.com/css?family=Athiti&display=swap');
 #app {
-  font-family: "Pridi", sans-serif;
+  font-family: 'Athiti', sans-serif;
 }
 </style>

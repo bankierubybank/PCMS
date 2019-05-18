@@ -11,13 +11,13 @@ export default {
   newVM(params) {
     return Api().post("newvm", params);
   },
-  approveVM(vmName) {
-    return Api().post("vm/" + vmName + "/approve", {});
+  approveVM(params) {
+    return Api().post("vm/approve", params);
   },
   autoCreateVM(params) {
-    return Api().post("vm/" + params.Name + "/autocreate", params, {});
+    return Api().post("vm/autocreate", params);
   },
-  rejectVM(vmName) {
-    return Api().post("vm/" + vmName + "/reject", {});
+  rejectVM(params) {
+    return Api().post("vm/reject", params);
   }
 };

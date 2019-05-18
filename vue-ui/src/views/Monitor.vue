@@ -86,14 +86,14 @@
         </div>
       </b-col>
       <b-col>
-        Top Used Datastores
+        Top Used Datastores Cluster
         <div v-if="elements.topDatastoresLoading">
           <b-spinner variant="primary" label="Spinning"></b-spinner>
         </div>
         <div v-else>
           <b-table
-            :items="datastores"
-            :fields="dsfields"
+            :items="datastoreClusters"
+            :fields="clusterfields"
             class="mt-3"
             :sort-by.sync="sortBy2"
             :sort-desc.sync="sortDesc"
@@ -107,14 +107,60 @@
                   :series="[
                 {
                   name: 'Used Space',
-                  data: [data.item.FreeUsedRatio.UsedSpaceGB]
+                  data: [data.item.UsedSpaceGB]
                 },
                 {
                   name: 'Free Space',
-                  data: [data.item.FreeUsedRatio.FreeSpaceGB]
+                  data: [data.item.FreeSpaceGB]
                 }
               ]"
                 />
+              </div>
+            </template>
+            <template slot="Datastores" slot-scope="data">
+              <div>
+                <b-button
+                  v-b-modal="data.item.Name"
+                  variant="primary"
+                  size="sm"
+                >View</b-button>
+
+                <b-modal
+                  :id="data.item.Name"
+                  :title="data.item.Name + ' Stats'"
+                  size="lg"
+                  hide-footer
+                >
+                  <b-container>
+                    <b-table
+                      :items="data.item.Datastores"
+                      :fields="dsfields"
+                      class="mt-3"
+                      :sort-by.sync="sortBy2"
+                      :sort-desc.sync="sortDesc"
+                    >
+                      <template slot="FreeUsedRatio" slot-scope="data">
+                        <div>
+                          <apexchart
+                            type="bar"
+                            height="100"
+                            :options="barchartOptions"
+                            :series="[
+                {
+                  name: 'Used Space',
+                  data: [data.item.UsedSpaceGB]
+                },
+                {
+                  name: 'Free Space',
+                  data: [data.item.FreeSpaceGB]
+                }
+              ]"
+                          />
+                        </div>
+                      </template>
+                    </b-table>
+                  </b-container>
+                </b-modal>
               </div>
             </template>
           </b-table>
@@ -136,11 +182,13 @@ export default {
       elements: {
         chartLoading: true,
         poweredOffVMLoading: true,
-        topDatastoresLoading: true
+        topDatastoresLoading: true,
+        datastoreClusterLoading: true
       },
       //Data from API
       vmStat: [],
       queryData: [],
+      datastoreClusters: [],
       datastores: [],
       storageSummary: {
         totalFree: 0,
@@ -171,6 +219,31 @@ export default {
           label: "Detail"
         }
       ],
+      clusterfields: [
+        {
+          key: "Name",
+          label: "Datastore Name",
+          sortable: true
+        },
+        {
+          key: "FreeSpaceGB",
+          label: "Free Space (GB)",
+          sortable: true
+        },
+        {
+          key: "CapacityGB",
+          label: "Capacity (GB)",
+          sortable: true
+        },
+        {
+          key: "FreeUsedRatio",
+          label: "Chart"
+        },
+        {
+          key: "Datastores",
+          label: "Datastores in Cluster"
+        }
+      ],
       dsfields: [
         {
           key: "Name",
@@ -198,7 +271,14 @@ export default {
       //Chart options
       pieChartOptions: {
         labels: ["Free Space", "Used Space"],
-        colors: ["#28a745", "#dc3545"]
+        colors: ["#28a745", "#dc3545"],
+        grid: {
+          show: true,
+          padding: {
+            top: 0,
+            bottom: 0
+          }
+        }
       },
       lineOptions: {
         toolbar: {
@@ -227,9 +307,10 @@ export default {
       }
     };
   },
-  mounted() {
+  async mounted() {
     this.getPowerState();
-    this.getDetailedDatastores();
+    await this.getDetailedDatastores();
+    await this.getDatastoreClusters();
   },
   methods: {
     async onChange() {
@@ -347,19 +428,13 @@ export default {
         this.datastores.push({
           Name: datastore.Name,
           Id: datastore.Id,
+          ParentFolderId: datastore.ParentFolderId,
           FreeSpaceGB: this.round(datastore.FreeSpaceGB, 2),
           CapacityGB: this.round(datastore.CapacityGB, 2),
           UsedSpaceGB: this.round(
             datastore.CapacityGB - datastore.FreeSpaceGB,
             2
           ),
-          FreeUsedRatio: {
-            FreeSpaceGB: this.round(datastore.FreeSpaceGB, 2),
-            UsedSpaceGB: this.round(
-              datastore.CapacityGB - datastore.FreeSpaceGB,
-              2
-            )
-          },
           FreeSpacePercentage: this.round(
             (datastore.FreeSpaceGB / datastore.CapacityGB) * 100,
             2
@@ -384,6 +459,37 @@ export default {
       );
       this.elements.chartLoading = false;
       this.elements.topDatastoresLoading = false;
+    },
+    async getDatastoreClusters() {
+      this.elements.datastoreClusterLoading = true;
+      let datastoreCluster = await GetServices.fetchDatastoreClusters().catch(
+        err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("user");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+          }
+        }
+      );
+      Array.prototype.forEach.call(datastoreCluster.data, dsCluster => {
+        this.datastoreClusters.push({
+          Name: dsCluster.Name,
+          Id: dsCluster.Id,
+          FreeSpaceGB: this.round(dsCluster.FreeSpaceGB, 2),
+          CapacityGB: this.round(dsCluster.CapacityGB, 2),
+          UsedSpaceGB: this.round(
+            dsCluster.CapacityGB - dsCluster.FreeSpaceGB,
+            2
+          ),
+          Datastores: this.datastores.filter(
+            x => x.ParentFolderId == dsCluster.Id
+          )
+        });
+      });
+      console.log(this.datastoreClusters);
+      this.elements.datastoreClusterLoading = false;
     }
   }
 };
