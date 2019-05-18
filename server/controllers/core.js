@@ -124,6 +124,19 @@ class Core {
   }
 
   /**
+   * Get data of all datastores from vCenter server.
+   */
+  async getDatastoreClusters() {
+    let datastoreCluster;
+    this.PS.addCommand('Get-DatastoreCluster | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
+    await this.PS.invoke()
+      .then(output => {
+        datastoreCluster = JSON.parse(output);
+      }).catch(err => this.logger.error(err));
+    return datastoreCluster;
+  }
+
+  /**
    * Get data of all datacenters from vCenter server.
    */
   async getDatacenters() {
@@ -213,7 +226,7 @@ class Core {
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
-    this.PS.addCommand('$datastore = Get-Datastore')
+    this.PS.addCommand('$datastore = Get-DatastoreCluster')
       .then(this.PS.addParameters([{
         Name: spec.Datastore
       }]));

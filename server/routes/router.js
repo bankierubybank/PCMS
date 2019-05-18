@@ -375,6 +375,13 @@ async function vmRoutes(core) {
             }).catch(err => logger.error(err));
     })
 
+    router.get('/datastoreclusters', verifyToken, async (req, res) => {
+        await core.getDatastoreClusters()
+            .then(output => {
+                res.status(200).json(output);
+            }).catch(err => logger.error(err));
+    })
+
     router.get('/datacenters', verifyToken, async (req, res) => {
         await core.getDatacenters()
             .then(output => {
