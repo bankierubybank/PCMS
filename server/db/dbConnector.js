@@ -3,7 +3,8 @@ const logger = require('../controllers/logger.js');
 
 const connect = async (mongodb_url) => {
     mongoose.connect(mongodb_url, {
-        useNewUrlParser: true
+        useNewUrlParser: true,
+        useFindAndModify: false
     });
 
     let db = mongoose.connection;

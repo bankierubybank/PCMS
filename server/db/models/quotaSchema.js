@@ -4,7 +4,8 @@ let quotaSchema = new Schema({
     Name: String,
     NumCpu: Number,
     MemoryGB: Number,
-    ProvisionedSpaceGB: Number
+    ProvisionedSpaceGB: Number,
+    Users: Number
 }, {
     collection: 'quota'
 })
