@@ -1,18 +1,18 @@
 <template>
   <b-container>
+    <h3>ระบบบริหารจัดการ Private Cloud คณะเทคโนโลยีสารสนเทศ
+      สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง</h3>
     <b-form class="login" @submit="onSubmit">
       <h2>Login</h2>
-      <b-form-group id="input-group-1" label="Username:" label-for="input-1">
+      <b-form-group label="Username:" label-for="input-1">
         <b-form-input
-          id="input-1"
           v-model="loginData.username"
           required
         ></b-form-input>
       </b-form-group>
 
-      <b-form-group id="input-group-2" label="Password:" label-for="input-2">
+      <b-form-group label="Password:" label-for="input-2">
         <b-form-input
-          id="input-2"
           v-model="loginData.password"
           type="password"
           required

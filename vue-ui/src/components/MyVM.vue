@@ -24,13 +24,16 @@
           >
             <b-button v-b-modal="data.item.Name" variant="primary" size="sm">Extend VM</b-button>
 
-            <b-modal :id="data.item.Name" :title="'VM Name: ' + data.item.Name" hide-footer>
-              <b-form @submit="onSubmit">
-                <b-form-group label="EndDate">
-                  <datepicker v-model="EndDate" name="EndDate"></datepicker>
-                </b-form-group>
-                <b-button type="submit" variant="primary">Accept</b-button>
-              </b-form>
+            <b-modal
+              :id="data.item.Name"
+              :ref="data.item.Name"
+              :title="'VM Name: ' + data.item.Name"
+              hide-footer
+            >
+              <b-form-group label="EndDate">
+                <datepicker v-model="EndDate" name="EndDate" re></datepicker>
+              </b-form-group>
+              <b-button type="submit" variant="primary" v-on:click="extendVM(data.item.Name)">Accept</b-button>
             </b-modal>
           </div>
         </template>
@@ -53,6 +56,7 @@
 
 <script>
 import GetServices from "@/services/GetServices";
+import PostServices from "@/services/PostServices";
 import Datepicker from "vuejs-datepicker";
 import moment from "moment";
 export default {
@@ -103,15 +107,31 @@ export default {
       loading: true
     };
   },
-  mounted() {
-    this.getDetailedCurrentVMs();
+  async mounted() {
+    await this.getDetailedCurrentVMs();
   },
   methods: {
-    onSubmit(evt) {
-      evt.preventDefault();
+    async extendVM(vmName) {
+      this.$refs[vmName].hide();
+      this.$swal("VM Approved!");
+      await PostServices.extendVM({ Name: vmName, EndDate: this.EndDate })
+        .then(() => {
+          location.reload();
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("user");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+            location.reload();
+          }
+        });
     },
     async getDetailedCurrentVMs() {
       this.data = [];
+      this.loading = true;
       let v = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
           localStorage.removeItem("user");
@@ -119,6 +139,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
@@ -128,9 +149,10 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
-      r.data.forEach(registeredVMs => {
+      Array.prototype.forEach.call(r.data, registeredVMs => {
         let vm = v.data.find(vm => vm.Name == registeredVMs.Name);
         let vmData = {
           Name: registeredVMs.Name,
@@ -138,8 +160,8 @@ export default {
           MemoryGB: registeredVMs.MemoryGB,
           DiskGB: registeredVMs.ProvisionedSpaceGB,
           PowerState: 0,
-          IPv4: "NOT POWERED ON",
-          IPv6: "NOT POWERED ON",
+          IPv4: "NOT REGISTERED",
+          IPv6: "NOT REGISTERED",
           Requestor: "NOT REGISTERED",
           StartDate: "NOT REGISTERED",
           EndDate: "NOT REGISTERED",
@@ -162,9 +184,15 @@ export default {
           vmData._rowVariant = "warning";
         }
         if (vm) {
-          vmData.PowerState = vm.PowerState;
-          vmData.IPv4 = vm["IP Address"].split("|")[0];
-          vmData.IPv6 = vm["IP Address"].split("|")[1];
+          if (vm.PowerState) {
+            vmData.PowerState = vm.PowerState;
+            vmData.IPv4 = vm["IP Address"].split("|")[0];
+            vmData.IPv6 = vm["IP Address"].split("|")[1];
+          } else {
+            vmData.PowerState = vm.PowerState;
+            vmData.IPv4 = "NOT POWERED ON";
+            vmData.IPv6 = "NOT POWERED ON";
+          }
         }
         this.data.push(vmData);
       });

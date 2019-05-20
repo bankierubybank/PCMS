@@ -171,6 +171,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       r.data.forEach(vm => {
@@ -235,6 +236,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
 
@@ -266,6 +268,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
       this.dsloading = false;
@@ -289,6 +292,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
     },
@@ -309,6 +313,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
     },
@@ -328,6 +333,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
     },

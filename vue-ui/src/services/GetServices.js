@@ -4,20 +4,11 @@ export default {
   fetchVMs() {
     return Api().get("vms");
   },
-  fetchVMbyName(vmName) {
-    return Api().get("vm/" + vmName);
-  },
-  fetchVMHosts() {
-    return Api().get("vmhosts");
-  },
   fetchDatastores() {
     return Api().get("datastores");
   },
   fetchDatastoreClusters() {
     return Api().get("datastoreclusters");
-  },
-  fetchDatacenters() {
-    return Api().get("datacenters");
   },
   fetchRegisteredVMs() {
     return Api().get("registeredvm");
@@ -34,8 +25,8 @@ export default {
   fetchPowerState() {
     return Api().get("powerstate");
   },
-  fetchVMStat(params) {
-    return Api().post("vmstat", params);
+  fetchQuota() {
+    return Api().get("quota");
   },
   logout() {
     return Api().get("logout");

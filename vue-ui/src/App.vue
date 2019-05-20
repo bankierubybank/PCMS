@@ -7,12 +7,6 @@
 
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
-          <b-nav-item>
-            <router-link to="/" class="nav-link">Home</router-link>
-          </b-nav-item>
-          <b-nav-item>
-            <router-link to="/about" class="nav-link">About</router-link>
-          </b-nav-item>
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
@@ -57,10 +51,7 @@
                 <router-link to="/requestedvm" class="collection-item">Requested VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item">Datastores</router-link>
-              </b-list-group-item>
-              <b-list-group-item>
-                <router-link to="/allvm" class="collection-item">All VMs</router-link>
+                <router-link to="/quota" class="collection-item">Set Quota</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>

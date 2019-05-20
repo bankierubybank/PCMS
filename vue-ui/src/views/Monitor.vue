@@ -308,7 +308,7 @@ export default {
     };
   },
   async mounted() {
-    this.getPowerState();
+    await this.getPowerState();
     await this.getDetailedDatastores();
     await this.getDatastoreClusters();
   },
@@ -400,6 +400,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
     },
@@ -422,6 +423,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       Array.prototype.forEach.call(datastores.data, datastore => {
@@ -470,6 +472,7 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         }
       );
@@ -488,7 +491,6 @@ export default {
           )
         });
       });
-      console.log(this.datastoreClusters);
       this.elements.datastoreClusterLoading = false;
     }
   }

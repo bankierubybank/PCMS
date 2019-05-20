@@ -111,6 +111,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
@@ -120,6 +121,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       v.data.forEach(vm => {
