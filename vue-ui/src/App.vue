@@ -17,7 +17,8 @@
 
         <b-navbar-nav class="ml-auto">
           <div v-if="this.user">
-            <b-nav-item-dropdown text="Notification" v-if="this.user.type != 'Staff'" right>
+            
+            <b-nav-item-dropdown class="nav-noti" v-if="this.user.type != 'Staff'" right>
               <b-dropdown-item
                 v-for="notification in this.notifications"
                 v-bind:key="notification.id"
@@ -140,6 +141,28 @@ export default {
   font-family: 'Athiti', sans-serif;
 }
 .list-group-item {
+  padding: 1rem 1.25rem !important;
   border-right: 0px solid !important;
+}
+li, .dropdown{
+  display: inline-block;
+}
+.nav-noti{
+  background-size: cover;
+  background-position: center;
+  background-image: url("./image/noti.png");
+  width: 24px;
+  height: 24px;
+}
+.nav-noti:hover{
+  background-image: url("./image/noti_w.png");
+}
+a, #__BVID__15__BV_button_{
+  padding: 0;
+  color: rgba(0,0,0,0);
+}
+li, .dropdown-item{
+  margin-left: 0.5rem;
+  display: table-footer-group;
 }
 </style>
