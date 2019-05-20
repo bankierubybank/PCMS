@@ -30,7 +30,7 @@
   width: 50%;
 }
 .form-control {
-  width: 80%;
+  width: 75%;
 }
 </style>
 
@@ -68,3 +68,10 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+  .container{
+    margin-right: 0px;
+    margin-left: 0px;
+  }
+</style>

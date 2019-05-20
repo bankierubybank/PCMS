@@ -181,7 +181,7 @@ export default {
           ProvisionedSpaceGB: vm.ProvisionedSpaceGB,
           OS: vm.OS,
           Status: vm.Status,
-          Requestor: "Lecturer : "+vm.Requestor.Lecturer+"Student : "+vm.Requestor.Student+"Course : "+vm.Requestor.Course,
+          Requestor: vm.Requestor,
           StartDate: moment(vm.StartDate)
             .locale("th")
             .format("LL"),

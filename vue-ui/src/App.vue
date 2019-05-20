@@ -46,7 +46,7 @@
       </b-collapse>
     </b-navbar>
     <b-row>
-      <b-col cols="2" style="padding-right: 0px; border-right: 1px solid rgba(0, 0, 0, 0.125);">
+      <b-col cols="2">
         <div v-if="this.user">
           <div v-if="this.user.type === 'Staff'">
             <b-list-group>
