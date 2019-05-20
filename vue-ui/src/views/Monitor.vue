@@ -1,5 +1,5 @@
 <template>
-  <b-container>
+  <b-container fluid>
     <h1>Monitor Dashboard</h1>
     <b-row>
       <b-col>
@@ -11,7 +11,7 @@
             <b-card title="Storage Summary">
               <apexchart
                 type="donut"
-                width="75%"
+                width="50%"
                 :options="pieChartOptions"
                 :series="[storageSummary.totalFree, storageSummary.totalUsed]"
               />
@@ -21,6 +21,7 @@
       </b-col>
       <b-col></b-col>
     </b-row>
+    <br>
     <b-row>
       <b-col>
         Top Powered Off VM
@@ -35,6 +36,8 @@
             class="mt-3"
             :sort-by.sync="sortBy"
             :sort-desc.sync="sortDesc"
+            :per-page="perPage"
+            :current-page="currentPage"
           >
             <template slot="detail" slot-scope="vm">
               <div>
@@ -83,6 +86,14 @@
               </div>
             </template>
           </b-table>
+          <b-pagination
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+            aria-controls="my-table"
+          ></b-pagination>
+
+          <p class="mt-3">Current Page: {{ currentPage }}</p>
         </div>
       </b-col>
       <b-col>
@@ -119,11 +130,7 @@
             </template>
             <template slot="Datastores" slot-scope="data">
               <div>
-                <b-button
-                  v-b-modal="data.item.Name"
-                  variant="primary"
-                  size="sm"
-                >View</b-button>
+                <b-button v-b-modal="data.item.Name" variant="primary" size="sm">View</b-button>
 
                 <b-modal
                   :id="data.item.Name"
@@ -176,6 +183,11 @@ import moment from "moment";
 export default {
   name: "Monitor",
   components: {},
+  computed: {
+    rows() {
+      return this.queryData.length;
+    }
+  },
   data() {
     return {
       //Elements loading state
@@ -268,6 +280,8 @@ export default {
       sortBy: "PowerStatePercentage",
       sortBy2: "FreeSpacePercentage",
       sortDesc: false,
+      currentPage: 1,
+      perPage: 5,
       //Chart options
       pieChartOptions: {
         labels: ["Free Space", "Used Space"],

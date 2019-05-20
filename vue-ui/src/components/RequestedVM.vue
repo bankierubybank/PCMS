@@ -1,5 +1,5 @@
 <template>
-  <b-container>
+  <b-container fluid>
     <h1>คำขอใช้งาน Virtual Machine ทั้งหมด</h1>
     <div v-if="loading">
       <b-spinner variant="primary" label="Spinning"></b-spinner>

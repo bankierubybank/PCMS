@@ -1,5 +1,5 @@
 <template>
-  <b-container>
+  <b-container fluid>
     <h1>Set Quota Rule</h1>
     <div v-if="loading">
       <b-spinner variant="primary" label="Spinning"></b-spinner>
