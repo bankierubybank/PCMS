@@ -66,7 +66,7 @@
           </b-modal>
         </b-form-checkbox>
         <br>
-        <b-button type="submit" variant="primary">ส่งคำขอใช้งาน</b-button>
+        <b-button type="submit" variant="primary">Send Request</b-button>
       </b-form>
     </div>
   </b-container>
@@ -221,3 +221,8 @@ export default {
   }
 };
 </script>
+<style scoped>
+  .form-group{
+    width: 80%;
+  }
+</style>
