@@ -66,7 +66,7 @@ function getAccessToken(oAuth2Client) {
   });
 }
 
-function uploadFile(auth, fileName) {
+async function uploadFile(auth, fileName) {
   let drive = google.drive({
     version: 'v3',
     auth
@@ -79,7 +79,7 @@ function uploadFile(auth, fileName) {
     body: fs.createReadStream('./' + fileName),
     resumable: true
   };
-  drive.files.create({
+  await drive.files.create({
     resource: fileMetadata,
     media: media,
     fields: 'id',
@@ -90,7 +90,9 @@ function uploadFile(auth, fileName) {
 const uploadToGoogleDrive = async (fileName) => {
   let credentials = await promiseReader('credentials.json')
   let oAuth2Client = await authorize(JSON.parse(credentials))
-  uploadFile(oAuth2Client, fileName)
+  await logger.info(`Uploading ${fileName}`)
+  await uploadFile(oAuth2Client, fileName)
+  await logger.info(`Upload ${fileName} Complete!`)
 }
 
 module.exports = uploadToGoogleDrive;

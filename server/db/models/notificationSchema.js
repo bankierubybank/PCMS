@@ -8,7 +8,8 @@ let notificationSchema = new Schema({
         Course: String
     },
     Subject: String,
-    Message: String
+    Message: String,
+    Timestamp: Date
 }, {
     collection: 'notifications'
 })

@@ -13,6 +13,8 @@ const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
 const jwt = require('jsonwebtoken');
 const mailer = require('../controllers/mailer.js');
+const quotaSchema = require('../db/models/quotaSchema.js');
+const uploadToGoogleDrive = require('../controllers/googleDrive.js');
 
 express().use(bodyParser.json());
 
@@ -131,6 +133,48 @@ async function main() {
         })
     })
 
+    router.get('/quota', verifyToken, async (req, res) => {
+        await quotaSchema.find().then((data) => {
+            res.status(200).json(data);
+        }).catch(err => logger.error(err));
+    })
+
+    router.post('/quota', verifyToken, async (req, res) => {
+        let quota = await quotaSchema.findOneAndUpdate({
+            Name: 'Quota'
+        }, {
+            $set: {
+                NumCpu: 1,
+                MemoryGB: 1,
+                ProvisionedSpaceGB: 64
+            }
+        }, {
+            new: true
+        }, (err, data) => {
+            if (err) {
+                logger.error(err);
+            }
+            if (!data) {
+                let newQuota = new quotaSchema({
+                    Name: 'Quota',
+                    NumCpu: 1,
+                    MemoryGB: 1,
+                    ProvisionedSpaceGB: 1
+                })
+                newQuota.save(logger.info('Create new quota rule!')).catch(err => logger.error(err));
+            }
+        });
+        res.status(200).json(quota)
+    })
+
+    router.post('/recalquota', verifyToken, async (req, res) => {
+        await core1.getDatastores()
+            .then(datastores => {
+                datastores.forEach(datastore => logger.info(datastore.CapacityGB))
+            }).catch(err => logger.error(err));
+        res.status(200).send('OK')
+    })
+
     router.get('/notification', verifyToken, async (req, res) => {
         if (req.decoded.type == 'Lecturer') {
             await notificationSchema.find({
@@ -222,7 +266,7 @@ async function searchAD(options, OU) {
         url: config.ldap_url
     });
 
-    await client.bind('bind-ldap-web@it.kmitl.ac.th', `IT]kfdit[y'`)
+    await client.bind(config.ldap_username, config.ldap_password)
         .catch(err => {
             logger.error(err);
         });
@@ -259,12 +303,18 @@ async function reScheduleVM(core, jobs) {
         })
         .then((vms) => {
             vms.forEach(async (vm) => {
+                let noti = new notificationSchema({
+                    Name: vm.Name,
+                    Requestor: vm.Requestor,
+                    Subject: `VM ${vm.Name} Approved!`,
+                    Message: `VM ${vm.Name} Approved!`,
+                    Timestamp: new Date()
+                })
+                noti.save().catch(err => logger.error(err))
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
                 jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
                     await core.shutdownVMGuest(vm.Name)
-                        .then(async () => logger.info('VM: ' + vm.Name + ' was shuted down at: ' + new Date()))
-                        .catch(err => logger.error(err));
-
+                        .then(async () => logger.info('VM: ' + vm.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
                     let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
                     backupCore.addLogger(logger);
                     backupCore.createPS(debugging)
@@ -272,6 +322,30 @@ async function reScheduleVM(core, jobs) {
                         .catch(err => logger.error(err));
                     await backupCore.backUpVM(vm.Name)
                         .then(async () => {
+                            await uploadToGoogleDrive(vm.Name + '.zip');
+                            let lecturerEmail;
+                            if (vm.Requestor.Lecturer == 'lecturer') {
+                                lecturerEmail = '58070020@kmitl.ac.th'
+                            } else {
+                                let loptions = {
+                                    scope: 'sub',
+                                    attributes: ['sAMAccountName', 'displayName', 'mail'],
+                                    filter: `(&(sAMAccountName=${vm.Requestor.Lecturer}*))`
+                                };
+                                lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+                                lecturerEmail = lecturerEmail[0].mail
+                            }
+                            await mailer.send(lecturerEmail, vm, 'Backup');
+                            if (vm.Requestor.Student) {
+                                let soptions = {
+                                    scope: 'sub',
+                                    attributes: ['sAMAccountName', 'displayName', 'mail'],
+                                    filter: `(&(sAMAccountName=${vm.Requestor.Student}*))`
+                                };
+                                let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
+                                await mailer.send(studentEmail[0].mail, vm, 'Backup');
+                            }
+                            await backupCore.removeItem(vm.Name);
                             await backupCore.removeVM(vm.Name);
                             await backupCore.disconnectVIServer(config.vcenter_url);
                             backupCore.disposePS();
@@ -463,11 +537,13 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        res.status(200).send('VM Approved!');
         let noti = new notificationSchema({
             Name: req.body.Name,
             Requestor: vmSpec.Requestor,
             Subject: `VM ${req.body.Name} Approved!`,
-            Message: `VM ${req.body.Name} Approved!`
+            Message: `VM ${req.body.Name} Approved!`,
+            Timestamp: new Date()
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;
@@ -482,7 +558,7 @@ async function vmOperation(core, jobs) {
             lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
             lecturerEmail = lecturerEmail[0].mail
         }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Approved');
+        await mailer.send(lecturerEmail, vmSpec, 'Approved');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -490,7 +566,7 @@ async function vmOperation(core, jobs) {
                 filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
             };
             let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Approved');
+            await mailer.send(studentEmail[0].mail, vmSpec, 'Approved');
         }
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
@@ -501,14 +577,37 @@ async function vmOperation(core, jobs) {
             backupCore.createPS(debugging)
                 .then(await backupCore.connectVIServer())
                 .catch(err => logger.error(err));
-            await backupCore.backUpVM(vmSpec.vmName)
+            await backupCore.backUpVM(vmSpec.Name)
                 .then(async () => {
+                    await uploadToGoogleDrive(vmSpec.Name + '.zip');
+                    let lecturerEmail;
+                    if (vmSpec.Requestor.Lecturer == 'lecturer') {
+                        lecturerEmail = '58070020@kmitl.ac.th'
+                    } else {
+                        let loptions = {
+                            scope: 'sub',
+                            attributes: ['sAMAccountName', 'displayName', 'mail'],
+                            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+                        };
+                        lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+                        lecturerEmail = lecturerEmail[0].mail
+                    }
+                    await mailer.send(lecturerEmail, vmSpec, 'Backup');
+                    if (vmSpec.Requestor.Student) {
+                        let soptions = {
+                            scope: 'sub',
+                            attributes: ['sAMAccountName', 'displayName', 'mail'],
+                            filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
+                        };
+                        let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
+                        await mailer.send(studentEmail[0].mail, vmSpec, 'Backup');
+                    }
+                    await backupCore.removeItem(vmSpec.Name);
                     await backupCore.removeVM(vmSpec.Name);
                     await backupCore.disconnectVIServer(config.vcenter_url);
                     backupCore.disposePS();
                 }).catch(err => logger.error(err));
         })
-        res.status(200).send('VM Approved!');
     })
 
     router.post('/vm/autocreate', verifyToken, async (req, res) => {
@@ -525,6 +624,7 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        res.status(200).send('VM Approved!');
         let vmTemplate;
         await vmTemplateSchema.find({
             Name: 'UbuntuTemplate'
@@ -536,7 +636,8 @@ async function vmOperation(core, jobs) {
             Name: req.body.Name,
             Requestor: vmSpec.Requestor,
             Subject: `VM ${req.body.Name} Approved!`,
-            Message: `VM ${req.body.Name} Approved!`
+            Message: `VM ${req.body.Name} Approved!`,
+            Timestamp: new Date()
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;
@@ -551,7 +652,7 @@ async function vmOperation(core, jobs) {
             lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
             lecturerEmail = lecturerEmail[0].mail
         }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Approved');
+        await mailer.send(lecturerEmail, vmSpec, 'Approved');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -559,7 +660,7 @@ async function vmOperation(core, jobs) {
                 filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
             };
             let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Approved');
+            await mailer.send(studentEmail[0].mail, vmSpec, 'Approved');
         }
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
@@ -570,14 +671,37 @@ async function vmOperation(core, jobs) {
             backupCore.createPS(debugging)
                 .then(await backupCore.connectVIServer())
                 .catch(err => logger.error(err));
-            await backupCore.backUpVM(vmSpec.vmName)
+            await backupCore.backUpVM(vmSpec.Name)
                 .then(async () => {
+                    await uploadToGoogleDrive(vmSpec.Name + '.zip');
+                    let lecturerEmail;
+                    if (vmSpec.Requestor.Lecturer == 'lecturer') {
+                        lecturerEmail = '58070020@kmitl.ac.th'
+                    } else {
+                        let loptions = {
+                            scope: 'sub',
+                            attributes: ['sAMAccountName', 'displayName', 'mail'],
+                            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+                        };
+                        lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+                        lecturerEmail = lecturerEmail[0].mail
+                    }
+                    await mailer.send(lecturerEmail, vmSpec, 'Backup');
+                    if (vmSpec.Requestor.Student) {
+                        let soptions = {
+                            scope: 'sub',
+                            attributes: ['sAMAccountName', 'displayName', 'mail'],
+                            filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
+                        };
+                        let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
+                        await mailer.send(studentEmail[0].mail, vmSpec, 'Backup');
+                    }
+                    await backupCore.removeItem(vmSpec.Name);
                     await backupCore.removeVM(vmSpec.Name);
                     await backupCore.disconnectVIServer(config.vcenter_url);
                     backupCore.disposePS();
                 }).catch(err => logger.error(err));
         })
-        res.status(200).send('VM Approved!');
     })
 
     router.post('/vm/reject', verifyToken, async (req, res) => {
@@ -594,11 +718,13 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        res.status(200).send('VM Rejected!');
         let noti = new notificationSchema({
             Name: req.body.Name,
             Requestor: vmSpec.Requestor,
             Subject: `VM ${req.body.Name} Rejected!`,
-            Message: `VM ${req.body.Name} Rejected!`
+            Message: `VM ${req.body.Name} Rejected!`,
+            Timestamp: new Date()
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;
@@ -613,7 +739,7 @@ async function vmOperation(core, jobs) {
             lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
             lecturerEmail = lecturerEmail[0].mail
         }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Rejected');
+        await mailer.send(lecturerEmail, vmSpec, 'Rejected');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -621,9 +747,8 @@ async function vmOperation(core, jobs) {
                 filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
             };
             let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Rejected');
+            await mailer.send(studentEmail[0].mail, vmSpec, 'Rejected');
         }
-        res.status(200).send('VM Rejected!');
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
@@ -640,11 +765,13 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        res.status(200).send('Extended VM Duration');
         let noti = new notificationSchema({
             Name: req.params.vmName,
             Requestor: vmSpec.Requestor,
             Subject: `VM ${req.params.vmName} Extended!`,
-            Message: `VM ${req.params.vmName} Extended!`
+            Message: `VM ${req.params.vmName} Extended!`,
+            Timestamp: new Date()
         })
         noti.save().catch(err => logger.error(err))
         let lecturerEmail;
@@ -659,7 +786,7 @@ async function vmOperation(core, jobs) {
             lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
             lecturerEmail = lecturerEmail[0].mail
         }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Extended');
+        await mailer.send(lecturerEmail, vmSpec, 'Extended');
         if (vmSpec.Requestor.Student) {
             let soptions = {
                 scope: 'sub',
@@ -667,11 +794,10 @@ async function vmOperation(core, jobs) {
                 filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
             };
             let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Extended');
+            await mailer.send(studentEmail[0].mail, vmSpec, 'Extended');
         }
         logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
         jobs.rescheduleJob(req.body.Name, req.body.EndDate);
-        res.status(200).send('Extended VM Duration');
     })
 
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {

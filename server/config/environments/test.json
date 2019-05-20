@@ -5,7 +5,9 @@
     "vcenter_password": "vc#13ITkmitl",
     "mongodb_url": "mongodb://localhost/PCMS",
     "ldap_url": "ldap://161.246.38.141:389",
-    "appSecret": "anuchita",
+    "ldap_username": "",
+    "ldap_password": "",
+    "appSecret": "",
     "email_address": "",
     "email_password": ""
 }
