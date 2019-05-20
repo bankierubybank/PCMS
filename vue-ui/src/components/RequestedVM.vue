@@ -11,9 +11,9 @@
       </b-alert>
       <b-row>
         <b-col md="6" class="my-1">
-          <b-form-group label-cols-sm="3" label="ค้นหา" class="mb-0">
+          <b-form-group label-cols-sm="3" label="Search" class="mb-0">
             <b-input-group>
-              <b-form-input v-model="filter" placeholder="พิมพ์เพื่อค้นหา"></b-form-input>
+              <b-form-input v-model="filter" placeholder="Search"></b-form-input>
               <b-input-group-append>
                 <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
               </b-input-group-append>
@@ -65,7 +65,7 @@
           </div>
         </template>
       </b-table>
-      <b-alert show variant="primary" v-if="data.length == 0">ไม่มีข้อมูล</b-alert>
+      <b-alert show variant="primary" v-if="data.length == 0">No Data</b-alert>
     </div>
   </b-container>
 </template>
@@ -82,12 +82,12 @@ export default {
       fields: [
         {
           key: "Name",
-          label: "ชื่อ VM",
+          label: "VM Name",
           sortable: true
         },
         {
           key: "NumCpu",
-          label: "จำนวน Core CPU",
+          label: "Core CPU",
           sortable: true
         },
         {
@@ -101,14 +101,14 @@ export default {
           sortable: true
         },
         { key: "OS", label: "OS", sortable: true },
-        { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
+        { key: "Requestor", label: "Requestor", sortable: true },
         {
           key: "StartDate",
-          label: "วันที่เริ่มใช้งาน",
+          label: "Start Date",
           sortable: true
         },
-        { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true },
-        { key: "Status", label: "สถานะ", sortable: true }
+        { key: "EndDate", label: "End Date", sortable: true },
+        { key: "Status", label: "Status", sortable: true }
       ],
       loading: true,
       username: "",
@@ -337,3 +337,9 @@ export default {
   }
 };
 </script>
+
+<style scope>
+.btn{
+  margin-right: 0.5rem;
+}
+</style>

@@ -53,12 +53,12 @@ export default {
       fields: [
         {
           key: "Name",
-          label: "ชื่อ VM",
+          label: "VM Name",
           sortable: true
         },
         {
           key: "NumCpu",
-          label: "จำนวน Core CPU",
+          label: "Core CPU",
           sortable: true
         },
         {
@@ -73,13 +73,13 @@ export default {
         },
         { key: "IPv4", label: "IPv4", sortable: true },
         { key: "IPv6", label: "IPv6", sortable: true },
-        { key: "Requestor", label: "ผู้ขอใช้", sortable: true },
+        { key: "Requestor", label: "Requestor", sortable: true },
         {
           key: "StartDate",
-          label: "วันที่เริ่มใช้งาน",
+          label: "Start Date",
           sortable: true
         },
-        { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true }
+        { key: "EndDate", label: "End Date", sortable: true }
       ],
       loading: true,
       username: "",

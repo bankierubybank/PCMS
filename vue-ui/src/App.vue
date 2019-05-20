@@ -54,13 +54,13 @@
                 <router-link to="/monitor" class="collection-item">Monitor</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/requestedvm" class="collection-item">ดูคำขอใช้งาน VM</router-link>
+                <router-link to="/requestedvm" class="collection-item">Requested VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/datastores" class="collection-item">ดู Datastores ทั้งหมดในระบบ</router-link>
+                <router-link to="/datastores" class="collection-item">Datastores</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/allvm" class="collection-item">ดู VM ทั้งหมดในระบบ</router-link>
+                <router-link to="/allvm" class="collection-item">All VMs</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>
@@ -70,7 +70,7 @@
                 <router-link to="/myvm" class="collection-item">My VM</router-link>
               </b-list-group-item>
               <b-list-group-item>
-                <router-link to="/newvm" class="collection-item">เขียนคำขอใช้งาน VM</router-link>
+                <router-link to="/newvm" class="collection-item">Request</router-link>
               </b-list-group-item>
             </b-list-group>
           </div>

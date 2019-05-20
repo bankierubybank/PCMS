@@ -10,15 +10,15 @@
           <b-form-input v-model="vmSpec.Name" required></b-form-input>
         </b-form-group>
 
-        <b-form-group label="จำนวน Core CPU:">
+        <b-form-group label="Core CPU:">
           <b-form-select v-model="vmSpec.NumCpu" :options="cpuOptions" required></b-form-select>
         </b-form-group>
 
-        <b-form-group label="จำนวน RAM (GB):">
+        <b-form-group label="RAM (GB):">
           <b-form-select v-model="vmSpec.MemoryGB" :options="memOptions" required></b-form-select>
         </b-form-group>
 
-        <b-form-group label="ขนาด Harddisk (GB):">
+        <b-form-group label="Harddisk (GB):">
           <b-form-select v-model="vmSpec.DiskGB" :options="diskOptions" required></b-form-select>
         </b-form-group>
 
@@ -26,30 +26,30 @@
           <b-form-select v-model="vmSpec.OS" :options="OSs" required></b-form-select>
         </b-form-group>
 
-        <b-form-group label="วันเริ่มใช้งาน">
+        <b-form-group label="Start Date">
           <datepicker v-model="vmSpec.StartDate" name="StartDate"></datepicker>
         </b-form-group>
-        <b-form-group label="วันสิ้นสุดการใช้งาน">
+        <b-form-group label="End Date">
           <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
         </b-form-group>
 
-        <b-form-group label="ประเภทการใช้:">
+        <b-form-group label="Type Project:">
           <b-form-select v-model="vmSpec.Type" :options="types" required></b-form-select>
         </b-form-group>
 
         <div v-if="this.user.type === 'Student'">
-          <b-form-group label="อาจารย์ที่ปรึกษา:">
+          <b-form-group label="Prof. Adviser:">
             <b-form-select v-model="vmSpec.Requestor.Lecturer" :options="lecturers" required></b-form-select>
           </b-form-group>
 
-          <b-form-group label="วิชา:">
+          <b-form-group label="Subject:">
             <b-form-input v-model="vmSpec.Requestor.Course"></b-form-input>
           </b-form-group>
         </div>
 
         <b-form-checkbox v-model="Accpeted" value="true" unchecked-value="false">
-          ฉันได้ยอมรับ
-          <b-link v-b-modal.terms>ข้อตกลงในการใช้งาน</b-link>
+          I accept
+          <b-link v-b-modal.terms>terms and conditions</b-link>
           <b-modal id="terms" hide-footer>
             1. การขอใช้งาน ระบบจะยังไม่สร้าง VM ให้ทันที จะต้องรอเจ้าหน้าที่ IT
             Support อนุมัติคำขอใช้ก่อน

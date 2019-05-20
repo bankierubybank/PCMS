@@ -22,31 +22,31 @@
                 data.item.Status == 'Approved'
             "
           >
-            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">ต่ออายุ VM</b-button>
+            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">Extend VM</b-button>
 
             <b-modal :id="data.item.Name" :title="'VM Name: ' + data.item.Name" hide-footer>
               <b-form @submit="onSubmit">
                 <b-form-group label="EndDate">
                   <datepicker v-model="EndDate" name="EndDate"></datepicker>
                 </b-form-group>
-                <b-button type="submit" variant="primary">ขอเพิ่มระยะเวลาใช้งาน</b-button>
+                <b-button type="submit" variant="primary">Accept</b-button>
               </b-form>
             </b-modal>
           </div>
         </template>
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
-            <b-badge variant="warning">รอการอนุมัติ</b-badge>
+            <b-badge variant="warning">Pending</b-badge>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
-            <b-badge variant="danger">ไม่อนุมัติ</b-badge>
+            <b-badge variant="danger">Rejected</b-badge>
           </div>
           <div v-else>
-            <b-badge variant="success">อนุมัติ</b-badge>
+            <b-badge variant="success">Approved</b-badge>
           </div>
         </template>
       </b-table>
-      <b-alert show variant="primary" v-if="data.length == 0">ไม่มีข้อมูล</b-alert>
+      <b-alert show variant="primary" v-if="data.length == 0">No Data</b-alert>
     </div>
   </b-container>
 </template>
@@ -65,12 +65,12 @@ export default {
       fields: [
         {
           key: "Name",
-          label: "ชื่อ VM",
+          label: "VM Name",
           sortable: true
         },
         {
           key: "NumCpu",
-          label: "จำนวน Core CPU",
+          label: "Core CPU",
           sortable: true
         },
         {
@@ -92,11 +92,11 @@ export default {
         { key: "IPv6", sortable: true },
         {
           key: "StartDate",
-          label: "วันที่เริ่มใช้งาน",
+          label: "Start Date",
           sortable: true
         },
-        { key: "EndDate", label: "วันสิ้นสุดการใช้งาน", sortable: true },
-        { key: "Status", label: "สถานะ", sortable: true }
+        { key: "EndDate", label: "End Date", sortable: true },
+        { key: "Status", label: "Status", sortable: true }
       ],
       data: [],
       EndDate: null,

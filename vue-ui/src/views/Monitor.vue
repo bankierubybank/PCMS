@@ -38,7 +38,7 @@
           >
             <template slot="detail" slot-scope="vm">
               <div>
-                <b-button v-b-modal="vm.item.Name" variant="primary" size="sm">ดูข้อมูลโดยละเอียด</b-button>
+                <b-button v-b-modal="vm.item.Name" variant="primary" size="sm">View</b-button>
 
                 <b-modal :id="vm.item.Name" :title="vm.item.Name + ' Stats'" size="lg" hide-footer>
                   <b-container>
