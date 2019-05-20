@@ -46,7 +46,7 @@
       </b-collapse>
     </b-navbar>
     <b-row>
-      <b-col cols="2">
+      <b-col cols="2" style="padding-right: 0px; border-right: 1px solid rgba(0, 0, 0, 0.125);">
         <div v-if="this.user">
           <div v-if="this.user.type === 'Staff'">
             <b-list-group>
@@ -77,7 +77,7 @@
         </div>
         <div v-else></div>
       </b-col>
-      <b-col cols="8">
+      <b-col cols="10">
         <router-view/>
       </b-col>
     </b-row>
@@ -138,5 +138,8 @@ export default {
 @import url('https://fonts.googleapis.com/css?family=Athiti&display=swap');
 #app {
   font-family: 'Athiti', sans-serif;
+}
+.list-group-item {
+  border-right: 0px solid !important;
 }
 </style>

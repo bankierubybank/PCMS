@@ -10,15 +10,15 @@
           <b-form-input v-model="vmSpec.Name" required></b-form-input>
         </b-form-group>
 
-        <b-form-group label="Core CPU:">
+        <b-form-group class="form-small" label="Core CPU:">
           <b-form-select v-model="vmSpec.NumCpu" :options="cpuOptions" required></b-form-select>
         </b-form-group>
 
-        <b-form-group label="RAM (GB):">
+        <b-form-group class="form-small" label="RAM (GB):">
           <b-form-select v-model="vmSpec.MemoryGB" :options="memOptions" required></b-form-select>
         </b-form-group>
 
-        <b-form-group label="Harddisk (GB):">
+        <b-form-group class="form-small" label="Harddisk (GB):">
           <b-form-select v-model="vmSpec.DiskGB" :options="diskOptions" required></b-form-select>
         </b-form-group>
 
@@ -61,7 +61,7 @@
           </b-modal>
         </b-form-checkbox>
         <br>
-        <b-button type="submit" variant="primary">ส่งคำขอใช้งาน</b-button>
+        <b-button type="submit" variant="primary">Send Request</b-button>
       </b-form>
     </div>
   </b-container>
@@ -194,3 +194,10 @@ export default {
   }
 };
 </script>
+
+<style scope>
+form{
+  width: 75%;
+  margin-bottom: 2em;
+}
+</style>
