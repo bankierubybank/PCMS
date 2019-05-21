@@ -1,5 +1,5 @@
 <template>
-  <b-container>
+  <b-container fluid>
     <h1>Virtual Machine ทั้งหมดใน Private Cloud</h1>
     <div v-if="loading">
       <b-spinner variant="primary" label="Spinning"></b-spinner>
@@ -111,6 +111,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       let r = await GetServices.fetchRegisteredVMs().catch(err => {
@@ -120,6 +121,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       v.data.forEach(vm => {

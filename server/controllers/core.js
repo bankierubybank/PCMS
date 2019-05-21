@@ -57,6 +57,7 @@ class Core {
 
   /**
    * Get data of all virtual machines from vCenter server.
+   * @param {JSON} params A JSON object of command parameters. (Ex. { Name: 'VMName' })
    * @returns {JSON} Data of all virtual machines.
    */
   async getVMs(params) {
@@ -82,6 +83,7 @@ class Core {
   /**
    * Get virtual machine harddisk data.
    * @param {String} vmName A string of virtual machine's name.
+   * @returns {JSON} Harddisk's Data
    */
   async getVMHarddiskbyName(vmName) {
     let vmharddisk;
@@ -206,9 +208,9 @@ class Core {
    */
   async removeVM(vmName) {
     this.PS.addCommand('Get-VM')
-      .then(this.PS.addParameters({
+      .then(this.PS.addParameters([{
         Name: vmName
-      }))
+      }]))
       .then(this.PS.addArgument('| Remove-VM -DeletePermanently -Confirm:$false'));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
@@ -506,6 +508,23 @@ class Core {
     const compressing = require('compressing');
     await compressing.zip.compressDir(dir, path.join(process.cwd(), vmName + '.zip'))
       .then(this.logger.info('CREATED FILE! COMPRESSING IS IN PROGRESS!')).catch(err => this.logger.error(err));
+    await this.PS.addCommand('Remove-Item -Recurse')
+      .then(this.PS.addParameters([{
+        Path: dir
+      }]));
+    await this.PS.invoke()
+      .then().catch(err => this.logger.error(err));
+  }
+
+  async removeItem(vmName) {
+    const path = require('path');
+    let dir = path.join(process.cwd(), `${vmName}.zip`);
+    await this.PS.addCommand('Remove-Item')
+      .then(this.PS.addParameters([{
+        Path: dir
+      }]));
+    await this.PS.invoke()
+      .then().catch(err => this.logger.error(err));
   }
 
   /**
@@ -516,17 +535,18 @@ class Core {
       .then(this.PS.addParameters([{
         Server: this.server
       }]));
-    await this.PS.invoke()
-      .then(output => {
-        this.logger.info(output);
-      }).catch(err => this.logger.error(err));
+    await this.PS.invoke().catch(err => this.logger.error(err));
   }
 
   /**
    * Dispose PowerShell instance
    */
   async disposePS() {
-    await this.PS.dispose();
+    await this.PS.dispose().catch(err => this.logger.error(err));
+  }
+
+  async escapeSpecial(string) {
+    return await string.replace('[', '*').replace(']', '*');
   }
 }
 

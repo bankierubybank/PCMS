@@ -1,10 +1,15 @@
 <template>
-  <b-container>
+  <b-container fluid>
     <h1>Create New VM</h1>
     <div v-if="loading">
       <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
     <div v-else>
+      <b-alert show variant="danger">
+        *** ถ้าสร้าง VM โดยที่ 
+        Harddisk ไม่เกิน {{this.quota.ProvisionedSpaceGB}} GB 
+        ระบบจะสร้างให้ทันที ***
+      </b-alert>
       <b-form @submit="onSubmit">
         <b-form-group label="VM Name:">
           <b-form-input v-model="vmSpec.Name" required></b-form-input>
@@ -137,13 +142,15 @@ export default {
         { value: "Project", text: "โปรเจครายวิชา" },
         { value: "Research", text: "งานวิจัย" }
       ],
-      user: null
+      user: null,
+      quota: {}
     };
   },
   mounted() {
     this.loading = true;
     this.user = JSON.parse(localStorage.getItem("user"));
     this.getLecturer();
+    this.getQuota();
     this.loading = false;
   },
   methods: {
@@ -166,6 +173,7 @@ export default {
           this.$router.push({
             name: "Login"
           });
+          location.reload();
         }
       });
       this.OSs = response.data;
@@ -188,8 +196,27 @@ export default {
             this.$router.push({
               name: "Login"
             });
+            location.reload();
           }
         });
+    },
+    async getQuota() {
+      this.loading = true;
+      await GetServices.fetchQuota()
+        .then(res => {
+          this.quota = res.data[0];
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("token");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+            location.reload();
+          }
+        });
+      this.loading = false;
     }
   }
 };

@@ -13,6 +13,8 @@ const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const LdapClient = require('ldapjs-client');
 const jwt = require('jsonwebtoken');
 const mailer = require('../controllers/mailer.js');
+const quotaSchema = require('../db/models/quotaSchema.js');
+const uploadToGoogleDrive = require('../controllers/googleDrive.js');
 
 express().use(bodyParser.json());
 
@@ -131,6 +133,75 @@ async function main() {
         })
     })
 
+    router.get('/quota', verifyToken, async (req, res) => {
+        await quotaSchema.find({
+            Name: 'Quota Per VM'
+        }).then((data) => {
+            res.status(200).json(data);
+        }).catch(err => logger.error(err));
+    })
+
+    router.post('/quota', urlencodedParser, verifyToken, async (req, res) => {
+        let quota = await quotaSchema.findOneAndUpdate({
+            Name: 'Quota Per VM'
+        }, {
+            $set: {
+                NumCpu: req.body.NumCpu,
+                MemoryGB: req.body.MemoryGB,
+                ProvisionedSpaceGB: req.body.ProvisionedSpaceGB,
+                Users: req.body.Users
+            }
+        }, {
+            new: true
+        }, (err, data) => {
+            if (err) {
+                logger.error(err);
+            }
+            if (!data) {
+                let newQuota = new quotaSchema({
+                    Name: 'Quota Per VM',
+                    NumCpu: 1,
+                    MemoryGB: 1,
+                    ProvisionedSpaceGB: 1,
+                    Users: 1
+                })
+                newQuota.save(logger.info('Create new quota rule!')).catch(err => logger.error(err));
+            }
+        });
+        res.status(200).json(quota)
+    })
+
+    router.post('/recalquota', verifyToken, async (req, res) => {
+        let currentQuota = await quotaSchema.find({
+            Name: 'Quota Per VM'
+        }).catch(err => logger.error(err));
+
+        let FreeSpaceGB = 0;
+        await core1.getDatastores()
+            .then(datastores => {
+                datastores.forEach(datastore => {
+                    FreeSpaceGB += parseFloat(datastore.FreeSpaceGB)
+                })
+            }).catch(err => logger.error(err));
+
+        let quota = await quotaSchema.findOneAndUpdate({
+            Name: 'Quota Per VM'
+        }, {
+            $set: {
+                NumCpu: 1,
+                MemoryGB: 1,
+                ProvisionedSpaceGB: parseInt((FreeSpaceGB / currentQuota[0].Users), 10)
+            }
+        }, {
+            new: true
+        }, (err) => {
+            if (err) {
+                logger.error(err);
+            }
+        });
+        res.status(200).json(quota)
+    })
+
     router.get('/notification', verifyToken, async (req, res) => {
         if (req.decoded.type == 'Lecturer') {
             await notificationSchema.find({
@@ -222,7 +293,7 @@ async function searchAD(options, OU) {
         url: config.ldap_url
     });
 
-    await client.bind('bind-ldap-web@it.kmitl.ac.th', `IT]kfdit[y'`)
+    await client.bind(config.ldap_username, config.ldap_password)
         .catch(err => {
             logger.error(err);
         });
@@ -261,21 +332,7 @@ async function reScheduleVM(core, jobs) {
             vms.forEach(async (vm) => {
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
                 jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
-                    await core.shutdownVMGuest(vm.Name)
-                        .then(async () => logger.info('VM: ' + vm.Name + ' was shuted down at: ' + new Date()))
-                        .catch(err => logger.error(err));
-
-                    let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-                    backupCore.addLogger(logger);
-                    backupCore.createPS(debugging)
-                        .then(await backupCore.connectVIServer())
-                        .catch(err => logger.error(err));
-                    await backupCore.backUpVM(vm.Name)
-                        .then(async () => {
-                            await backupCore.removeVM(vm.Name);
-                            await backupCore.disconnectVIServer(config.vcenter_url);
-                            backupCore.disposePS();
-                        }).catch(err => logger.error(err));
+                    await backup(vm)
                 })
             })
         }).catch(err => logger.error(err));
@@ -447,9 +504,41 @@ async function vmOperation(core, jobs) {
         }
         let newVM = new requestedVmSchema(requestDoc)
         newVM.save(res.status(200).send('VM Requested!')).catch(err => logger.error(err));
+
+        let currentQuota = await quotaSchema.find({
+            Name: 'Quota Per VM'
+        }).catch(err => logger.error(err));
+
+        if (req.body.DiskGB <= currentQuota[0].ProvisionedSpaceGB) {
+            let vmSpec = await requestedVmSchema.findOneAndUpdate({
+                Name: req.body.Name
+            }, {
+                $set: {
+                    Status: 'Approved'
+                }
+            }, {
+                new: true
+            }, (err) => {
+                if (err) {
+                    logger.error(err)
+                }
+            });
+            let vmTemplate;
+            await vmTemplateSchema.find({
+                Name: 'UbuntuTemplate'
+            }).then((templates) => {
+                vmTemplate = templates;
+            }).catch(err => logger.error(err));
+            await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+            await sendNoti(vmSpec, 'Approved')
+            logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
+            jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
+                await backup(vmSpec)
+            })
+        }
     })
 
-    router.post('/vm/approve', verifyToken, async (req, res) => {
+    router.post('/approve', verifyToken, async (req, res) => {
         let vmSpec = await requestedVmSchema.findOneAndUpdate({
             Name: req.body.Name
         }, {
@@ -463,55 +552,15 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
-        let noti = new notificationSchema({
-            Name: req.body.Name,
-            Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.body.Name} Approved!`,
-            Message: `VM ${req.body.Name} Approved!`
-        })
-        noti.save().catch(err => logger.error(err))
-        let lecturerEmail;
-        if (vmSpec.Requestor.Lecturer == 'lecturer') {
-            lecturerEmail = '58070020@kmitl.ac.th'
-        } else {
-            let loptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-            };
-            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-            lecturerEmail = lecturerEmail[0].mail
-        }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Approved');
-        if (vmSpec.Requestor.Student) {
-            let soptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
-            };
-            let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Approved');
-        }
+        res.status(200).send('VM Approved!');
+        await sendNoti(vmSpec, 'Approved');
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
-            await core.shutdownVMGuest(vmSpec.Name)
-                .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
-            let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-            backupCore.addLogger(logger);
-            backupCore.createPS(debugging)
-                .then(await backupCore.connectVIServer())
-                .catch(err => logger.error(err));
-            await backupCore.backUpVM(vmSpec.vmName)
-                .then(async () => {
-                    await backupCore.removeVM(vmSpec.Name);
-                    await backupCore.disconnectVIServer(config.vcenter_url);
-                    backupCore.disposePS();
-                }).catch(err => logger.error(err));
+            await backup(vmSpec)
         })
-        res.status(200).send('VM Approved!');
     })
 
-    router.post('/vm/autocreate', verifyToken, async (req, res) => {
+    router.post('/autocreate', verifyToken, async (req, res) => {
         let vmSpec = await requestedVmSchema.findOneAndUpdate({
             Name: req.body.Name
         }, {
@@ -525,6 +574,7 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
+        res.status(200).send('VM Approved!');
         let vmTemplate;
         await vmTemplateSchema.find({
             Name: 'UbuntuTemplate'
@@ -532,55 +582,14 @@ async function vmOperation(core, jobs) {
             vmTemplate = templates;
         }).catch(err => logger.error(err));
         await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', req.body.Datastore).catch(err => logger.error(err));
-        let noti = new notificationSchema({
-            Name: req.body.Name,
-            Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.body.Name} Approved!`,
-            Message: `VM ${req.body.Name} Approved!`
-        })
-        noti.save().catch(err => logger.error(err))
-        let lecturerEmail;
-        if (vmSpec.Requestor.Lecturer == 'lecturer') {
-            lecturerEmail = '58070020@kmitl.ac.th'
-        } else {
-            let loptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-            };
-            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-            lecturerEmail = lecturerEmail[0].mail
-        }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Approved');
-        if (vmSpec.Requestor.Student) {
-            let soptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
-            };
-            let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Approved');
-        }
+        await sendNoti(vmSpec, 'Approved');
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
-            await core.shutdownVMGuest(vmSpec.Name)
-                .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
-            let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-            backupCore.addLogger(logger);
-            backupCore.createPS(debugging)
-                .then(await backupCore.connectVIServer())
-                .catch(err => logger.error(err));
-            await backupCore.backUpVM(vmSpec.vmName)
-                .then(async () => {
-                    await backupCore.removeVM(vmSpec.Name);
-                    await backupCore.disconnectVIServer(config.vcenter_url);
-                    backupCore.disposePS();
-                }).catch(err => logger.error(err));
+            await backup(vmSpec);
         })
-        res.status(200).send('VM Approved!');
     })
 
-    router.post('/vm/reject', verifyToken, async (req, res) => {
+    router.post('/reject', verifyToken, async (req, res) => {
         let vmSpec = await requestedVmSchema.findOneAndUpdate({
             Name: req.body.Name
         }, {
@@ -594,36 +603,8 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
-        let noti = new notificationSchema({
-            Name: req.body.Name,
-            Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.body.Name} Rejected!`,
-            Message: `VM ${req.body.Name} Rejected!`
-        })
-        noti.save().catch(err => logger.error(err))
-        let lecturerEmail;
-        if (vmSpec.Requestor.Lecturer == 'lecturer') {
-            lecturerEmail = '58070020@kmitl.ac.th'
-        } else {
-            let loptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-            };
-            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-            lecturerEmail = lecturerEmail[0].mail
-        }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Rejected');
-        if (vmSpec.Requestor.Student) {
-            let soptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
-            };
-            let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Rejected');
-        }
         res.status(200).send('VM Rejected!');
+        await sendNoti(vmSpec, 'Rejected')
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
@@ -640,38 +621,10 @@ async function vmOperation(core, jobs) {
                 logger.error(err)
             }
         });
-        let noti = new notificationSchema({
-            Name: req.params.vmName,
-            Requestor: vmSpec.Requestor,
-            Subject: `VM ${req.params.vmName} Extended!`,
-            Message: `VM ${req.params.vmName} Extended!`
-        })
-        noti.save().catch(err => logger.error(err))
-        let lecturerEmail;
-        if (vmSpec.Requestor.Lecturer == 'lecturer') {
-            lecturerEmail = '58070020@kmitl.ac.th'
-        } else {
-            let loptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-            };
-            lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
-            lecturerEmail = lecturerEmail[0].mail
-        }
-        await mailer.send(lecturerEmail, vmSpec.Name, 'Extended');
-        if (vmSpec.Requestor.Student) {
-            let soptions = {
-                scope: 'sub',
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
-            };
-            let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-            await mailer.send(studentEmail[0].mail, vmSpec.Name, 'Extended');
-        }
+        res.status(200).send('Extended VM Duration');
+        await sendNoti(vmSpec, 'Extended');
         logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
         jobs.rescheduleJob(req.body.Name, req.body.EndDate);
-        res.status(200).send('Extended VM Duration');
     })
 
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {
@@ -683,6 +636,58 @@ async function vmOperation(core, jobs) {
                 res.status(200).send('VM deleted!');
             }).catch(err => logger.error(err));
     })
+}
+
+async function sendNoti(vmSpec, Status) {
+    let noti = new notificationSchema({
+        Name: vmSpec.Name,
+        Requestor: vmSpec.Requestor,
+        Subject: `VM ${vmSpec.Name} ${Status}!`,
+        Message: `VM ${vmSpec.Name} ${Status}!`,
+        Timestamp: new Date()
+    })
+    noti.save().catch(err => logger.error(err))
+    let lecturerEmail;
+    if (vmSpec.Requestor.Lecturer == 'lecturer') {
+        lecturerEmail = '58070020@kmitl.ac.th'
+    } else {
+        let loptions = {
+            scope: 'sub',
+            attributes: ['sAMAccountName', 'displayName', 'mail'],
+            filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
+        };
+        lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+        lecturerEmail = lecturerEmail[0].mail
+    }
+    await mailer.send(lecturerEmail, vmSpec, Status);
+    if (vmSpec.Requestor.Student) {
+        let soptions = {
+            scope: 'sub',
+            attributes: ['sAMAccountName', 'displayName', 'mail'],
+            filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
+        };
+        let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
+        await mailer.send(studentEmail[0].mail, vmSpec, Status);
+    }
+}
+
+async function backup(vmSpec) {
+    let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
+    await backupCore.shutdownVMGuest(vmSpec.Name)
+        .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
+    backupCore.addLogger(logger);
+    backupCore.createPS(debugging)
+        .then(await backupCore.connectVIServer())
+        .catch(err => logger.error(err));
+    await backupCore.backUpVM(vmSpec.Name)
+        .then(async () => {
+            await uploadToGoogleDrive(vmSpec.Name + '.zip');
+            await sendNoti(vmSpec, 'Backup');
+            await backupCore.removeItem(vmSpec.Name);
+            await backupCore.removeVM(vmSpec.Name);
+            await backupCore.disconnectVIServer(config.vcenter_url);
+            backupCore.disposePS();
+        }).catch(err => logger.error(err));
 }
 
 main();
