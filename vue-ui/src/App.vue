@@ -137,8 +137,15 @@ export default {
 
 <style>
 @import url('https://fonts.googleapis.com/css?family=Athiti&display=swap');
+html{
+  width: 100%;
+  height: 100%;
+}
 #app {
   font-family: 'Athiti', sans-serif;
+}
+.row{
+  margin-right: 0px !important;
 }
 .list-group-item {
   padding: 1rem 1.25rem !important;
@@ -161,8 +168,10 @@ a, #__BVID__15__BV_button_{
   padding: 0;
   color: rgba(0,0,0,0);
 }
+li, #__BVID__15__BV_button_{
+  margin: 0rem 0.5rem;
+}
 li, .dropdown-item{
-  margin-left: 0.5rem;
   display: table-footer-group;
 }
 </style>
