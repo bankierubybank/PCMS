@@ -22,6 +22,11 @@
         </b-col>
       </b-row>
       <b-table :items="data" :fields="fields" :filter="filter" @filtered="onFiltered" class="mt-3">
+        <template slot="Requestor" slot-scope="data">
+          <p v-if="data.item.Requestor.Student != ''">Student : {{data.item.Requestor.Student}}</p>
+          <p v-if="data.item.Requestor.Lecturer != ''">Prof : {{data.item.Requestor.Lecturer}}</p>
+          <p v-if="data.item.Requestor.Course != ''">Course : {{data.item.Requestor.Course}}</p>
+        </template>
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
             <b-button
@@ -125,14 +130,14 @@ export default {
           key: "Type",
           label: "Type"
         },
-        {
-          key: "FreeSpaceGB",
-          label: "Free Space (GB)",
+          {
+          key: "CapacityGB",
+          label: "Capacity (GB)",
           sortable: true
         },
         {
-          key: "CapacityGB",
-          label: "Capacity (GB)",
+          key: "FreeSpaceGB",
+          label: "Free Space (GB)",
           sortable: true
         },
         {
@@ -225,6 +230,9 @@ export default {
             };
             if (datastore.FreeSpaceGB - request.ProvisionedSpaceGB <= 0) {
               data._rowVariant = "danger";
+            }
+            else if((request.ProvisionedSpaceGB*100)/datastore.FreeSpaceGB >= 80){
+              data._rowVariant = "warning";
             }
             this.datastores.push(data);
           });

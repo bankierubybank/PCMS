@@ -13,7 +13,7 @@
           <div v-if="this.user">
             
             <b-nav-item-dropdown class="nav-noti" v-if="this.user.type != 'Staff'" right>
-              <b-dropdown-item
+              <b-dropdown-item class="noti"
                 v-for="notification in this.notifications"
                 v-bind:key="notification.id"
               >
@@ -155,12 +155,12 @@ li, .dropdown{
 .nav-noti:hover{
   background-image: url("./image/noti_w.png");
 }
-a, #__BVID__15__BV_button_{
+a, #__BVID__13__BV_button_{
   padding: 0;
   color: rgba(0,0,0,0);
 }
-li, #__BVID__15__BV_button_{
-  margin: 0rem 0.5rem;
+li, #__BVID__14__BV_button_{
+  margin: 0rem 0.25rem;
 }
 li, .dropdown-item{
   display: table-footer-group;
