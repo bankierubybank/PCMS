@@ -132,7 +132,7 @@ async function main() {
         })
     })
 
-    router.get('/quota', verifyToken, async (req, res) => {
+    router.get('/quota/vm', verifyToken, async (req, res) => {
         await quotaSchema.find({
             Name: 'Quota Per VM'
         }).then((data) => {
@@ -140,15 +140,22 @@ async function main() {
         }).catch(err => logger.error(err));
     })
 
-    router.post('/quota', urlencodedParser, verifyToken, async (req, res) => {
+    router.get('/quota/user', verifyToken, async (req, res) => {
+        await quotaSchema.find({
+            Name: 'Quota Per User'
+        }).then((data) => {
+            res.status(200).json(data);
+        }).catch(err => logger.error(err));
+    })
+
+    router.post('/quota/vm', urlencodedParser, verifyToken, async (req, res) => {
         let quota = await quotaSchema.findOneAndUpdate({
             Name: 'Quota Per VM'
         }, {
             $set: {
                 NumCpu: req.body.NumCpu,
                 MemoryGB: req.body.MemoryGB,
-                ProvisionedSpaceGB: req.body.ProvisionedSpaceGB,
-                Users: req.body.Users
+                ProvisionedSpaceGB: req.body.ProvisionedSpaceGB
             }
         }, {
             new: true
@@ -161,7 +168,7 @@ async function main() {
                     Name: 'Quota Per VM',
                     NumCpu: 1,
                     MemoryGB: 1,
-                    ProvisionedSpaceGB: 1,
+                    ProvisionedSpaceGB: 16,
                     Users: 1
                 })
                 newQuota.save(logger.info('Create new quota rule!')).catch(err => logger.error(err));
@@ -170,11 +177,36 @@ async function main() {
         res.status(200).json(quota)
     })
 
-    router.post('/recalquota', verifyToken, async (req, res) => {
-        let currentQuota = await quotaSchema.find({
-            Name: 'Quota Per VM'
-        }).catch(err => logger.error(err));
+    router.post('/quota/user', urlencodedParser, verifyToken, async (req, res) => {
+        let quota = await quotaSchema.findOneAndUpdate({
+            Name: 'Quota Per User'
+        }, {
+            $set: {
+                NumCpu: req.body.NumCpu,
+                MemoryGB: req.body.MemoryGB,
+                ProvisionedSpaceGB: req.body.ProvisionedSpaceGB
+            }
+        }, {
+            new: true
+        }, (err, data) => {
+            if (err) {
+                logger.error(err);
+            }
+            if (!data) {
+                let newQuota = new quotaSchema({
+                    Name: 'Quota Per User',
+                    NumCpu: 1,
+                    MemoryGB: 1,
+                    ProvisionedSpaceGB: 16,
+                    Users: 1
+                })
+                newQuota.save(logger.info('Create new quota rule!')).catch(err => logger.error(err));
+            }
+        });
+        res.status(200).json(quota)
+    })
 
+    router.post('/recalquota', urlencodedParser, verifyToken, async (req, res) => {
         let FreeSpaceGB = 0;
         await core1.getDatastores()
             .then(datastores => {
@@ -184,12 +216,13 @@ async function main() {
             }).catch(err => logger.error(err));
 
         let quota = await quotaSchema.findOneAndUpdate({
-            Name: 'Quota Per VM'
+            Name: 'Quota Per User'
         }, {
             $set: {
                 NumCpu: 1,
                 MemoryGB: 1,
-                ProvisionedSpaceGB: parseInt((FreeSpaceGB / currentQuota[0].Users), 10)
+                ProvisionedSpaceGB: parseInt((FreeSpaceGB / req.body.Users), 10),
+                Users: req.body.Users
             }
         }, {
             new: true
@@ -495,20 +528,37 @@ async function vmOperation(core, jobs) {
             StartDate: new Date(req.body.StartDate),
             EndDate: new Date(req.body.EndDate)
         }
+        let registeredVMs = [];
         if (req.decoded.type == 'Lecturer') {
             requestDoc.Requestor.Lecturer = req.decoded.username
+            registeredVMs = await requestedVmSchema.find({
+                'Requestor.Lecturer': req.decoded.username,
+                Status: 'Approved'
+            }).catch(err => logger.error(err))
         } else if (req.decoded.type == 'Student') {
             requestDoc.Requestor.Lecturer = req.body.Requestor.Lecturer
             requestDoc.Requestor.Student = req.decoded.username
+            registeredVMs = await requestedVmSchema.find({
+                'Requestor.Student': req.decoded.username,
+                Status: 'Approved'
+            }).catch(err => logger.error(err))
         }
+        let totalProvisionedGB = 0;
+        registeredVMs.forEach(vm => {
+            totalProvisionedGB += vm.ProvisionedSpaceGB
+        })
+
         let newVM = new requestedVmSchema(requestDoc)
         newVM.save(res.status(200).send('VM Requested!')).catch(err => logger.error(err));
 
-        let currentQuota = await quotaSchema.find({
+        let vmQuota = await quotaSchema.find({
             Name: 'Quota Per VM'
         }).catch(err => logger.error(err));
+        let userQuota = await quotaSchema.find({
+            Name: 'Quota Per User'
+        }).catch(err => logger.error(err));
 
-        if (req.body.DiskGB <= currentQuota[0].ProvisionedSpaceGB) {
+        if (req.body.DiskGB <= vmQuota[0].ProvisionedSpaceGB && (req.body.DiskGB + totalProvisionedGB) <= userQuota[0].ProvisionedSpaceGB) {
             let vmSpec = await requestedVmSchema.findOneAndUpdate({
                 Name: req.body.Name
             }, {
@@ -530,9 +580,15 @@ async function vmOperation(core, jobs) {
                 }).then((templates) => {
                     vmTemplate = templates;
                 }).catch(err => logger.error(err));
-                await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+                await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', {
+                    Name: 'Datastores Cluster',
+                    Type: 'DatastoreCluster'
+                }).catch(err => logger.error(err));
             } else {
-                await core.newVM(vmSpec, 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+                await core.newVM(vmSpec, 'Requested VM by uranium', {
+                    Name: 'Datastores Cluster',
+                    Type: 'DatastoreCluster'
+                }).catch(err => logger.error(err));
             }
             await sendNoti(vmSpec, 'Approved')
             logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
@@ -566,9 +622,15 @@ async function vmOperation(core, jobs) {
             }).then((templates) => {
                 vmTemplate = templates;
             }).catch(err => logger.error(err));
-            await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+            await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', {
+                Name: 'Datastores Cluster',
+                Type: 'DatastoreCluster'
+            }).catch(err => logger.error(err));
         } else {
-            await core.newVM(vmSpec, 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+            await core.newVM(vmSpec, 'Requested VM by uranium', {
+                Name: 'Datastores Cluster',
+                Type: 'DatastoreCluster'
+            }).catch(err => logger.error(err));
         }
 
         await sendNoti(vmSpec, 'Approved');
