@@ -528,20 +528,37 @@ async function vmOperation(core, jobs) {
             StartDate: new Date(req.body.StartDate),
             EndDate: new Date(req.body.EndDate)
         }
+        let registeredVMs = [];
         if (req.decoded.type == 'Lecturer') {
             requestDoc.Requestor.Lecturer = req.decoded.username
+            registeredVMs = await requestedVmSchema.find({
+                'Requestor.Lecturer': req.decoded.username,
+                Status: 'Approved'
+            }).catch(err => logger.error(err))
         } else if (req.decoded.type == 'Student') {
             requestDoc.Requestor.Lecturer = req.body.Requestor.Lecturer
             requestDoc.Requestor.Student = req.decoded.username
+            registeredVMs = await requestedVmSchema.find({
+                'Requestor.Student': req.decoded.username,
+                Status: 'Approved'
+            }).catch(err => logger.error(err))
         }
+        let totalProvisionedGB = 0;
+        registeredVMs.forEach(vm => {
+            totalProvisionedGB += vm.ProvisionedSpaceGB
+        })
+
         let newVM = new requestedVmSchema(requestDoc)
         newVM.save(res.status(200).send('VM Requested!')).catch(err => logger.error(err));
 
-        let currentQuota = await quotaSchema.find({
+        let vmQuota = await quotaSchema.find({
             Name: 'Quota Per VM'
         }).catch(err => logger.error(err));
+        let userQuota = await quotaSchema.find({
+            Name: 'Quota Per User'
+        }).catch(err => logger.error(err));
 
-        if (req.body.DiskGB <= currentQuota[0].ProvisionedSpaceGB) {
+        if (req.body.DiskGB <= vmQuota[0].ProvisionedSpaceGB && (req.body.DiskGB + totalProvisionedGB) <= userQuota[0].ProvisionedSpaceGB) {
             let vmSpec = await requestedVmSchema.findOneAndUpdate({
                 Name: req.body.Name
             }, {

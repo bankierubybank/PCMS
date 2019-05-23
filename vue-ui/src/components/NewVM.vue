@@ -6,8 +6,9 @@
     </div>
     <div v-else>
       <b-alert show variant="danger">
-        *** ถ้าสร้าง VM โดยที่ 
-        Harddisk ไม่เกิน {{this.quota.ProvisionedSpaceGB}} GB 
+        *** ถ้าสร้าง VM โดยที่
+        Harddisk ไม่เกิน {{this.vmQuota.ProvisionedSpaceGB}} GB
+        และทุก VM รวมกันไม่เกิน {{this.userQuota.ProvisionedSpaceGB}} GB
         ระบบจะสร้างให้ทันที ***
       </b-alert>
       <b-form @submit="onSubmit">
@@ -143,7 +144,8 @@ export default {
         { value: "Research", text: "งานวิจัย" }
       ],
       user: null,
-      quota: {}
+      vmQuota: {},
+      userQuota: {}
     };
   },
   mounted() {
@@ -202,9 +204,23 @@ export default {
     },
     async getQuota() {
       this.loading = true;
-      await GetServices.fetchQuota()
+      await GetServices.fetchVMQuota()
         .then(res => {
-          this.quota = res.data[0];
+          this.vmQuota = res.data[0];
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("token");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+            location.reload();
+          }
+        });
+      await GetServices.fetchUserQuota()
+        .then(res => {
+          this.userQuota = res.data[0];
         })
         .catch(err => {
           if (err.response.status == 403) {
@@ -222,7 +238,7 @@ export default {
 };
 </script>
 <style scoped>
-  .form-group{
-    width: 80%;
-  }
+.form-group {
+  width: 80%;
+}
 </style>
