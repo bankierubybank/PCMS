@@ -37,7 +37,6 @@ async function main() {
     core2.addLogger(logger);
     core2.createPS(debugging)
         .then(await core2.connectVIServer())
-        .then(await reScheduleVM(core2, jobs))
         .catch(err => logger.error(err));
 
     const core3 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
@@ -282,6 +281,7 @@ async function main() {
 
     await vmRoutes(core1);
     await vmOperation(core2, jobs);
+    await reScheduleVM(jobs);
 
     router.use((req, res) => {
         res.status(404).send('Not found.');
@@ -316,10 +316,9 @@ async function verifyToken(req, res, next) {
 
 /**
  * Reschdule all virtual machines to shutdown, backup and remove them when duration ended.
- * @param {Core} core Node-powershell PowerCLI Core.
  * @param {schedule} jobs Node-schedule jobs.
  */
-async function reScheduleVM(core, jobs) {
+async function reScheduleVM(jobs) {
     await requestedVmSchema.find({
             Status: {
                 $eq: 'Approved'
@@ -523,41 +522,24 @@ async function vmOperation(core, jobs) {
                     logger.error(err)
                 }
             });
-            let vmTemplate;
-            await vmTemplateSchema.find({
-                Name: 'UbuntuTemplate'
-            }).then((templates) => {
-                vmTemplate = templates;
-            }).catch(err => logger.error(err));
-            await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+            if (req.body.OS == 'Ubuntu') {
+                logger.info('Ubuntu');
+                let vmTemplate;
+                await vmTemplateSchema.find({
+                    Name: 'UbuntuTemplate'
+                }).then((templates) => {
+                    vmTemplate = templates;
+                }).catch(err => logger.error(err));
+                await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+            } else {
+                await core.newVM(vmSpec, 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+            }
             await sendNoti(vmSpec, 'Approved')
             logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
             jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
                 await backup(vmSpec)
             })
         }
-    })
-
-    router.post('/approve', verifyToken, async (req, res) => {
-        let vmSpec = await requestedVmSchema.findOneAndUpdate({
-            Name: req.body.Name
-        }, {
-            $set: {
-                Status: 'Approved'
-            }
-        }, {
-            new: true
-        }, (err) => {
-            if (err) {
-                logger.error(err)
-            }
-        });
-        res.status(200).send('VM Approved!');
-        await sendNoti(vmSpec, 'Approved');
-        logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
-        jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
-            await backup(vmSpec)
-        })
     })
 
     router.post('/autocreate', verifyToken, async (req, res) => {
@@ -575,13 +557,20 @@ async function vmOperation(core, jobs) {
             }
         });
         res.status(200).send('VM Approved!');
-        let vmTemplate;
-        await vmTemplateSchema.find({
-            Name: 'UbuntuTemplate'
-        }).then((templates) => {
-            vmTemplate = templates;
-        }).catch(err => logger.error(err));
-        await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', req.body.Datastore).catch(err => logger.error(err));
+
+        if (req.body.OS == 'Ubuntu') {
+            logger.info('Ubuntu');
+            let vmTemplate;
+            await vmTemplateSchema.find({
+                Name: 'UbuntuTemplate'
+            }).then((templates) => {
+                vmTemplate = templates;
+            }).catch(err => logger.error(err));
+            await core.newVMfromTemplate(vmSpec, vmTemplate[0], 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+        } else {
+            await core.newVM(vmSpec, 'Requested VM by uranium', { Name: 'Datastores Cluster', Type: 'DatastoreCluster' }).catch(err => logger.error(err));
+        }
+
         await sendNoti(vmSpec, 'Approved');
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
         jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {

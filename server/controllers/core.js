@@ -219,12 +219,13 @@ class Core {
   /**
    * Create a virtual machine.
    * @param {JSON} spec A JSON object contains virtual machine's spec.
+   * @param {String} ResourcePool A string of resource pool's name.
    * @param {JSON} Datastore A JSON object contains datastore's detail.
    */
-  async newVM(spec, Datastore) {
-    this.PS.addCommand('$vmhost = Get-VMHost')
+  async newVM(spec, ResourcePool, Datastore) {
+    this.PS.addCommand('$resourcepool = Get-ResourcePool')
       .then(this.PS.addParameters([{
-        Name: spec.VMHost
+        Name: ResourcePool
       }]));
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
@@ -245,12 +246,12 @@ class Core {
         .then({}).catch(err => this.logger.error(err));
     }
 
-    this.PS.addCommand('New-VM CD')
+    this.PS.addCommand('New-VM')
       .then(this.PS.addParameters([{
           Name: spec.Name
         },
         {
-          VMHost: '$vmhost'
+          ResourcePool: '$resourcepool'
         },
         {
           Datastore: '$datastore'
@@ -259,13 +260,10 @@ class Core {
           NumCpu: spec.NumCpu
         },
         {
-          MemoryMB: spec.MemoryMB
+          MemoryGB: spec.MemoryGB
         },
         {
-          DiskGB: spec.DiskGB
-        },
-        {
-          NetworkName: spec.NetworkName
+          DiskGB: spec.ProvisionedSpaceGB
         }
       ]));
     await this.PS.invoke()
@@ -351,13 +349,13 @@ class Core {
     await this.PS.invoke()
       .then({}).catch(err => this.logger.error(err));
 
-    if (vmSpec.DiskGB > templateSpec.DiskGB) {
+    if (vmSpec.ProvisionedSpaceGB > templateSpec.DiskGB) {
       this.PS.addCommand('Set-HardDisk -Confirm:$false')
         .then(this.PS.addParameters([{
             HardDisk: '$vmhdd'
           },
           {
-            CapacityGB: vmSpec.DiskGB
+            CapacityGB: vmSpec.ProvisionedSpaceGB
           }
         ]));
       await this.PS.invoke()
