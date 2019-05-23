@@ -25,7 +25,7 @@
         <template slot="Requestor" slot-scope="data">
           <p v-if="data.item.Requestor.Student != ''">Student : {{data.item.Requestor.Student}}</p>
           <p v-if="data.item.Requestor.Lecturer != ''">Prof : {{data.item.Requestor.Lecturer}}</p>
-          <p v-if="data.item.Requestor.Course != ''">Course : {{data.item.Requestor.Course}}</p>
+          <p v-if="data.item.Requestor.Course != ''">Subject : {{data.item.Requestor.Course}}</p>
         </template>
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">

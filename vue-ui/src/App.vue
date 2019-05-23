@@ -11,10 +11,9 @@
 
         <b-navbar-nav class="ml-auto">
           <div v-if="this.user">
-            
             <b-nav-item-dropdown class="nav-noti" v-if="this.user.type != 'Staff'" right>
               <b-dropdown-item class="noti"
-                v-for="notification in this.notifications"
+                v-for="notification in this.notifications.slice(0,5)"
                 v-bind:key="notification.id"
               >
                 <p class="text-primary">{{notification.Subject}}</p>
@@ -25,7 +24,7 @@
                 </p>
               </b-dropdown-item>
             </b-nav-item-dropdown>
-            <b-nav-item-dropdown right>
+            <b-nav-item-dropdown class="user-nav" right>
               <template slot="button-content">
                 <em>{{ this.user.username }}</em>
               </template>
@@ -110,7 +109,7 @@ export default {
     async getNotifications() {
       await GetServices.fetchNotifications()
         .then(res => {
-          this.notifications = res.data;
+          this.notifications = res.data.reverse();  
         })
         .catch(err => {
           if (err.response.status == 403) {
@@ -148,21 +147,15 @@ li, .dropdown{
 .nav-noti{
   background-size: cover;
   background-position: center;
-  background-image: url("./image/noti.png");
+  background-image: url("./image/noti_w.png");
   width: 24px;
   height: 24px;
 }
-.nav-noti:hover{
-  background-image: url("./image/noti_w.png");
-}
-a, #__BVID__13__BV_button_{
+li, .nav-noti > .dropdown-toggle{
   padding: 0;
-  color: rgba(0,0,0,0);
+  color: rgba(0,0,0,0) !important;
 }
-li, #__BVID__14__BV_button_{
+li, .user-nav{
   margin: 0rem 0.25rem;
-}
-li, .dropdown-item{
-  display: table-footer-group;
 }
 </style>
