@@ -23,8 +23,11 @@ export default {
   extendVM(params) {
     return Api().post("extendvm", params);
   },
-  setQuota(params) {
-    return Api().post("quota", params);
+  setVMQuota(params) {
+    return Api().post("quota/vm", params);
+  },
+  setUserQuota(params) {
+    return Api().post("quota/user", params);
   },
   recalQuota(params) {
     return Api().post("recalquota", params);

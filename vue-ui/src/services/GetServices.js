@@ -25,8 +25,11 @@ export default {
   fetchPowerState() {
     return Api().get("powerstate");
   },
-  fetchQuota() {
-    return Api().get("quota");
+  fetchVMQuota() {
+    return Api().get("quota/vm");
+  },
+  fetchUserQuota() {
+    return Api().get("quota/user");
   },
   logout() {
     return Api().get("logout");

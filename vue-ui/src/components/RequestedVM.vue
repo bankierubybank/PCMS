@@ -56,8 +56,7 @@
                   :sort-by.sync="sortBy"
                   :sort-desc.sync="sortDesc"
                 ></b-table>
-                <b-button variant="primary" v-on:click="approveVM(data.item.Name)">Approve</b-button>
-                <b-button variant="success" v-on:click="autoCreateVM(data.item.Name)">Auto Create</b-button>
+                <b-button variant="primary" v-on:click="autoCreateVM(data.item.Name)">Approve (Auto Create)</b-button>
                 <b-button variant="danger" v-on:click="rejectVM(data.item.Name)">Reject</b-button>
               </div>
             </b-modal>
@@ -107,6 +106,7 @@ export default {
         },
         { key: "OS", label: "OS", sortable: true },
         { key: "Requestor", label: "Requestor", sortable: true },
+        { key: "Type", label: "Type", sortable: true },
         {
           key: "StartDate",
           label: "Start Date",
@@ -130,7 +130,7 @@ export default {
           key: "Type",
           label: "Type"
         },
-          {
+        {
           key: "CapacityGB",
           label: "Capacity (GB)",
           sortable: true
@@ -162,8 +162,8 @@ export default {
         });
     }
   },
-  mounted() {
-    this.getDetailedCurrentVMs();
+  async mounted() {
+    await this.getDetailedCurrentVMs();
   },
   methods: {
     async getDetailedCurrentVMs() {
@@ -179,7 +179,7 @@ export default {
           location.reload();
         }
       });
-      r.data.forEach(vm => {
+      await r.data.forEach(vm => {
         let vmData = {
           Name: vm.Name,
           NumCpu: vm.NumCpu,
@@ -188,6 +188,7 @@ export default {
           OS: vm.OS,
           Status: vm.Status,
           Requestor: vm.Requestor,
+          Type: vm.Type,
           StartDate: moment(vm.StartDate)
             .locale("th")
             .format("LL"),
@@ -230,8 +231,10 @@ export default {
             };
             if (datastore.FreeSpaceGB - request.ProvisionedSpaceGB <= 0) {
               data._rowVariant = "danger";
-            }
-            else if((request.ProvisionedSpaceGB*100)/datastore.FreeSpaceGB >= 80){
+            } else if (
+              (request.ProvisionedSpaceGB * 100) / datastore.FreeSpaceGB >=
+              80
+            ) {
               data._rowVariant = "warning";
             }
             this.datastores.push(data);
@@ -284,26 +287,6 @@ export default {
     async rowSelected(items) {
       this.selected = items[0];
     },
-    async approveVM(vmName) {
-      this.$refs[vmName].hide();
-      this.$swal("VM Approved!");
-      await PostServices.approveVM({
-        Name: vmName
-      })
-        .then(() => {
-          location.reload();
-        })
-        .catch(err => {
-          if (err.response.status == 403) {
-            localStorage.removeItem("user");
-            this.$swal("Session Timeout!");
-            this.$router.push({
-              name: "Login"
-            });
-            location.reload();
-          }
-        });
-    },
     async autoCreateVM(vmName) {
       this.$refs[vmName].hide();
       this.$swal("VM Approved!");
@@ -353,7 +336,7 @@ export default {
 </script>
 
 <style scope>
-.btn{
+.btn {
   margin-right: 0.5rem;
 }
 </style>
