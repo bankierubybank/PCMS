@@ -7,12 +7,14 @@
 
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
+          <b-nav-item href="https://github.com/easuck/PCMS">Github</b-nav-item>
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
           <div v-if="this.user">
             <b-nav-item-dropdown class="nav-noti" v-if="this.user.type != 'Staff'" right>
-              <b-dropdown-item class="noti"
+              <b-dropdown-item
+                class="noti"
                 v-for="notification in this.notifications.slice(0,5)"
                 v-bind:key="notification.id"
               >
@@ -44,25 +46,15 @@
         <div v-if="this.user">
           <div v-if="this.user.type === 'Staff'">
             <b-list-group>
-              <b-list-group-item>
-                <router-link to="/monitor" class="collection-item">Monitor</router-link>
-              </b-list-group-item>
-              <b-list-group-item>
-                <router-link to="/requestedvm" class="collection-item">Requested VM</router-link>
-              </b-list-group-item>
-              <b-list-group-item>
-                <router-link to="/quota" class="collection-item">Set Quota</router-link>
-              </b-list-group-item>
+              <b-list-group-item to="/monitor">Monitor</b-list-group-item>
+              <b-list-group-item to="/requestedvm">Requested VM</b-list-group-item>
+              <b-list-group-item to="/quota">Set Quota</b-list-group-item>
             </b-list-group>
           </div>
           <div v-else>
             <b-list-group>
-              <b-list-group-item>
-                <router-link to="/myvm" class="collection-item">My VM</router-link>
-              </b-list-group-item>
-              <b-list-group-item>
-                <router-link to="/newvm" class="collection-item">Request</router-link>
-              </b-list-group-item>
+              <b-list-group-item to="/myvm">My VM</b-list-group-item>
+              <b-list-group-item to="/newvm">Request</b-list-group-item>
             </b-list-group>
           </div>
         </div>
@@ -109,7 +101,7 @@ export default {
     async getNotifications() {
       await GetServices.fetchNotifications()
         .then(res => {
-          this.notifications = res.data.reverse();  
+          this.notifications = res.data.reverse();
         })
         .catch(err => {
           if (err.response.status == 403) {
@@ -126,36 +118,39 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css?family=Athiti&display=swap');
-html{
+@import url("https://fonts.googleapis.com/css?family=Athiti&display=swap");
+html {
   width: 100%;
   height: 100%;
 }
 #app {
-  font-family: 'Athiti', sans-serif;
+  font-family: "Athiti", sans-serif;
 }
-.row{
+.row {
   margin-right: 0px !important;
 }
 .list-group-item {
   padding: 1rem 1.25rem !important;
   border-right: 0px solid !important;
 }
-li, .dropdown{
+li,
+.dropdown {
   display: inline-block;
 }
-.nav-noti{
+.nav-noti {
   background-size: cover;
   background-position: center;
   background-image: url("./image/noti_w.png");
   width: 24px;
   height: 24px;
 }
-li, .nav-noti > .dropdown-toggle{
+li,
+.nav-noti > .dropdown-toggle {
   padding: 0;
-  color: rgba(0,0,0,0) !important;
+  color: rgba(0, 0, 0, 0) !important;
 }
-li, .user-nav{
+li,
+.user-nav {
   margin: 0rem 0.25rem;
 }
 </style>
