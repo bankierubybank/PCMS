@@ -10,8 +10,9 @@
           <b-card-group deck>
             <b-card title="Storage Summary">
               <apexchart
-                type="donut"
-                width="50%"
+                type="pie"
+                width="100%"
+                height="200"
                 :options="pieChartOptions"
                 :series="[storageSummary.totalFree, storageSummary.totalUsed]"
               />
@@ -19,6 +20,7 @@
           </b-card-group>
         </div>
       </b-col>
+      <b-col></b-col>
       <b-col></b-col>
     </b-row>
     <br>
@@ -180,7 +182,10 @@
 <script>
 import GetServices from "@/services/GetServices";
 import moment from "moment";
+console.log(GetServices);
+
 export default {
+  
   name: "Monitor",
   components: {},
   computed: {
@@ -440,6 +445,8 @@ export default {
           location.reload();
         }
       });
+      console.log(datastores);
+      
       Array.prototype.forEach.call(datastores.data, datastore => {
         this.datastores.push({
           Name: datastore.Name,
