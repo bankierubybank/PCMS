@@ -79,6 +79,14 @@ const send = async (receiverMail, vm, status) => {
         อีเมล์นี้ถูกสร้างขึ้นด้วย ระบบบริหารจัดการ Private Cloud
         คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
         `
+    } else if (status == 'Near_Expired'){
+        mailOptions.subject = `VM: ${vm.Name} ใกล้ถึงเวลาหมดอายุ`
+        mailOptions.text = `VM: ${vm.Name} ใกล้ถึงเวลาหมดอายุ
+        โดยสามารถใช้งานได้ถึง ${vm.EndDate} โปรดรีบต่ออายุก่อนหมดระยะเวลา
+
+        อีเมล์นี้ถูกสร้างขึ้นด้วย ระบบบริหารจัดการ Private Cloud
+        คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
+        `
     }
 
     transporter.sendMail(mailOptions).catch(err => logger.error(err));

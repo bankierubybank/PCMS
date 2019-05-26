@@ -352,6 +352,7 @@ async function verifyToken(req, res, next) {
  * @param {schedule} jobs Node-schedule jobs.
  */
 async function reScheduleVM(jobs) {
+
     await requestedVmSchema.find({
             Status: {
                 $eq: 'Approved'
@@ -365,6 +366,9 @@ async function reScheduleVM(jobs) {
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
                 jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
                     await backup(vm)
+                })
+                jobs.scheduleJob(vm.Name, vm.EndDate-15, async function () {
+                    await nearExpired(vm)
                 })
             })
         }).catch(err => logger.error(err));
@@ -739,6 +743,9 @@ async function backup(vmSpec) {
             await backupCore.disconnectVIServer(config.vcenter_url);
             backupCore.disposePS();
         }).catch(err => logger.error(err));
+}
+async function nearExpired(vmSpec){
+    await sendNoti(vmSpec,'Near_Expired')
 }
 
 main();
