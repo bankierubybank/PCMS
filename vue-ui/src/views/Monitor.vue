@@ -200,8 +200,6 @@
 <script>
 import GetServices from "@/services/GetServices";
 import moment from "moment";
-console.log(GetServices);
-
 export default {
   
   name: "Monitor",

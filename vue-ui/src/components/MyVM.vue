@@ -31,7 +31,7 @@
               hide-footer
             >
               <b-form-group label="EndDate">
-                <datepicker v-model="EndDate" name="EndDate" re></datepicker>
+                <datepicker v-model="EndDate" name="EndDate" :disabledDates="data.item.state.disabledDates"></datepicker>
               </b-form-group>
               <b-button type="submit" variant="primary" v-on:click="extendVM(data.item.Name)">Accept</b-button>
             </b-modal>
@@ -166,6 +166,7 @@ export default {
           StartDate: "NOT REGISTERED",
           EndDate: "NOT REGISTERED",
           Status: registeredVMs.Status,
+          state: null,
           _rowVariant: ""
         };
         if (registeredVMs) {
@@ -176,6 +177,12 @@ export default {
           vmData.EndDate = moment(registeredVMs.EndDate)
             .locale("th")
             .format("LL");
+          vmData.state = {
+            disabledDates: {
+              to: new Date(new Date(registeredVMs.EndDate).getTime() - 1000 * 60 * 60 * 24), // Disable all dates up to specific date
+              from: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365) // Disable all dates up to specific date
+            }
+          };
           //Set variant to danger if EndDate is less than today
           if (new Date(registeredVMs.EndDate) <= new Date()) {
             vmData._rowVariant = "danger";

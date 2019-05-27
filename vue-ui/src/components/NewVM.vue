@@ -33,10 +33,14 @@
         </b-form-group>
 
         <b-form-group label="Start Date">
-          <datepicker v-model="vmSpec.StartDate" name="StartDate"></datepicker>
+          <datepicker
+            v-model="vmSpec.StartDate"
+            name="StartDate"
+            :disabledDates="this.state.disabledDates"
+          ></datepicker>
         </b-form-group>
         <b-form-group label="End Date">
-          <datepicker v-model="vmSpec.EndDate" name="EndDate"></datepicker>
+          <datepicker v-model="vmSpec.EndDate" name="EndDate" :disabledDates="this.state.disabledDates"></datepicker>
         </b-form-group>
 
         <b-form-group label="Type Project:">
@@ -145,7 +149,13 @@ export default {
       ],
       user: null,
       vmQuota: {},
-      userQuota: {}
+      userQuota: {},
+      state: {
+        disabledDates: {
+          to: new Date(Date.now() - (1000 * 60 * 60 * 24)), // Disable all dates up to specific date
+          from: new Date(Date.now() + (1000 * 60 * 60 * 24 * 365)) // Disable all dates up to specific date
+        }
+      }
     };
   },
   mounted() {
