@@ -485,10 +485,6 @@ export default {
           location.reload();
         }
       });
-<<<<<<< HEAD
-      console.log(datastores);
-      
-=======
       let vms = await GetServices.fetchVMs().catch(err => {
         if (err.response.status == 403) {
           localStorage.removeItem("user");
@@ -507,7 +503,6 @@ export default {
           DatastoreIdList: vm.DatastoreIdList
         });
       });
->>>>>>> dev
       Array.prototype.forEach.call(datastores.data, datastore => {
         let VMsInDatastore = this.vms.filter(
           x => x.DatastoreIdList == datastore.Id
