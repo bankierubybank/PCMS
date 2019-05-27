@@ -660,7 +660,7 @@ async function vmOperation(core, jobs) {
             }
         });
         res.status(200).send('VM Rejected!');
-        await sendNoti(vmSpec, 'Rejected')
+        await sendNoti(vmSpec, 'Rejected',req.body.Reason)
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
@@ -694,7 +694,7 @@ async function vmOperation(core, jobs) {
     })
 }
 
-async function sendNoti(vmSpec, Status) {
+async function sendNoti(vmSpec, Status, Reason) {
     let noti = new notificationSchema({
         Name: vmSpec.Name,
         Requestor: vmSpec.Requestor,
@@ -702,7 +702,12 @@ async function sendNoti(vmSpec, Status) {
         Message: `VM ${vmSpec.Name} ${Status}!`,
         Timestamp: new Date()
     })
+    if(Status == 'Rejected'){
+        noti.Message = `VM ${vmSpec.Name} ${Status}! Please Check You Email`
+
+    }
     noti.save().catch(err => logger.error(err))
+    
     let lecturerEmail;
     if (vmSpec.Requestor.Lecturer == 'lecturer') {
         lecturerEmail = '58070020@kmitl.ac.th'
@@ -715,7 +720,7 @@ async function sendNoti(vmSpec, Status) {
         lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
         lecturerEmail = lecturerEmail[0].mail
     }
-    await mailer.send(lecturerEmail, vmSpec, Status);
+    await mailer.send(lecturerEmail, vmSpec, Status, Reason);
     if (vmSpec.Requestor.Student) {
         let soptions = {
             scope: 'sub',
@@ -723,7 +728,7 @@ async function sendNoti(vmSpec, Status) {
             filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
         };
         let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
-        await mailer.send(studentEmail[0].mail, vmSpec, Status);
+        await mailer.send(studentEmail[0].mail, vmSpec, Status, Reason);
     }
 }
 

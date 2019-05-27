@@ -8,7 +8,7 @@ const logger = require('./logger.js');
  * @param {String} vmName VM Name.
  * @param {String} status Request status (Approved, Rejected)
  */
-const send = async (receiverMail, vm, status) => {
+const send = async (receiverMail, vm, status, Reason) => {
     let transporter = await nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -59,7 +59,9 @@ const send = async (receiverMail, vm, status) => {
         Type        : ${vm.Type}
         Start Date  : ${vm.StartDate}
         End Date    : ${vm.EndDate}
-        หากต้องการใช้งาน VM โปรดติดต่อเจ้าหน้าทีไอทีซัพพอร์ตเพื่อเจรจา Spec ที่สามารถใช้ได้
+        เจ้าหน้าที่ไอทีซัพพอร์ทปฎิเสธคำขอเนื่องจาก ${Reason}
+        หากต้องการใช้งาน VM โปรดติดต่อเจ้าหน้าทีไอทีซัพพอร์ตเพื่ออนุมัติคำขอ
+        หรือทำการยื่นคำขอใหม่อีกครั้ง
         
         อีเมล์นี้ถูกสร้างขึ้นด้วย ระบบบริหารจัดการ Private Cloud
         คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง

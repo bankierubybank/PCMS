@@ -57,7 +57,21 @@
                   :sort-desc.sync="sortDesc"
                 ></b-table>
                 <b-button variant="primary" v-on:click="autoCreateVM(data.item.Name)">Approve (Auto Create)</b-button>
-                <b-button variant="danger" v-on:click="rejectVM(data.item.Name)">Reject</b-button>
+                <b-button variant="danger" v-b-modal="data.item.Name">Reject</b-button>
+                <b-modal
+                 :id="data.item.Name"
+                 :ref="data.item.Name"
+                 :title= "data.item.Name + 'Reject Reason'"
+                 hide-footer
+                 size="lg"
+                >
+                <b-form-textarea
+                  id="textarea-default"
+                  v-model="Reason"
+                  placeholder="Please Input Reason"
+                ></b-form-textarea>
+                <b-button variant="danger" v-on:click="rejectVM(data.item.Name, Reason)">Reject</b-button>
+                </b-modal>
               </div>
             </b-modal>
           </div>
@@ -149,7 +163,8 @@ export default {
       selected: {},
       sortBy: "FreeSpaceAfterGB",
       sortDesc: true,
-      dsloading: true
+      dsloading: true,
+      Reason: ""
     };
   },
   computed: {
@@ -308,12 +323,15 @@ export default {
           }
         });
     },
-    async rejectVM(vmName) {
+    async rejectVM(vmName,Reason) {
       this.$refs[vmName].hide();
       this.$swal("VM Rejected!");
+      
       await PostServices.rejectVM({
-        Name: vmName
+        Name: vmName,
+        Reason: Reason
       })
+      
         .then(() => {
           location.reload();
         })
