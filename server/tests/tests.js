@@ -81,8 +81,9 @@ async function test() {
     //await testDB(config.mongodb_url);
     //setInterval(() => logger.info('Interval at: ' + new Date()), (1000 * 2))
     //await testSchedule();
-    let uploadToGoogleDrive = require('../controllers/googleDrive.js');
-    uploadToGoogleDrive('log.zip');
+    //let uploadToGoogleDrive = require('../controllers/googleDrive.js');
+    //uploadToGoogleDrive('log.zip');
+    logger.info(new Date())
 }
 
 test();

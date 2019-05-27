@@ -363,6 +363,7 @@ async function reScheduleVM(jobs) {
         .then((vms) => {
             vms.forEach(async (vm) => {
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
+                logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate.getTime() - (1000 * 60 * 60 * 24 * 15)));
                 jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
                     await backup(vm)
                 })
