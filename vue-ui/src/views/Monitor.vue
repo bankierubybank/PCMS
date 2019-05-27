@@ -10,9 +10,9 @@
           <b-card-group deck>
             <b-card title="Storage Summary">
               <apexchart
-                type="pie"
+                type="donut"
                 width="100%"
-                height="200"
+                height="400"
                 :options="pieChartOptions"
                 :series="[storageSummary.totalFree, storageSummary.totalUsed]"
               />
@@ -20,10 +20,6 @@
           </b-card-group>
         </div>
       </b-col>
-      <b-col></b-col>
-    </b-row>
-    <br>
-    <b-row>
       <b-col>
         Top Powered Off VM
         <div v-if="elements.poweredOffVMLoading">
@@ -97,6 +93,9 @@
           <p class="mt-3">Current Page: {{ currentPage }}</p>
         </div>
       </b-col>
+    </b-row>
+    <br>
+    <b-row>
       <b-col>
         Top Used Datastores Cluster
         <div v-if="elements.topDatastoresLoading">
@@ -164,6 +163,26 @@
                 }
               ]"
                           />
+                        </div>
+                      </template>
+                      <template slot="VMs" slot-scope="data">
+                        <div>
+                          <b-button
+                            v-b-modal="data.item.Name"
+                            variant="primary"
+                            size="sm"
+                          >ดู VM ใน Datastore นี้</b-button>
+
+                          <b-modal
+                            :id="data.item.Name"
+                            :title="data.item.Name + ' Stats'"
+                            size="lg"
+                            hide-footer
+                          >
+                            <b-container>
+                              <b-table :items="data.item.VMs" :fields="fields" class="mt-3"></b-table>
+                            </b-container>
+                          </b-modal>
                         </div>
                       </template>
                     </b-table>
@@ -279,6 +298,27 @@ export default {
         {
           key: "FreeUsedRatio",
           label: "Chart"
+        },
+        {
+          key: "VMs",
+          label: "VM in Datastore"
+        }
+      ],
+      fields: [
+        {
+          key: "Name",
+          label: "VM Name",
+          sortable: true
+        },
+        {
+          key: "UsedSpaceGB",
+          label: "Used Space in GB",
+          sortable: true
+        },
+        {
+          key: "ProvisionedSpaceGB",
+          label: "Provisioned Space in GB",
+          sortable: true
         }
       ],
       sortBy: "PowerStatePercentage",
@@ -322,7 +362,8 @@ export default {
             barHeight: "15%"
           }
         }
-      }
+      },
+      vms: []
     };
   },
   async mounted() {
@@ -444,9 +485,33 @@ export default {
           location.reload();
         }
       });
+<<<<<<< HEAD
       console.log(datastores);
       
+=======
+      let vms = await GetServices.fetchVMs().catch(err => {
+        if (err.response.status == 403) {
+          localStorage.removeItem("user");
+          this.$swal("Session Timeout!");
+          this.$router.push({
+            name: "Login"
+          });
+        }
+      });
+      Array.prototype.forEach.call(vms.data, vm => {
+        this.vms.push({
+          Name: vm.Name,
+          Id: vm.Id,
+          UsedSpaceGB: this.round(vm.UsedSpaceGB, 2),
+          ProvisionedSpaceGB: this.round(vm.ProvisionedSpaceGB, 2),
+          DatastoreIdList: vm.DatastoreIdList
+        });
+      });
+>>>>>>> dev
       Array.prototype.forEach.call(datastores.data, datastore => {
+        let VMsInDatastore = this.vms.filter(
+          x => x.DatastoreIdList == datastore.Id
+        );
         this.datastores.push({
           Name: datastore.Name,
           Id: datastore.Id,
@@ -460,7 +525,8 @@ export default {
           FreeSpacePercentage: this.round(
             (datastore.FreeSpaceGB / datastore.CapacityGB) * 100,
             2
-          )
+          ),
+          VMs: VMsInDatastore
         });
         this.storageSummary.totalFree += datastore.FreeSpaceGB;
         this.storageSummary.totalCapacity += datastore.CapacityGB;

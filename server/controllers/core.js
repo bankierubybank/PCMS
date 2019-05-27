@@ -495,7 +495,7 @@ class Core {
       .then().catch(err => this.logger.error(err));
 
     // eslint-disable-next-line no-useless-escape
-    this.PS.addCommand('foreach ($file in $VMView.LayoutEx.File) { $filename = $file.Name.split("]")[1].TrimStart(" "); Copy-DatastoreItem -Item vcds:\$filename')
+    this.PS.addCommand('foreach ($file in $VMView.LayoutEx.File) { $filename = $file.Name.split("]")[1].TrimStart(" "); Copy-DatastoreItem -Item vcds:\$filename }')
       .then(this.PS.addParameters([{
         Destination: dir
       }]))
