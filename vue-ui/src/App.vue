@@ -153,4 +153,8 @@ li,
 .user-nav {
   margin: 0rem 0.25rem;
 }
+.btn{
+  margin-top: 1em;
+  margin-bottom: 0.75em;
+}
 </style>
