@@ -215,13 +215,14 @@ async function main() {
                 })
             }).catch(err => logger.error(err));
 
+        //Use 70% of free space to calculate quota
         let quota = await quotaSchema.findOneAndUpdate({
             Name: 'Quota Per User'
         }, {
             $set: {
                 NumCpu: 1,
                 MemoryGB: 1,
-                ProvisionedSpaceGB: parseInt((FreeSpaceGB / req.body.Users), 10),
+                ProvisionedSpaceGB: parseInt(((FreeSpaceGB * 70 / 100) / req.body.Users), 10),
                 Users: req.body.Users
             }
         }, {
@@ -364,11 +365,11 @@ async function reScheduleVM(jobs) {
             vms.forEach(async (vm) => {
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
                 logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate.getTime() - (1000 * 60 * 60 * 24 * 15)));
-                jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
-                    await backup(vm)
-                })
                 jobs.scheduleJob(vm.Name, vm.EndDate - 15, async function () {
                     await nearExpired(vm)
+                })
+                jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
+                    await backup(vm)
                 })
             })
         }).catch(err => logger.error(err));
@@ -517,7 +518,7 @@ async function vmRoutes(core) {
      * disk.unshared.latest
      */
     router.post('/vmstat', urlencodedParser, verifyToken, async (req, res) => {
-        await core.getVMStat(req.body.vmName, req.body.intervalMins, req.body.stat)
+        await core.getVMStat(await escapeSpecial(req.body.vmName), req.body.intervalMins, req.body.stat)
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -692,11 +693,81 @@ async function vmOperation(core, jobs) {
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
-        let vmSpec = await requestedVmSchema.findOneAndUpdate({
+        let registeredVMs = [];
+        if (req.decoded.type == 'Lecturer') {
+            registeredVMs = await requestedVmSchema.find({
+                'Requestor.Lecturer': req.decoded.username,
+                Status: 'Approved'
+            }).catch(err => logger.error(err))
+        } else if (req.decoded.type == 'Student') {
+            registeredVMs = await requestedVmSchema.find({
+                'Requestor.Student': req.decoded.username,
+                Status: 'Approved'
+            }).catch(err => logger.error(err))
+        }
+        let totalProvisionedGB = 0;
+        registeredVMs.forEach(vm => {
+            totalProvisionedGB += vm.ProvisionedSpaceGB
+        })
+
+        let vmQuota = await quotaSchema.find({
+            Name: 'Quota Per VM'
+        }).catch(err => logger.error(err));
+        let userQuota = await quotaSchema.find({
+            Name: 'Quota Per User'
+        }).catch(err => logger.error(err));
+
+        let vmSpec = await requestedVmSchema.findOne({
+            Name: req.body.Name
+        })
+
+        if (vmSpec.DiskGB <= vmQuota[0].ProvisionedSpaceGB && (vmSpec.DiskGB + totalProvisionedGB) <= userQuota[0].ProvisionedSpaceGB) {
+            await requestedVmSchema.findOneAndUpdate({
+                Name: req.body.Name
+            }, {
+                $set: {
+                    EndDate: new Date(req.body.EndDate)
+                }
+            }, {
+                new: true
+            }, (err) => {
+                if (err) {
+                    logger.error(err)
+                }
+            });
+            res.status(200).send('Extended VM Duration');
+            await sendNoti(vmSpec, 'Extended');
+            logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
+            jobs.rescheduleJob(req.body.Name, req.body.EndDate);
+        } else {
+            await requestedVmSchema.findOneAndUpdate({
+                Name: req.body.Name
+            }, {
+                $set: {
+                    Status: 'ExtendPending',
+                    NewEndDate: new Date(req.body.EndDate)
+                }
+            }, {
+                new: true
+            }, (err) => {
+                if (err) {
+                    logger.error(err)
+                }
+            });
+            res.status(200).send('Extended VM Duration Pending');
+        }
+    })
+
+    router.post('/extendvm/approve', urlencodedParser, verifyToken, async (req, res) => {
+        let vmSpec = await requestedVmSchema.findOne({
+            Name: req.body.Name
+        });
+        await requestedVmSchema.findOneAndUpdate({
             Name: req.body.Name
         }, {
             $set: {
-                EndDate: new Date(req.body.EndDate)
+                Status: 'Approved',
+                EndDate: vmSpec.NewEndDate
             }
         }, {
             new: true
@@ -707,12 +778,12 @@ async function vmOperation(core, jobs) {
         });
         res.status(200).send('Extended VM Duration');
         await sendNoti(vmSpec, 'Extended');
-        logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
-        jobs.rescheduleJob(req.body.Name, req.body.EndDate);
+        logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(vmSpec.NewEndDate));
+        jobs.rescheduleJob(req.body.Name, vmSpec.NewEndDate);
     })
 
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {
-        await core.removeVM(req.params.vmName)
+        await core.removeVM(await escapeSpecial(req.params.vmName))
             .then(async () => {
                 await requestedVmSchema.deleteOne({
                     Name: req.param.vmName
@@ -762,24 +833,29 @@ async function sendNoti(vmSpec, Status, Reason) {
 
 async function backup(vmSpec) {
     let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-    await backupCore.shutdownVMGuest(vmSpec.Name)
+    await backupCore.shutdownVMGuest(await escapeSpecial(vmSpec.Name))
         .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
     backupCore.addLogger(logger);
     backupCore.createPS(debugging)
         .then(await backupCore.connectVIServer())
         .catch(err => logger.error(err));
-    await backupCore.backUpVM(vmSpec.Name)
+    await backupCore.backUpVM(await escapeSpecial(vmSpec.Name))
         .then(async () => {
             await uploadToGoogleDrive(vmSpec.Name + '.zip');
             await sendNoti(vmSpec, 'Backup');
             await backupCore.removeItem(vmSpec.Name);
-            await backupCore.removeVM(vmSpec.Name);
+            await backupCore.removeVM(await escapeSpecial(vmSpec.Name));
             await backupCore.disconnectVIServer(config.vcenter_url);
             backupCore.disposePS();
         }).catch(err => logger.error(err));
 }
+
 async function nearExpired(vmSpec) {
     await sendNoti(vmSpec, 'Near_Expired')
+}
+
+async function escapeSpecial(string) {
+    return await string.replace('[', '*').replace(']', '*');
 }
 
 main();

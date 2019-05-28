@@ -3,7 +3,7 @@
     <h1>Set Quota Rule</h1>
     <b-row>
       <b-col>
-        <h3>Quota per VM</h3>
+        <h3>Maximum spec per VM</h3>
         <div v-if="elements.vmLoading">
           <b-spinner variant="primary" label="Spinning"></b-spinner>
         </div>
