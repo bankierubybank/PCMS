@@ -66,17 +66,13 @@ class Core {
       this.PS.addCommand('Get-VM')
         .then(this.PS.addParameters([params]))
         .then(this.PS.addArgument('| Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray'));
-      await this.PS.invoke()
-        .then(output => {
-          vms = JSON.parse(output);
-        }).catch(err => this.logger.error(err));
     } else {
       this.PS.addCommand('Get-VM | Select-Object -Property * , @{N="IP Address";E={@($_.guest.IPAddress -join "|")}} | ConvertTo-Json -Depth 1 -AsArray');
-      await this.PS.invoke()
-        .then(output => {
-          vms = JSON.parse(output);
-        }).catch(err => this.logger.error(err));
     }
+    await this.PS.invoke()
+      .then(output => {
+        vms = JSON.parse(output);
+      }).catch(err => this.logger.error(err));
     return vms;
   }
 
@@ -115,9 +111,15 @@ class Core {
   /**
    * Get data of all datastores from vCenter server.
    */
-  async getDatastores() {
+  async getDatastores(params) {
     let datastores;
-    this.PS.addCommand('Get-Datastore | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
+    if (typeof params !== "undefined") {
+      this.PS.addCommand('Get-Datastore')
+        .then(this.PS.addParameters([params]))
+        .then(this.PS.addArgument('| Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray'));
+    } else {
+      this.PS.addCommand('Get-Datastore | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
+    }
     await this.PS.invoke()
       .then(output => {
         datastores = JSON.parse(output);
@@ -128,9 +130,15 @@ class Core {
   /**
    * Get data of all datastores from vCenter server.
    */
-  async getDatastoreClusters() {
+  async getDatastoreClusters(params) {
     let datastoreCluster;
-    this.PS.addCommand('Get-DatastoreCluster | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
+    if (typeof params !== "undefined") {
+      this.PS.addCommand('Get-DatastoreCluster')
+        .then(this.PS.addParameters([params]))
+        .then(this.PS.addArgument('| Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray'));
+    } else {
+      this.PS.addCommand('Get-DatastoreCluster | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
+    }
     await this.PS.invoke()
       .then(output => {
         datastoreCluster = JSON.parse(output);

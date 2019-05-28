@@ -368,7 +368,7 @@ async function reScheduleVM(jobs) {
                 jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
                     await backup(vm)
                 })
-                jobs.scheduleJob(vm.Name, vm.EndDate-15, async function () {
+                jobs.scheduleJob(vm.Name, vm.EndDate - 15, async function () {
                     await nearExpired(vm)
                 })
             })
@@ -443,7 +443,9 @@ async function getVMPowerState(core) {
  */
 async function vmRoutes(core) {
     router.get('/vms', verifyToken, async (req, res) => {
-        await core.getVMs()
+        await core.getVMs({
+                Location: 'Public Cloud'
+            })
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -463,14 +465,18 @@ async function vmRoutes(core) {
     })
 
     router.get('/datastores', verifyToken, async (req, res) => {
-        await core.getDatastores()
+        await core.getDatastores({
+                Location: 'Public Cloud'
+            })
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
     router.get('/datastoreclusters', verifyToken, async (req, res) => {
-        await core.getDatastoreClusters()
+        await core.getDatastoreClusters({
+                Name: 'Public Cloud Storage Cluster'
+            })
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -577,6 +583,7 @@ async function vmOperation(core, jobs) {
                     logger.error(err)
                 }
             });
+            /*
             if (req.body.OS == 'Ubuntu') {
                 logger.info('Ubuntu');
                 let vmTemplate;
@@ -595,6 +602,12 @@ async function vmOperation(core, jobs) {
                     Type: 'DatastoreCluster'
                 }).catch(err => logger.error(err));
             }
+            */
+            await core.newVM(vmSpec, 'Requested VM by uranium', {
+                Name: 'Public Cloud Storage Cluster',
+                Type: 'DatastoreCluster'
+            }).catch(err => logger.error(err));
+
             await sendNoti(vmSpec, 'Approved')
             logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
             jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
@@ -619,6 +632,7 @@ async function vmOperation(core, jobs) {
         });
         res.status(200).send('VM Approved!');
 
+        /*
         if (req.body.OS == 'Ubuntu') {
             logger.info('Ubuntu');
             let vmTemplate;
@@ -637,6 +651,12 @@ async function vmOperation(core, jobs) {
                 Type: 'DatastoreCluster'
             }).catch(err => logger.error(err));
         }
+        */
+
+        await core.newVM(vmSpec, 'Requested VM by uranium', {
+            Name: 'Public Cloud Storage Cluster',
+            Type: 'DatastoreCluster'
+        }).catch(err => logger.error(err));
 
         await sendNoti(vmSpec, 'Approved');
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
@@ -745,8 +765,8 @@ async function backup(vmSpec) {
             backupCore.disposePS();
         }).catch(err => logger.error(err));
 }
-async function nearExpired(vmSpec){
-    await sendNoti(vmSpec,'Near_Expired')
+async function nearExpired(vmSpec) {
+    await sendNoti(vmSpec, 'Near_Expired')
 }
 
 main();
