@@ -5,10 +5,6 @@
       <b-spinner variant="primary" label="Spinning"></b-spinner>
     </div>
     <div v-else>
-      <b-alert show variant="danger">
-        *** ตอนนี้ฟังก์ชั่น Auto Create VM ใช้งานได้เฉพาะ Ubuntu Desktop 18.04
-        เท่านั้น ***
-      </b-alert>
       <b-row>
         <b-col md="6" class="my-1">
           <b-form-group label-cols-sm="3" label="Search" class="mb-0">
@@ -56,24 +52,34 @@
                   :sort-by.sync="sortBy"
                   :sort-desc.sync="sortDesc"
                 ></b-table>
-                <b-button variant="primary" v-on:click="autoCreateVM(data.item.Name)">Approve (Auto Create)</b-button>
+                <b-button
+                  variant="primary"
+                  v-on:click="autoCreateVM(data.item.Name)"
+                >Approve (Auto Create)</b-button>
                 <b-button variant="danger" v-b-modal="data.item.Name">Reject</b-button>
                 <b-modal
-                 :id="data.item.Name"
-                 :ref="data.item.Name"
-                 :title= "data.item.Name + 'Reject Reason'"
-                 hide-footer
-                 size="lg"
+                  :id="data.item.Name"
+                  :ref="data.item.Name"
+                  :title="data.item.Name + 'Reject Reason'"
+                  hide-footer
+                  size="lg"
                 >
-                <b-form-textarea
-                  id="textarea-default"
-                  v-model="Reason"
-                  placeholder="Please Input Reason"
-                ></b-form-textarea>
-                <b-button variant="danger" v-on:click="rejectVM(data.item.Name, Reason)">Reject</b-button>
+                  <b-form-textarea
+                    id="textarea-default"
+                    v-model="Reason"
+                    placeholder="Please Input Reason"
+                  ></b-form-textarea>
+                  <b-button variant="danger" v-on:click="rejectVM(data.item.Name, Reason)">Reject</b-button>
                 </b-modal>
               </div>
             </b-modal>
+          </div>
+          <div v-else-if="data.item.Status == 'ExtendPending'">
+            {{data.item.NewEndDate}}
+            <b-button
+              variant="warning"
+              v-on:click="approveExtendVM(data.item.Name)"
+            >Approve Extend VM</b-button>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
             <b-badge variant="danger">Rejected</b-badge>
@@ -210,6 +216,9 @@ export default {
           EndDate: moment(vm.EndDate)
             .locale("th")
             .format("LL"),
+          NewEndDate: moment(vm.NewEndDate)
+            .locale("th")
+            .format("LL"),
           _rowVariant: ""
         };
         if (vm.Status == "Pending") {
@@ -323,15 +332,32 @@ export default {
           }
         });
     },
-    async rejectVM(vmName,Reason) {
+    async rejectVM(vmName, Reason) {
       this.$refs[vmName].hide();
       this.$swal("VM Rejected!");
-      
+
       await PostServices.rejectVM({
         Name: vmName,
         Reason: Reason
       })
-      
+
+        .then(() => {
+          location.reload();
+        })
+        .catch(err => {
+          if (err.response.status == 403) {
+            localStorage.removeItem("user");
+            this.$swal("Session Timeout!");
+            this.$router.push({
+              name: "Login"
+            });
+            location.reload();
+          }
+        });
+    },
+    async approveExtendVM(vmName) {
+      this.$swal("VM Extended!");
+      await PostServices.approveExtendVM({ Name: vmName })
         .then(() => {
           location.reload();
         })

@@ -16,7 +16,8 @@ let requestedVmSchema = new Schema({
     Type: String,
     Status: String,
     StartDate: Date,
-    EndDate: Date
+    EndDate: Date,
+    NewEndDate: Date
 }, {
     collection: 'requested_vms'
 })

@@ -38,10 +38,9 @@
           >
             <template slot="detail" slot-scope="vm">
               <div>
-                <b-button v-b-modal="vm.item.Name" variant="primary" size="sm">View</b-button>
+                <b-button v-b-modal="vm.item.Name" variant="primary" size="sm" @click="info(vm.item, $event.target)">View</b-button>
 
                 <b-modal :id="vm.item.Name" :title="vm.item.Name + ' Stats'" size="lg" hide-footer>
-                  <b-container>
                     <b-row>
                       <b-col>
                         PowerState
@@ -78,7 +77,6 @@
                         />
                       </b-col>
                     </b-row>
-                  </b-container>
                 </b-modal>
               </div>
             </template>
@@ -571,6 +569,12 @@ export default {
         });
       });
       this.elements.datastoreClusterLoading = false;
+    },
+    info(item, button) {
+        this.$root.$emit('bv::show::modal', item.Name, button)
+      },
+    async test(str) {
+      console.log(str)
     }
   }
 };

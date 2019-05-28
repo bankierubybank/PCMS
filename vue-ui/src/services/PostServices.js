@@ -23,6 +23,9 @@ export default {
   extendVM(params) {
     return Api().post("extendvm", params);
   },
+  approveExtendVM(params) {
+    return Api().post("extendvm/approve", params);
+  },
   setVMQuota(params) {
     return Api().post("quota/vm", params);
   },

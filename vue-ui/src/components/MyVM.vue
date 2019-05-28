@@ -31,7 +31,11 @@
               hide-footer
             >
               <b-form-group label="EndDate">
-                <datepicker v-model="EndDate" name="EndDate" :disabledDates="data.item.state.disabledDates"></datepicker>
+                <datepicker
+                  v-model="EndDate"
+                  name="EndDate"
+                  :disabledDates="data.item.state.disabledDates"
+                ></datepicker>
               </b-form-group>
               <b-button type="submit" variant="primary" v-on:click="extendVM(data.item.Name)">Accept</b-button>
             </b-modal>
@@ -40,6 +44,10 @@
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
             <b-badge variant="warning">Pending</b-badge>
+          </div>
+          <div v-else-if="data.item.Status == 'ExtendPending'">
+            {{data.item.NewEndDate}}
+            <b-badge variant="warning">Extend Pending</b-badge>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
             <b-badge variant="danger">Rejected</b-badge>
@@ -113,7 +121,7 @@ export default {
   methods: {
     async extendVM(vmName) {
       this.$refs[vmName].hide();
-      this.$swal("VM Approved!");
+      this.$swal("ส่งคำขอต่ออายุการใช้งานแล้ว!");
       await PostServices.extendVM({ Name: vmName, EndDate: this.EndDate })
         .then(() => {
           location.reload();
@@ -165,6 +173,7 @@ export default {
           Requestor: "NOT REGISTERED",
           StartDate: "NOT REGISTERED",
           EndDate: "NOT REGISTERED",
+          NewEndDate: "",
           Status: registeredVMs.Status,
           state: null,
           _rowVariant: ""
@@ -177,9 +186,16 @@ export default {
           vmData.EndDate = moment(registeredVMs.EndDate)
             .locale("th")
             .format("LL");
+          if (vmData.Status == "ExtendPending") {
+            vmData.NewEndDate = moment(registeredVMs.NewEndDate)
+              .locale("th")
+              .format("LL");
+          }
           vmData.state = {
             disabledDates: {
-              to: new Date(new Date(registeredVMs.EndDate).getTime() - 1000 * 60 * 60 * 24), // Disable all dates up to specific date
+              to: new Date(
+                new Date(registeredVMs.EndDate).getTime() - 1000 * 60 * 60 * 24
+              ), // Disable all dates up to specific date
               from: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365) // Disable all dates up to specific date
             }
           };
