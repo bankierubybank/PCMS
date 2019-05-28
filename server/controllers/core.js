@@ -187,14 +187,14 @@ class Core {
 
   /**
    * Get virtual machine's latest stat.
-   * @param {String} vmName A string of virtual machine's name.
+   * @param {String} Id A string of virtual machine's ID.
    * @param {String} stat A string of wanted stat. (Ex. cpu.usage.average)
    */
-  async getLatestVMStat(vmName, stat) {
+  async getLatestVMStat(Id, stat) {
     let vmstat;
     this.PS.addCommand('Get-VM')
       .then(this.PS.addParameters([{
-        Name: vmName
+        Id: Id
       }]))
       .then(this.PS.addArgument('| Get-Stat -Realtime'))
       .then(this.PS.addParameters([{

@@ -352,7 +352,6 @@ async function verifyToken(req, res, next) {
  * @param {schedule} jobs Node-schedule jobs.
  */
 async function reScheduleVM(jobs) {
-
     await requestedVmSchema.find({
             Status: {
                 $eq: 'Approved'
@@ -388,9 +387,18 @@ async function getVMPowerState(core) {
             let mem; //Percentage
             let disk; //KBps
             if (vm.PowerState) {
-                cpu = await core.getLatestVMStat(vm.Name, 'cpu.usage.average').catch(err => logger.error(err));
-                mem = await core.getLatestVMStat(vm.Name, 'mem.usage.average').catch(err => logger.error(err));
-                disk = await core.getLatestVMStat(vm.Name, 'disk.usage.average').catch(err => logger.error(err));
+                cpu = await core.getLatestVMStat(vm.Id, 'cpu.usage.average').catch(err => {
+                    logger.info(cpu)
+                    logger.error(err)
+                });
+                mem = await core.getLatestVMStat(vm.Id, 'mem.usage.average').catch(err => {
+                    logger.info(mem)
+                    logger.error(err)
+                });
+                disk = await core.getLatestVMStat(vm.Id, 'disk.usage.average').catch(err => {
+                    logger.info(disk)
+                    logger.error(err)
+                });
                 cpu = cpu[0].Value;
                 mem = mem[0].Value;
                 disk = disk[0].Value;
@@ -680,7 +688,7 @@ async function vmOperation(core, jobs) {
             }
         });
         res.status(200).send('VM Rejected!');
-        await sendNoti(vmSpec, 'Rejected',req.body.Reason)
+        await sendNoti(vmSpec, 'Rejected', req.body.Reason)
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
@@ -722,12 +730,12 @@ async function sendNoti(vmSpec, Status, Reason) {
         Message: `VM ${vmSpec.Name} ${Status}!`,
         Timestamp: new Date()
     })
-    if(Status == 'Rejected'){
+    if (Status == 'Rejected') {
         noti.Message = `VM ${vmSpec.Name} ${Status}! Please Check You Email`
 
     }
     noti.save().catch(err => logger.error(err))
-    
+
     let lecturerEmail;
     if (vmSpec.Requestor.Lecturer == 'lecturer') {
         lecturerEmail = '58070020@kmitl.ac.th'
