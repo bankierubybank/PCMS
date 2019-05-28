@@ -352,7 +352,6 @@ async function verifyToken(req, res, next) {
  * @param {schedule} jobs Node-schedule jobs.
  */
 async function reScheduleVM(jobs) {
-
     await requestedVmSchema.find({
             Status: {
                 $eq: 'Approved'
@@ -368,7 +367,7 @@ async function reScheduleVM(jobs) {
                 jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
                     await backup(vm)
                 })
-                jobs.scheduleJob(vm.Name, vm.EndDate-15, async function () {
+                jobs.scheduleJob(vm.Name, vm.EndDate - 15, async function () {
                     await nearExpired(vm)
                 })
             })
@@ -388,9 +387,18 @@ async function getVMPowerState(core) {
             let mem; //Percentage
             let disk; //KBps
             if (vm.PowerState) {
-                cpu = await core.getLatestVMStat(vm.Name, 'cpu.usage.average').catch(err => logger.error(err));
-                mem = await core.getLatestVMStat(vm.Name, 'mem.usage.average').catch(err => logger.error(err));
-                disk = await core.getLatestVMStat(vm.Name, 'disk.usage.average').catch(err => logger.error(err));
+                cpu = await core.getLatestVMStat(vm.Id, 'cpu.usage.average').catch(err => {
+                    logger.info(cpu)
+                    logger.error(err)
+                });
+                mem = await core.getLatestVMStat(vm.Id, 'mem.usage.average').catch(err => {
+                    logger.info(mem)
+                    logger.error(err)
+                });
+                disk = await core.getLatestVMStat(vm.Id, 'disk.usage.average').catch(err => {
+                    logger.info(disk)
+                    logger.error(err)
+                });
                 cpu = cpu[0].Value;
                 mem = mem[0].Value;
                 disk = disk[0].Value;
@@ -443,7 +451,9 @@ async function getVMPowerState(core) {
  */
 async function vmRoutes(core) {
     router.get('/vms', verifyToken, async (req, res) => {
-        await core.getVMs()
+        await core.getVMs({
+                Location: 'Public Cloud'
+            })
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -463,14 +473,18 @@ async function vmRoutes(core) {
     })
 
     router.get('/datastores', verifyToken, async (req, res) => {
-        await core.getDatastores()
+        await core.getDatastores({
+                Location: 'Public Cloud'
+            })
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
     })
 
     router.get('/datastoreclusters', verifyToken, async (req, res) => {
-        await core.getDatastoreClusters()
+        await core.getDatastoreClusters({
+                Name: 'Public Cloud Storage Cluster'
+            })
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -577,6 +591,7 @@ async function vmOperation(core, jobs) {
                     logger.error(err)
                 }
             });
+            /*
             if (req.body.OS == 'Ubuntu') {
                 logger.info('Ubuntu');
                 let vmTemplate;
@@ -595,6 +610,12 @@ async function vmOperation(core, jobs) {
                     Type: 'DatastoreCluster'
                 }).catch(err => logger.error(err));
             }
+            */
+            await core.newVM(vmSpec, 'Requested VM by uranium', {
+                Name: 'Public Cloud Storage Cluster',
+                Type: 'DatastoreCluster'
+            }).catch(err => logger.error(err));
+
             await sendNoti(vmSpec, 'Approved')
             logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
             jobs.scheduleJob(vmSpec.Name, vmSpec.EndDate, async function () {
@@ -619,6 +640,7 @@ async function vmOperation(core, jobs) {
         });
         res.status(200).send('VM Approved!');
 
+        /*
         if (req.body.OS == 'Ubuntu') {
             logger.info('Ubuntu');
             let vmTemplate;
@@ -637,6 +659,12 @@ async function vmOperation(core, jobs) {
                 Type: 'DatastoreCluster'
             }).catch(err => logger.error(err));
         }
+        */
+
+        await core.newVM(vmSpec, 'Requested VM by uranium', {
+            Name: 'Public Cloud Storage Cluster',
+            Type: 'DatastoreCluster'
+        }).catch(err => logger.error(err));
 
         await sendNoti(vmSpec, 'Approved');
         logger.info('Schedule VM: ' + vmSpec.Name + ' to shut down at: ' + new Date(vmSpec.EndDate));
@@ -660,7 +688,7 @@ async function vmOperation(core, jobs) {
             }
         });
         res.status(200).send('VM Rejected!');
-        await sendNoti(vmSpec, 'Rejected',req.body.Reason)
+        await sendNoti(vmSpec, 'Rejected', req.body.Reason)
     })
 
     router.post('/extendvm', urlencodedParser, verifyToken, async (req, res) => {
@@ -702,12 +730,12 @@ async function sendNoti(vmSpec, Status, Reason) {
         Message: `VM ${vmSpec.Name} ${Status}!`,
         Timestamp: new Date()
     })
-    if(Status == 'Rejected'){
+    if (Status == 'Rejected') {
         noti.Message = `VM ${vmSpec.Name} ${Status}! Please Check You Email`
 
     }
     noti.save().catch(err => logger.error(err))
-    
+
     let lecturerEmail;
     if (vmSpec.Requestor.Lecturer == 'lecturer') {
         lecturerEmail = '58070020@kmitl.ac.th'
@@ -750,8 +778,8 @@ async function backup(vmSpec) {
             backupCore.disposePS();
         }).catch(err => logger.error(err));
 }
-async function nearExpired(vmSpec){
-    await sendNoti(vmSpec,'Near_Expired')
+async function nearExpired(vmSpec) {
+    await sendNoti(vmSpec, 'Near_Expired')
 }
 
 main();
