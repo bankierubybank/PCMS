@@ -207,22 +207,25 @@ async function main() {
     })
 
     router.post('/recalquota', urlencodedParser, verifyToken, async (req, res) => {
-        let FreeSpaceGB = 0;
-        await core1.getDatastores()
+        let TotalCapacityGB = 0;
+        await core1.getDatastores({
+                Location: 'Public Cloud'
+            })
             .then(datastores => {
                 datastores.forEach(datastore => {
-                    FreeSpaceGB += parseFloat(datastore.FreeSpaceGB)
+                    TotalCapacityGB += parseFloat(datastore.CapacityGB)
                 })
             }).catch(err => logger.error(err));
 
-        //Use 70% of free space to calculate quota
+        logger.info(`Total Capacity GB: ${TotalCapacityGB}`)
+        //Use 70% of total capacity to calculate quota
         let quota = await quotaSchema.findOneAndUpdate({
             Name: 'Quota Per User'
         }, {
             $set: {
                 NumCpu: 1,
                 MemoryGB: 1,
-                ProvisionedSpaceGB: parseInt(((FreeSpaceGB * 70 / 100) / req.body.Users), 10),
+                ProvisionedSpaceGB: parseInt(((TotalCapacityGB * 70 / 100) / req.body.Users), 10),
                 Users: req.body.Users
             }
         }, {
@@ -721,7 +724,7 @@ async function vmOperation(core, jobs) {
             Name: req.body.Name
         })
 
-        if (vmSpec.DiskGB <= vmQuota[0].ProvisionedSpaceGB && (vmSpec.DiskGB + totalProvisionedGB) <= userQuota[0].ProvisionedSpaceGB) {
+        if (vmSpec.ProvisionedSpaceGB <= vmQuota[0].ProvisionedSpaceGB && totalProvisionedGB <= userQuota[0].ProvisionedSpaceGB) {
             await requestedVmSchema.findOneAndUpdate({
                 Name: req.body.Name
             }, {
