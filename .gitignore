@@ -7,4 +7,3 @@ server/credentials.json
 server/token.json
 server/error.log
 server/info.log
-server/config/environments/test.json

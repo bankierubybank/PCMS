@@ -11,7 +11,11 @@
       </b-form-group>
 
       <b-form-group label="Password:" label-for="input-2">
-        <b-form-input v-model="loginData.password" type="password" required></b-form-input>
+        <b-form-input
+          v-model="loginData.password"
+          type="password"
+          required
+        ></b-form-input>
       </b-form-group>
       <b-button type="submit" variant="primary">Log In</b-button>
     </b-form>

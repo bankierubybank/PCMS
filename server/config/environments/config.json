@@ -1,0 +1,13 @@
+{
+    "port": 8081,
+    "vcenter_url": "",
+    "vcenter_username": "",
+    "vcenter_password": "",
+    "mongodb_url": "",
+    "ldap_url": "",
+    "ldap_username": "",
+    "ldap_password": "",
+    "appSecret": "",
+    "email_address": "",
+    "email_password": ""
+}

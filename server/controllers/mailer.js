@@ -1,14 +1,15 @@
 const nodemailer = require('nodemailer');
-const config = require('../config/environments/test.json');
+const config = require('../config/environments/config.json');
 const logger = require('./logger.js');
 
 /**
- * 
- * @param {String} receiverMail Receiver's E-mail address.
- * @param {String} vmName VM Name.
- * @param {String} status Request status (Approved, Rejected)
+ * Send VM request status via E-mail.
+ * @param {String} receiverMail A string of receiver's E-mail address.
+ * @param {JSON} vm A JSON object of VM details.
+ * @param {String} status A string of VM request status. (Approved, Rejected, Extended, Backup, NearExpiration)
+ * @param {String} reason A string of reasons for rejection.
  */
-const send = async (receiverMail, vm, status, Reason) => {
+async function send(receiverMail, vm, status, reason) {
     let transporter = await nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -59,7 +60,7 @@ const send = async (receiverMail, vm, status, Reason) => {
         Type        : ${vm.Type}
         Start Date  : ${vm.StartDate}
         End Date    : ${vm.EndDate}
-        เจ้าหน้าที่ไอทีซัพพอร์ทปฎิเสธคำขอเนื่องจาก ${Reason}
+        เจ้าหน้าที่ไอทีซัพพอร์ทปฎิเสธคำขอเนื่องจาก ${reason}
         หากต้องการใช้งาน VM โปรดติดต่อเจ้าหน้าทีไอทีซัพพอร์ตเพื่ออนุมัติคำขอ
         หรือทำการยื่นคำขอใหม่อีกครั้ง
         
@@ -81,7 +82,7 @@ const send = async (receiverMail, vm, status, Reason) => {
         อีเมล์นี้ถูกสร้างขึ้นด้วย ระบบบริหารจัดการ Private Cloud
         คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง
         `
-    } else if (status == 'Near_Expired'){
+    } else if (status == 'NearExpiration') {
         mailOptions.subject = `VM: ${vm.Name} ใกล้ถึงเวลาหมดอายุ`
         mailOptions.text = `VM: ${vm.Name} ใกล้ถึงเวลาหมดอายุ
         โดยสามารถใช้งานได้ถึง ${vm.EndDate} โปรดรีบต่ออายุก่อนหมดระยะเวลา

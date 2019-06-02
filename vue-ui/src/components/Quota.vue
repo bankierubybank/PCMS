@@ -10,19 +10,33 @@
         <div v-else>
           <b-form @submit="submitVMQuota">
             <b-form-group label="Core CPU:">
-              <b-form-select v-model="vmQuota.NumCpu" :options="cpuOptions" required></b-form-select>
+              <b-form-select
+                v-model="vmQuota.NumCpu"
+                :options="cpuOptions"
+                required
+              ></b-form-select>
             </b-form-group>
 
             <b-form-group label="RAM (GB):">
-              <b-form-select v-model="vmQuota.MemoryGB" :options="memOptions" required></b-form-select>
+              <b-form-select
+                v-model="vmQuota.MemoryGB"
+                :options="memOptions"
+                required
+              ></b-form-select>
             </b-form-group>
 
             <b-form-group label="Disk (GB):">
-              <b-form-input v-model="vmQuota.ProvisionedSpaceGB" type="number" required></b-form-input>
+              <b-form-input
+                v-model="vmQuota.ProvisionedSpaceGB"
+                type="number"
+                required
+              ></b-form-input>
             </b-form-group>
 
-            <br>
-            <b-button type="submit" variant="primary">Assign New Quota Rule</b-button>
+            <br />
+            <b-button type="submit" variant="primary"
+              >Assign New Quota Rule</b-button
+            >
           </b-form>
         </div>
       </b-col>
@@ -34,27 +48,54 @@
         <div v-else>
           <b-form @submit="submitUserQuota">
             <b-form-group label="Core CPU:">
-              <b-form-select v-model="userQuota.NumCpu" :options="cpuOptions" required></b-form-select>
+              <b-form-select
+                v-model="userQuota.NumCpu"
+                :options="cpuOptions"
+                required
+              ></b-form-select>
             </b-form-group>
 
             <b-form-group label="RAM (GB):">
-              <b-form-select v-model="userQuota.MemoryGB" :options="memOptions" required></b-form-select>
+              <b-form-select
+                v-model="userQuota.MemoryGB"
+                :options="memOptions"
+                required
+              ></b-form-select>
             </b-form-group>
 
             <b-form-group label="Disk (GB):">
-              <b-form-input v-model="userQuota.ProvisionedSpaceGB" type="number" required></b-form-input>
+              <b-form-input
+                v-model="userQuota.ProvisionedSpaceGB"
+                type="number"
+                required
+              ></b-form-input>
             </b-form-group>
 
-            <br>
-            <b-button type="submit" variant="primary">Assign New Quota Rule</b-button>
-            <b-button v-b-modal.userQuota variant="success">Calculate Quota</b-button>
+            <br />
+            <b-button type="submit" variant="primary"
+              >Assign New Quota Rule</b-button
+            >
+            <b-button v-b-modal.userQuota variant="success"
+              >Calculate Quota</b-button
+            >
 
-            <b-modal id="userQuota" ref="userQuota" title="Set New Quota per User" hide-footer>
+            <b-modal
+              id="userQuota"
+              ref="userQuota"
+              title="Set New Quota per User"
+              hide-footer
+            >
               <b-form-group label="Users:">
-                <b-form-input v-model="userQuota.Users" type="number" required></b-form-input>
+                <b-form-input
+                  v-model="userQuota.Users"
+                  type="number"
+                  required
+                ></b-form-input>
               </b-form-group>
 
-              <b-button variant="success" v-on:click="recalQuota()">Auto Calculate Quota Rule</b-button>
+              <b-button variant="success" v-on:click="recalQuota()"
+                >Auto Calculate Quota Rule</b-button
+              >
             </b-modal>
           </b-form>
         </div>
@@ -121,7 +162,9 @@ export default {
     },
     submitUserQuota(evt) {
       evt.preventDefault();
-      PostServices.setUserQuota(this.userQuota).then(this.$swal("Quota Updated!"));
+      PostServices.setUserQuota(this.userQuota).then(
+        this.$swal("Quota Updated!")
+      );
     },
     async getVMQuota() {
       this.elements.vmLoading = true;

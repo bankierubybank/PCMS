@@ -1,22 +1,20 @@
 class Core {
   /**
-   * Create core object for using PowerShell
+   * Create core object for using PowerShell.
    * @param {String} server A string of server name or ip address.
    * @param {String} username A string of vCenter user account.
    * @param {String} password A string of password.
    */
-  constructor(server, username, password) {
+  constructor(server, username, password, logger) {
     this.server = server;
     this.username = username;
     this.password = password;
-  }
-
-  async addLogger(logger) {
     this.logger = logger;
   }
-
+  
   /**
    * Create PowerShell instance.
+   * @param {boolean} debugging Debugging (default: false).
    */
   async createPS(debugging = false) {
     let nodePowershell = require('node-powershell');
@@ -77,38 +75,6 @@ class Core {
   }
 
   /**
-   * Get virtual machine harddisk data.
-   * @param {String} vmName A string of virtual machine's name.
-   * @returns {JSON} Harddisk's Data
-   */
-  async getVMHarddiskbyName(vmName) {
-    let vmharddisk;
-    this.PS.addCommand('Get-VM')
-      .then(this.PS.addParameters([{
-        Name: vmName
-      }]))
-      .then(this.PS.addArgument('| Get-HardDisk | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray'));
-    await this.PS.invoke()
-      .then(output => {
-        vmharddisk = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
-    return vmharddisk;
-  }
-
-  /**
-   * Get data of all host from vCenter server.
-   */
-  async getVMHosts() {
-    let vmhosts;
-    this.PS.addCommand('Get-VMHost | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
-    await this.PS.invoke()
-      .then(output => {
-        vmhosts = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
-    return vmhosts;
-  }
-
-  /**
    * Get data of all datastores from vCenter server.
    */
   async getDatastores(params) {
@@ -144,19 +110,6 @@ class Core {
         datastoreCluster = JSON.parse(output);
       }).catch(err => this.logger.error(err));
     return datastoreCluster;
-  }
-
-  /**
-   * Get data of all datacenters from vCenter server.
-   */
-  async getDatacenters() {
-    let datacenters;
-    this.PS.addCommand('Get-Datacenter | Select-Object -Property * | ConvertTo-Json -Depth 1 -AsArray');
-    await this.PS.invoke()
-      .then(output => {
-        datacenters = JSON.parse(output);
-      }).catch(err => this.logger.error(err));
-    return datacenters;
   }
 
   /**
@@ -549,10 +502,6 @@ class Core {
    */
   async disposePS() {
     await this.PS.dispose().catch(err => this.logger.error(err));
-  }
-
-  async escapeSpecial(string) {
-    return await string.replace('[', '*').replace(']', '*');
   }
 }
 

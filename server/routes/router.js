@@ -2,19 +2,34 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const schedule = require('node-schedule');
-const Core = require('../controllers/core.js');
-const config = require('../config/environments/test.json');
+const jwt = require('jsonwebtoken');
+
+const config = require('../config/environments/config.json');
 const logger = require('../controllers/logger.js');
-const debugging = true;
+const Core = require('../controllers/core.js');
+const ldap = require('../controllers/ldap.js');
+const mailer = require('../controllers/mailer.js');
+const googleDrive = require('../controllers/googleDrive.js');
+const quotaSchema = require('../db/models/quotaSchema.js');
 const requestedVmSchema = require('../db/models/requestedVmSchema.js');
+const VMPerfSchema = require('../db/models/VMPerfSchema.js');
 const notificationSchema = require('../db/models/notificationSchema.js');
 const vmTemplateSchema = require('../db/models/vmTemplateSchema.js');
-const VMPerfSchema = require('../db/models/VMPerfSchema.js');
-const LdapClient = require('ldapjs-client');
-const jwt = require('jsonwebtoken');
-const mailer = require('../controllers/mailer.js');
-const quotaSchema = require('../db/models/quotaSchema.js');
-const uploadToGoogleDrive = require('../controllers/googleDrive.js');
+const utils = require('../utils/utils.js').default;
+
+const debugging = true;
+const testAccount = {
+    admin: {
+        username: 'admin',
+        password: 'admin',
+        email: '58070020@kmitl.ac.th'
+    },
+    lecturer: {
+        username: 'lecturer',
+        password: 'lecturer',
+        email: '58070020@kmitl.ac.th'
+    }
+};
 
 express().use(bodyParser.json());
 
@@ -26,26 +41,28 @@ const urlencodedParser = bodyParser.urlencoded({
  * Create core and assign core to routes.
  */
 async function main() {
-    const core1 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-    core1.addLogger(logger);
-    core1.createPS(debugging)
-        .then(await core1.connectVIServer())
+    const geterCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password, logger);
+    geterCore.createPS(debugging)
+        .then(await geterCore.connectVIServer())
+        .catch(err => logger.error(err));
+
+    const operationCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password, logger);
+    operationCore.createPS(debugging)
+        .then(await operationCore.connectVIServer())
+        .catch(err => logger.error(err));
+
+    const monitorCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password, logger);
+    monitorCore.createPS(debugging)
+        .then(await monitorCore.connectVIServer())
+        .then(await getVMPowerState(monitorCore))
         .catch(err => logger.error(err));
 
     const jobs = schedule;
-    const core2 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-    core2.addLogger(logger);
-    core2.createPS(debugging)
-        .then(await core2.connectVIServer())
-        .catch(err => logger.error(err));
-
-    const core3 = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-    core3.addLogger(logger);
-    core3.createPS(debugging)
-        .then(await core3.connectVIServer())
-        .then(await getVMPowerState(core3))
-        .catch(err => logger.error(err));
-
+    await vmRoutes(geterCore);
+    await routes(geterCore);
+    await vmOperation(operationCore, jobs);
+    await reScheduleVM(jobs);
+    
     router.post('/login', urlencodedParser, async (req, res) => {
         let accountData = {
             type: '',
@@ -53,58 +70,21 @@ async function main() {
             displayName: '',
             mail: ''
         }
-        if (req.body.username == 'admin' && req.body.password == 'admin') {
+        if (req.body.username == testAccount.admin.username && req.body.password == testAccount.admin.password) {
             accountData.type = 'Staff';
             accountData.username = 'admin';
             accountData.displayName = 'admin';
-            accountData.mail = '58070020@kmitl.ac.th';
-        } else if (req.body.username == 'lecturer' && req.body.password == 'lecturer') {
+        } else if (req.body.username == testAccount.lecturer.username && req.body.password == testAccount.lecturer.password) {
             accountData.type = 'Lecturer';
             accountData.username = 'lecturer';
             accountData.displayName = 'lecturer';
-            accountData.mail = '58070020@kmitl.ac.th';
         } else {
-            let client = new LdapClient({
-                url: config.ldap_url
-            });
-
-            await client.bind(req.body.username + '@it.kmitl.ac.th', req.body.password)
-                .catch(err => {
-                    res.status(401).send('Auth failed, please check your username/password.');
-                    logger.error(err);
-                });
-
-            let filter_option = '(&(sAMAccountName=' + req.body.username + '))';
-
-            let options = {
-                scope: 'sub',
-                filter: filter_option,
-                attributes: ['sAMAccountName', 'displayName', 'mail'],
-                //filter: '(&(displayName=นายก*))'
-            };
-
-            let lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
-            let staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
-            let students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
-
-            if (lecturers.length != 0) {
-                accountData.type = 'Lecturer';
-                accountData.username = lecturers[0].sAMAccountName;
-                accountData.displayName = lecturers[0].displayName;
-                accountData.mail = lecturers[0].mail;
-            } else if (staffs.length != 0) {
-                accountData.type = 'Staff';
-                accountData.username = staffs[0].sAMAccountName;
-                accountData.displayName = staffs[0].displayName;
-                accountData.mail = staffs[0].mail;
-            } else if (students.length != 0) {
-                accountData.type = 'Student';
-                accountData.username = students[0].sAMAccountName;
-                accountData.displayName = students[0].displayName;
-                accountData.mail = students[0].mail;
-            }
-
-            await client.destroy().catch(err => logger.error(err));
+            await ldap.authen(req.body.username, req.body.password).then(output => {
+                accountData = output
+            }).catch(err => {
+                res.status(401).send('Auth failed, please check your username/password.');
+                logger.error(err)
+            })
         }
 
         let payload = {
@@ -126,6 +106,131 @@ async function main() {
         });
     });
 
+    router.get('/logout', verifyToken, async (req, res) => {
+        res.status(200).json({
+            status: false,
+            token: null
+        })
+    })
+
+    router.use((req, res) => {
+        res.status(404).send('Not found.');
+    });
+}
+
+/**
+ * An express middle for verify JWT.
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+async function verifyToken(req, res, next) {
+    let token = await req.header('Authorization') || req.headers["x-access-token"];
+    jwt.verify(token, config.appSecret, (err, decoded) => {
+        if (err) {
+            res.status(403).send('No token')
+            logger.error('No token')
+        } else {
+            req.decoded = decoded;
+            next();
+        }
+    });
+}
+
+/**
+ * Reschdule all virtual machines to shutdown, backup and remove them when duration ended.
+ * @param {schedule} jobs Node-schedule jobs.
+ */
+async function reScheduleVM(jobs) {
+    await requestedVmSchema.find({
+            Status: {
+                $eq: 'Approved'
+            },
+            EndDate: {
+                $gte: new Date()
+            }
+        })
+        .then((vms) => {
+            vms.forEach(async (vm) => {
+                //15 days notifications before expire
+                jobs.scheduleJob(vm.Name, new Date(vm.EndDate.getTime() - (1000 * 60 * 60 * 24 * 15)), async function () {
+                    await sendNoti(vm, 'NearExpiration')
+                })
+                logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
+                jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
+                    await backup(vm)
+                })
+            })
+        }).catch(err => logger.error(err));
+}
+
+/**
+ * Get PowerState of all virtual machines from vCenter and save them to database every 1 hour.
+ * @param {Core} core Node-powershell PowerCLI Core.
+ */
+async function getVMPowerState(core) {
+    //Set Interval for 1 hour (1000 ms * 60 * 60)
+    setInterval(async () => {
+        let vms = await core.getVMs().catch(err => logger.error(err));
+        for (let vm of vms) {
+            let cpu; //Percentage
+            let mem; //Percentage
+            let disk; //KBps
+            if (vm.PowerState) {
+                cpu = await core.getLatestVMStat(vm.Id, 'cpu.usage.average').catch(err => logger.error(err));
+                mem = await core.getLatestVMStat(vm.Id, 'mem.usage.average').catch(err => logger.error(err));
+                disk = await core.getLatestVMStat(vm.Id, 'disk.usage.average').catch(err => logger.error(err));
+                cpu = cpu[0].Value;
+                mem = mem[0].Value;
+                disk = disk[0].Value;
+            } else {
+                cpu = 0;
+                mem = 0;
+                disk = 0;
+            }
+            VMPerfSchema.findOneAndUpdate({
+                Name: vm.Name
+            }, {
+                $addToSet: {
+                    stats: {
+                        timestamp: new Date(),
+                        PowerState: vm.PowerState,
+                        CPU: cpu,
+                        Memory: mem,
+                        Disk: disk
+                    }
+                }
+            }, {
+                new: true
+            }, (err, data) => {
+                if (err) {
+                    logger.error(err);
+                }
+                if (!data) {
+                    let vmPerf = new VMPerfSchema({
+                        Name: vm.Name,
+                        stats: [{
+                            timestamp: new Date(),
+                            PowerState: vm.PowerState,
+                            CPU: cpu,
+                            Memory: mem,
+                            Disk: disk
+                        }]
+                    });
+                    vmPerf.save(logger.info('Saved New VM PowerState')).catch(err => logger.error(err));
+                } else {
+                    logger.info('Saved Existing VM PowerState');
+                }
+            })
+        }
+    }, (1000 * 60 * 60));
+}
+
+/**
+ * Define database routes.
+ * @param {Core} core Node-powershell PowerCLI Core.
+ */
+async function routes(core) {
     router.get('/checktoken', verifyToken, async (req, res) => {
         res.status(200).json({
             status: true
@@ -208,7 +313,7 @@ async function main() {
 
     router.post('/recalquota', urlencodedParser, verifyToken, async (req, res) => {
         let TotalCapacityGB = 0;
-        await core1.getDatastores({
+        await core.getDatastores({
                 Location: 'Public Cloud'
             })
             .then(datastores => {
@@ -300,157 +405,24 @@ async function main() {
         }).catch(err => logger.error(err));
     })
 
+    router.get('/powerstate', verifyToken, async (req, res) => {
+        await VMPerfSchema.find().then((data) => {
+            res.status(200).json(data);
+        }).catch(err => logger.error(err));
+    })
+
     router.get('/lecturer', verifyToken, async (req, res) => {
-        await searchAD({
+        await ldap.searchAD({
             scope: 'sub',
             attributes: ['sAMAccountName', 'displayName']
         }, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th').then((lecturer) => {
             res.status(200).json(lecturer);
         }).catch(err => logger.error(err));
     })
-
-    router.get('/logout', verifyToken, async (req, res) => {
-        res.status(200).json({
-            status: false,
-            token: null
-        })
-    })
-
-    await vmRoutes(core1);
-    await vmOperation(core2, jobs);
-    await reScheduleVM(jobs);
-
-    router.use((req, res) => {
-        res.status(404).send('Not found.');
-    });
-}
-
-async function searchAD(options, OU) {
-    let client = new LdapClient({
-        url: config.ldap_url
-    });
-
-    await client.bind(config.ldap_username, config.ldap_password)
-        .catch(err => {
-            logger.error(err);
-        });
-
-    return await client.search(OU, options);
-}
-
-async function verifyToken(req, res, next) {
-    let token = await req.header('Authorization') || req.headers["x-access-token"];
-    jwt.verify(token, config.appSecret, (err, decoded) => {
-        if (err) {
-            res.status(403).send('No token')
-            logger.error('No token')
-        } else {
-            req.decoded = decoded;
-            next();
-        }
-    });
 }
 
 /**
- * Reschdule all virtual machines to shutdown, backup and remove them when duration ended.
- * @param {schedule} jobs Node-schedule jobs.
- */
-async function reScheduleVM(jobs) {
-    await requestedVmSchema.find({
-            Status: {
-                $eq: 'Approved'
-            },
-            EndDate: {
-                $gte: new Date()
-            }
-        })
-        .then((vms) => {
-            vms.forEach(async (vm) => {
-                logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate));
-                logger.info('Schedule VM: ' + vm.Name + ' to shut down at: ' + new Date(vm.EndDate.getTime() - (1000 * 60 * 60 * 24 * 15)));
-                jobs.scheduleJob(vm.Name, vm.EndDate - 15, async function () {
-                    await nearExpired(vm)
-                })
-                jobs.scheduleJob(vm.Name, vm.EndDate, async function () {
-                    await backup(vm)
-                })
-            })
-        }).catch(err => logger.error(err));
-}
-
-/**
- * Get PowerState of all virtual machines from vCenter and save them to database every 1 hour.
- * @param {Core} core Node-powershell PowerCLI Core.
- */
-async function getVMPowerState(core) {
-    //Set Interval for 1 hour (1000 ms * 60 * 60)
-    setInterval(async () => {
-        let vms = await core.getVMs().catch(err => logger.error(err));
-        for (let vm of vms) {
-            let cpu; //Percentage
-            let mem; //Percentage
-            let disk; //KBps
-            if (vm.PowerState) {
-                cpu = await core.getLatestVMStat(vm.Id, 'cpu.usage.average').catch(err => {
-                    logger.info(cpu)
-                    logger.error(err)
-                });
-                mem = await core.getLatestVMStat(vm.Id, 'mem.usage.average').catch(err => {
-                    logger.info(mem)
-                    logger.error(err)
-                });
-                disk = await core.getLatestVMStat(vm.Id, 'disk.usage.average').catch(err => {
-                    logger.info(disk)
-                    logger.error(err)
-                });
-                cpu = cpu[0].Value;
-                mem = mem[0].Value;
-                disk = disk[0].Value;
-            } else {
-                cpu = 0;
-                mem = 0;
-                disk = 0;
-            }
-            VMPerfSchema.findOneAndUpdate({
-                Name: vm.Name
-            }, {
-                $addToSet: {
-                    stats: {
-                        timestamp: new Date(),
-                        PowerState: vm.PowerState,
-                        CPU: cpu,
-                        Memory: mem,
-                        Disk: disk
-                    }
-                }
-            }, {
-                new: true
-            }, (err, data) => {
-                if (err) {
-                    logger.error(err);
-                }
-                if (!data) {
-                    let vmPerf = new VMPerfSchema({
-                        Name: vm.Name,
-                        stats: [{
-                            timestamp: new Date(),
-                            PowerState: vm.PowerState,
-                            CPU: cpu,
-                            Memory: mem,
-                            Disk: disk
-                        }]
-                    });
-                    vmPerf.save(logger.info('Saved New VM PowerState')).catch(err => logger.error(err));
-                } else {
-                    logger.info('Saved Existing VM PowerState');
-                }
-            })
-        }
-    }, (1000 * 60 * 60));
-}
-
-/**
- * Defined all get routes.
+ * Define all vCenter get routes.
  * @param {Core} core Node-powershell PowerCLI Core.
  */
 async function vmRoutes(core) {
@@ -458,19 +430,6 @@ async function vmRoutes(core) {
         await core.getVMs({
                 Location: 'Public Cloud'
             })
-            .then(output => {
-                res.status(200).json(output);
-            }).catch(err => logger.error(err));
-    })
-
-    router.get('/powerstate', verifyToken, async (req, res) => {
-        await VMPerfSchema.find().then((data) => {
-            res.status(200).json(data);
-        }).catch(err => logger.error(err));
-    })
-
-    router.get('/vmhosts', verifyToken, async (req, res) => {
-        await core.getVMHosts()
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -489,13 +448,6 @@ async function vmRoutes(core) {
         await core.getDatastoreClusters({
                 Name: 'Public Cloud Storage Cluster'
             })
-            .then(output => {
-                res.status(200).json(output);
-            }).catch(err => logger.error(err));
-    })
-
-    router.get('/datacenters', verifyToken, async (req, res) => {
-        await core.getDatacenters()
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -521,7 +473,7 @@ async function vmRoutes(core) {
      * disk.unshared.latest
      */
     router.post('/vmstat', urlencodedParser, verifyToken, async (req, res) => {
-        await core.getVMStat(await escapeSpecial(req.body.vmName), req.body.intervalMins, req.body.stat)
+        await core.getVMStat(await utils.escapeSpecial(req.body.vmName), req.body.intervalMins, req.body.stat)
             .then(output => {
                 res.status(200).json(output);
             }).catch(err => logger.error(err));
@@ -529,7 +481,7 @@ async function vmRoutes(core) {
 }
 
 /**
- * Defined all virtual machine operations routes.
+ * Define all virtual machine operations routes.
  * @param {Core} core Node-powershell PowerCLI Core.
  * @param {schedule} jobs Node-schedule jobs.
  */
@@ -590,11 +542,7 @@ async function vmOperation(core, jobs) {
                 }
             }, {
                 new: true
-            }, (err) => {
-                if (err) {
-                    logger.error(err)
-                }
-            });
+            }).catch(err => logger.error(err));
             /*
             if (req.body.OS == 'Ubuntu') {
                 logger.info('Ubuntu');
@@ -637,13 +585,8 @@ async function vmOperation(core, jobs) {
             }
         }, {
             new: true
-        }, (err) => {
-            if (err) {
-                logger.error(err)
-            }
-        });
+        }).catch(err => logger.error(err));
         res.status(200).send('VM Approved!');
-
         /*
         if (req.body.OS == 'Ubuntu') {
             logger.info('Ubuntu');
@@ -664,7 +607,6 @@ async function vmOperation(core, jobs) {
             }).catch(err => logger.error(err));
         }
         */
-
         await core.newVM(vmSpec, 'Requested VM by uranium', {
             Name: 'Public Cloud Storage Cluster',
             Type: 'DatastoreCluster'
@@ -686,11 +628,7 @@ async function vmOperation(core, jobs) {
             }
         }, {
             new: true
-        }, (err) => {
-            if (err) {
-                logger.error(err)
-            }
-        });
+        }).catch(err => logger.error(err));
         res.status(200).send('VM Rejected!');
         await sendNoti(vmSpec, 'Rejected', req.body.Reason)
     })
@@ -725,7 +663,7 @@ async function vmOperation(core, jobs) {
         })
 
         if (vmSpec.ProvisionedSpaceGB <= vmQuota[0].ProvisionedSpaceGB && totalProvisionedGB <= userQuota[0].ProvisionedSpaceGB) {
-            await requestedVmSchema.findOneAndUpdate({
+            let newVMSpec = await requestedVmSchema.findOneAndUpdate({
                 Name: req.body.Name
             }, {
                 $set: {
@@ -733,13 +671,9 @@ async function vmOperation(core, jobs) {
                 }
             }, {
                 new: true
-            }, (err) => {
-                if (err) {
-                    logger.error(err)
-                }
-            });
+            }).catch(err => logger.error(err));
             res.status(200).send('Extended VM Duration');
-            await sendNoti(vmSpec, 'Extended');
+            await sendNoti(newVMSpec, 'Extended');
             logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(req.body.EndDate));
             jobs.rescheduleJob(req.body.Name, req.body.EndDate);
         } else {
@@ -750,13 +684,7 @@ async function vmOperation(core, jobs) {
                     Status: 'ExtendPending',
                     NewEndDate: new Date(req.body.EndDate)
                 }
-            }, {
-                new: true
-            }, (err) => {
-                if (err) {
-                    logger.error(err)
-                }
-            });
+            }).catch(err => logger.error(err));
             res.status(200).send('Extended VM Duration Pending');
         }
     })
@@ -772,13 +700,7 @@ async function vmOperation(core, jobs) {
                 Status: 'Approved',
                 EndDate: vmSpec.NewEndDate
             }
-        }, {
-            new: true
-        }, (err) => {
-            if (err) {
-                logger.error(err)
-            }
-        });
+        }).catch(err => logger.error(err));
         res.status(200).send('Extended VM Duration');
         await sendNoti(vmSpec, 'Extended');
         logger.info('Reschedule VM: ' + req.body.Name + ' to shut down at: ' + new Date(vmSpec.NewEndDate));
@@ -786,7 +708,7 @@ async function vmOperation(core, jobs) {
     })
 
     router.delete('/vm/:vmName', verifyToken, async (req, res) => {
-        await core.removeVM(await escapeSpecial(req.params.vmName))
+        await core.removeVM(await utils.escapeSpecial(req.params.vmName))
             .then(async () => {
                 await requestedVmSchema.deleteOne({
                     Name: req.param.vmName
@@ -796,6 +718,12 @@ async function vmOperation(core, jobs) {
     })
 }
 
+/**
+ * Add notifications to database and send it via E-Mail.
+ * @param {JSON} vmSpec A JSON object of VM details.
+ * @param {String} Status A string of VM request status. (Approved, Rejected, Extended, Backup, NearExpiration)
+ * @param {String} Reason A string of reasons for rejection.
+ */
 async function sendNoti(vmSpec, Status, Reason) {
     let noti = new notificationSchema({
         Name: vmSpec.Name,
@@ -806,59 +734,51 @@ async function sendNoti(vmSpec, Status, Reason) {
     })
     if (Status == 'Rejected') {
         noti.Message = `VM ${vmSpec.Name} ${Status}! Please Check You Email`
-
     }
     noti.save().catch(err => logger.error(err))
 
     let lecturerEmail;
     if (vmSpec.Requestor.Lecturer == 'lecturer') {
-        lecturerEmail = '58070020@kmitl.ac.th'
+        lecturerEmail = testAccount.lecturer.email
     } else {
-        let loptions = {
+        lecturerEmail = await ldap.searchAD({
             scope: 'sub',
             attributes: ['sAMAccountName', 'displayName', 'mail'],
             filter: `(&(sAMAccountName=${vmSpec.Requestor.Lecturer}*))`
-        };
-        lecturerEmail = await searchAD(loptions, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
+        }, 'OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th');
         lecturerEmail = lecturerEmail[0].mail
     }
     await mailer.send(lecturerEmail, vmSpec, Status, Reason);
     if (vmSpec.Requestor.Student) {
-        let soptions = {
+        let studentEmail = await ldap.searchAD({
             scope: 'sub',
             attributes: ['sAMAccountName', 'displayName', 'mail'],
             filter: `(&(sAMAccountName=${vmSpec.Requestor.Student}*))`
-        };
-        let studentEmail = await searchAD(soptions, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
+        }, 'OU=Student,DC=it,DC=kmitl,DC=ac,DC=th');
         await mailer.send(studentEmail[0].mail, vmSpec, Status, Reason);
     }
 }
 
+/**
+ * Backup VM.
+ * @param {JSON} vmSpec A JSON object of VM details.
+ */
 async function backup(vmSpec) {
-    let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password);
-    await backupCore.shutdownVMGuest(await escapeSpecial(vmSpec.Name))
+    let backupCore = new Core(config.vcenter_url, config.vcenter_username, config.vcenter_password, logger);
+    await backupCore.shutdownVMGuest(await utils.escapeSpecial(vmSpec.Name))
         .then(async () => logger.info('VM: ' + vmSpec.Name + ' was shuted down at: ' + new Date())).catch(err => logger.error(err));
-    backupCore.addLogger(logger);
     backupCore.createPS(debugging)
         .then(await backupCore.connectVIServer())
         .catch(err => logger.error(err));
-    await backupCore.backUpVM(await escapeSpecial(vmSpec.Name))
+    await backupCore.backUpVM(await utils.escapeSpecial(vmSpec.Name))
         .then(async () => {
-            await uploadToGoogleDrive(vmSpec.Name + '.zip');
+            await googleDrive.upload(vmSpec.Name + '.zip');
             await sendNoti(vmSpec, 'Backup');
             await backupCore.removeItem(vmSpec.Name);
-            await backupCore.removeVM(await escapeSpecial(vmSpec.Name));
+            await backupCore.removeVM(await utils.escapeSpecial(vmSpec.Name));
             await backupCore.disconnectVIServer(config.vcenter_url);
             backupCore.disposePS();
         }).catch(err => logger.error(err));
-}
-
-async function nearExpired(vmSpec) {
-    await sendNoti(vmSpec, 'Near_Expired')
-}
-
-async function escapeSpecial(string) {
-    return await string.replace('[', '*').replace(']', '*');
 }
 
 main();

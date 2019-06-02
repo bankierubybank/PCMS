@@ -12,17 +12,21 @@
 
         <b-navbar-nav class="ml-auto">
           <div v-if="this.user">
-            <b-nav-item-dropdown class="nav-noti" v-if="this.user.type != 'Staff'" right>
+            <b-nav-item-dropdown
+              class="nav-noti"
+              v-if="this.user.type != 'Staff'"
+              right
+            >
               <b-dropdown-item
                 class="noti"
-                v-for="notification in this.notifications.slice(0,5)"
+                v-for="notification in this.notifications.slice(0, 5)"
                 v-bind:key="notification.id"
               >
-                <p class="text-primary">{{notification.Subject}}</p>
+                <p class="text-primary">{{ notification.Subject }}</p>
                 <p class="text-body">
-                  {{notification.Message}}
-                  <br>
-                  Requested by {{notification.Requestor.Student}}
+                  {{ notification.Message }}
+                  <br />
+                  Requested by {{ notification.Requestor.Student }}
                 </p>
               </b-dropdown-item>
             </b-nav-item-dropdown>
@@ -47,7 +51,9 @@
           <div v-if="this.user.type === 'Staff'">
             <b-list-group>
               <b-list-group-item to="/monitor">Monitor</b-list-group-item>
-              <b-list-group-item to="/requestedvm">Requested VM</b-list-group-item>
+              <b-list-group-item to="/requestedvm"
+                >Requested VM</b-list-group-item
+              >
               <b-list-group-item to="/quota">Set Quota</b-list-group-item>
             </b-list-group>
           </div>
@@ -61,7 +67,7 @@
         <div v-else></div>
       </b-col>
       <b-col cols="10">
-        <router-view/>
+        <router-view />
       </b-col>
     </b-row>
   </div>
@@ -153,7 +159,7 @@ li,
 .user-nav {
   margin: 0rem 0.25rem;
 }
-.btn{
+.btn {
   margin-top: 1em;
   margin-bottom: 0.75em;
 }

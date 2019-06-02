@@ -26,7 +26,11 @@
           <b-spinner variant="primary" label="Spinning"></b-spinner>
         </div>
         <div v-else>
-          <b-form-select v-model="range" :options="rangeOptions" @change="onChange()"></b-form-select>
+          <b-form-select
+            v-model="range"
+            :options="rangeOptions"
+            @change="onChange()"
+          ></b-form-select>
           <b-table
             :items="queryData"
             :fields="psfields"
@@ -38,45 +42,64 @@
           >
             <template slot="detail" slot-scope="vm">
               <div>
-                <b-button v-b-modal="vm.item.Name" variant="primary" size="sm" @click="info(vm.item, $event.target)">View</b-button>
+                <b-button
+                  v-b-modal="vm.item.Name"
+                  variant="primary"
+                  size="sm"
+                  @click="info(vm.item, $event.target)"
+                  >View</b-button
+                >
 
-                <b-modal :id="vm.item.Name" :title="vm.item.Name + ' Stats'" size="lg" hide-footer>
-                    <b-row>
-                      <b-col>
-                        PowerState
-                        <apexchart
-                          type="line"
-                          :options="lineOptions"
-                          :series="[{ name: vm.item.Name, data: vm.item.PowerStateData }]"
-                        />
-                      </b-col>
-                      <b-col>
-                        CPU Usage in Percentage
-                        <apexchart
-                          type="line"
-                          :options="lineOptions"
-                          :series="[{ name: vm.item.Name, data: vm.item.CPUData }]"
-                        />
-                      </b-col>
-                    </b-row>
-                    <b-row>
-                      <b-col>
-                        Memory Usage in Percentage
-                        <apexchart
-                          type="line"
-                          :options="lineOptions"
-                          :series="[{ name: vm.item.Name, data: vm.item.MemoryData }]"
-                        />
-                      </b-col>
-                      <b-col>
-                        Disk Usage in KBps
-                        <apexchart
-                          type="line"
-                          :options="lineOptions"
-                          :series="[{ name: vm.item.Name, data: vm.item.DiskData }]"
-                        />
-                      </b-col>
-                    </b-row>
+                <b-modal
+                  :id="vm.item.Name"
+                  :title="vm.item.Name + ' Stats'"
+                  size="lg"
+                  hide-footer
+                >
+                  <b-row>
+                    <b-col>
+                      PowerState
+                      <apexchart
+                        type="line"
+                        :options="lineOptions"
+                        :series="[
+                          { name: vm.item.Name, data: vm.item.PowerStateData }
+                        ]"
+                      />
+                    </b-col>
+                    <b-col>
+                      CPU Usage in Percentage
+                      <apexchart
+                        type="line"
+                        :options="lineOptions"
+                        :series="[
+                          { name: vm.item.Name, data: vm.item.CPUData }
+                        ]"
+                      />
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col>
+                      Memory Usage in Percentage
+                      <apexchart
+                        type="line"
+                        :options="lineOptions"
+                        :series="[
+                          { name: vm.item.Name, data: vm.item.MemoryData }
+                        ]"
+                      />
+                    </b-col>
+                    <b-col>
+                      Disk Usage in KBps
+                      <apexchart
+                        type="line"
+                        :options="lineOptions"
+                        :series="[
+                          { name: vm.item.Name, data: vm.item.DiskData }
+                        ]"
+                      />
+                    </b-col>
+                  </b-row>
                 </b-modal>
               </div>
             </template>
@@ -92,7 +115,7 @@
         </div>
       </b-col>
     </b-row>
-    <br>
+    <br />
     <b-row>
       <b-col>
         Top Used Datastores Cluster
@@ -114,21 +137,23 @@
                   height="100"
                   :options="barchartOptions"
                   :series="[
-                {
-                  name: 'Used Space',
-                  data: [data.item.UsedSpaceGB]
-                },
-                {
-                  name: 'Free Space',
-                  data: [data.item.FreeSpaceGB]
-                }
-              ]"
+                    {
+                      name: 'Used Space',
+                      data: [data.item.UsedSpaceGB]
+                    },
+                    {
+                      name: 'Free Space',
+                      data: [data.item.FreeSpaceGB]
+                    }
+                  ]"
                 />
               </div>
             </template>
             <template slot="Datastores" slot-scope="data">
               <div>
-                <b-button v-b-modal="data.item.Name" variant="primary" size="sm">View</b-button>
+                <b-button v-b-modal="data.item.Name" variant="primary" size="sm"
+                  >View</b-button
+                >
 
                 <b-modal
                   :id="data.item.Name"
@@ -151,15 +176,15 @@
                             height="100"
                             :options="barchartOptions"
                             :series="[
-                {
-                  name: 'Used Space',
-                  data: [data.item.UsedSpaceGB]
-                },
-                {
-                  name: 'Free Space',
-                  data: [data.item.FreeSpaceGB]
-                }
-              ]"
+                              {
+                                name: 'Used Space',
+                                data: [data.item.UsedSpaceGB]
+                              },
+                              {
+                                name: 'Free Space',
+                                data: [data.item.FreeSpaceGB]
+                              }
+                            ]"
                           />
                         </div>
                       </template>
@@ -169,7 +194,8 @@
                             v-b-modal="data.item.Name"
                             variant="primary"
                             size="sm"
-                          >ดู VM ใน Datastore นี้</b-button>
+                            >ดู VM ใน Datastore นี้</b-button
+                          >
 
                           <b-modal
                             :id="data.item.Name"
@@ -178,7 +204,11 @@
                             hide-footer
                           >
                             <b-container>
-                              <b-table :items="data.item.VMs" :fields="fields" class="mt-3"></b-table>
+                              <b-table
+                                :items="data.item.VMs"
+                                :fields="fields"
+                                class="mt-3"
+                              ></b-table>
                             </b-container>
                           </b-modal>
                         </div>
@@ -199,7 +229,6 @@
 import GetServices from "@/services/GetServices";
 import moment from "moment";
 export default {
-  
   name: "Monitor",
   components: {},
   computed: {
@@ -571,10 +600,7 @@ export default {
       this.elements.datastoreClusterLoading = false;
     },
     info(item, button) {
-        this.$root.$emit('bv::show::modal', item.Name, button)
-      },
-    async test(str) {
-      console.log(str)
+      this.$root.$emit("bv::show::modal", item.Name, button);
     }
   }
 };

@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 const logger = require('../controllers/logger.js');
 
-const connect = async (mongodb_url) => {
+/**
+ * Connect to MongoDB.
+ * @param {String} mongodb_url A string of MongoDB URL.
+ */
+async function connect(mongodb_url) {
     mongoose.connect(mongodb_url, {
         useNewUrlParser: true,
         useFindAndModify: false

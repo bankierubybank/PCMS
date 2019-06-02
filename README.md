@@ -4,12 +4,12 @@
 PCMS is web application for private cloud automation in VMware vSphere environment.
 
 ### PCMS is builded by:
-* [Vue CLI]
-* [PowerShell Core] version 6
-* [PowerCLI] version 11
-* [Node.js] version 11
-* [node-powershell] version 4
-* [MongoDB]
+* [Vue.js]
+* [PowerShell Core] version 6.1.1
+* [PowerCLI] version 11.0.0.10380590
+* [Node.js] version 11.9.9
+* [node-powershell] version 4.0.0
+* [MongoDB] version 4.0.5
 * Better used with [pm2] for keep application alive forever
 
 ### Deployment
@@ -28,7 +28,7 @@ $ Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -ParticipateInCeip 
 * Clone this git then
    * cd to server directory and ```$ npm install```
    * cd to vue-ui directory and ```$ npm install```
-   * Use example.json to create your setting file, named it test.json and saved at /config/environments/
+   * Edit config file at /config/environments/config.json
 
 ### Temporary Fix: Some modules is not currently supported on Core edition of PowerShell
 Comment these modules (Add # in front of these modules) in VMware.PowerCLI.psd1
@@ -47,7 +47,6 @@ Located in C:\Program Files\PowerShell\Modules\VMware.PowerCLI\11.0.0.10380590 (
 Source: https://cloudhat.eu/powercli-10-0-0-linux-error-vmware-vimautomation-srm/
 
 ### Testing - REST API Server (Node.js)
-Before run this command, needed to edit your vCenter details on /config/environments/test.json file.
 ```sh
 $ node app.js
 ```
@@ -57,21 +56,7 @@ $ pm2 start app.js
 $ pm2 monit
 ```
 
-Some operations in app.js
-
-| HTTP method | HTTP request | Description |
-| ------ | ------ | ------ |
-| GET | [localhost:8081/vms](http://localhost:8081/vms) | Return data of all virtual machines managed by vCenter |
-| GET | [localhost:8081/vm/{vmname}](http://localhost:8081/vm/{vmname}) | Return data of virtual machine by that virtual machine name |
-| GET | [localhost:8081/vmharddisk/{vmname}](http://localhost:8081/vmharddisk/{vmname}) | Return data of virtual machine harddisk by that virtual machine name |
-| GET | [localhost:8081/vmhosts](http://localhost:8081/vmhosts) | Return data of all hosts managed by vCenter |
-| GET | [localhost:8081/datastores](http://localhost:8081/datastores) | Return data of all datastores in vCenter |
-| GET | [localhost:8081/datacenters](http://localhost:8081/datacenters) | Return data of all datacenters in vCenter |
-| GET | [localhost:8081/vm/{vmname}/poweron](http://localhost:8081/vm/{vmname}/poweron) | Power on a virtual machine by that virtual machine name |
-| GET | [localhost:8081/vm/{vmname}/poweroff](http://localhost:8081/vm/{vmname}/poweroff) | Power off a virtual machine by that virtual machine name |
-
 ### Testing - Web Application (Vue.js)
-Needed to run REST API server (Node.js) before run this command.
 ```sh
 $ cd vue-ui
 $ npm run serve
@@ -100,12 +85,13 @@ Open Web Browser and go to
 
 
 ### Vue.js Module
-| Module Name | Source |
-| ------ | ------ |
-| axios | [axios] |
-| vuejs-datepicker | [vuejs-datepicker] |
-| bootstrap-vue | [bootstrap-vue] |
-| vue-apexcharts | [vue-apexcharts] |
+| Module Name | Source | Description |
+| ------ | ------ | ------ |
+| axios | [axios] | Consume API |
+| vuejs-datepicker | [vuejs-datepicker] | Date Picker |
+| bootstrap-vue | [bootstrap-vue] | Front-End Framework |
+| vue-apexcharts | [vue-apexcharts] | Chart |
+| moment | [moment] | Date Formatter |
 
 
 ### JS Style Guide
@@ -137,6 +123,7 @@ Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.htm
    [vuejs-datepicker]: <https://github.com/charliekassel/vuejs-datepicker>
    [bootstrap-vue]: <https://github.com/bootstrap-vue/bootstrap-vue>
    [vue-apexcharts]: <https://github.com/apexcharts/vue-apexcharts>
+   [moment]: <https://github.com/moment/moment>
    
    [winston]: <https://github.com/winstonjs/winston>
    [pm2]: <https://github.com/Unitech/pm2>

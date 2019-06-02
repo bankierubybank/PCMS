@@ -24,14 +24,14 @@ async function authorize(credentials) {
     client_id,
     redirect_uris
   } = credentials.installed;
-  let oAuth2Client = new google.auth.OAuth2(
+  let oAuth2Client = await new google.auth.OAuth2(
     client_id, client_secret, redirect_uris[0]);
 
-  let token = await promiseReader(TOKEN_PATH).catch((err) => {
-    logger.error(err);
-    return getAccessToken(oAuth2Client);
+  let token = await promiseReader(TOKEN_PATH).catch(async (err) => {
+    await logger.error(err);
+    return await getAccessToken(oAuth2Client);
   });
-  oAuth2Client.setCredentials(JSON.parse(token))
+  await oAuth2Client.setCredentials(JSON.parse(token))
   return oAuth2Client
 }
 
@@ -41,25 +41,25 @@ async function authorize(credentials) {
  * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
  * @param {getEventsCallback} callback The callback for the authorized client.
  */
-function getAccessToken(oAuth2Client) {
-  let authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
+async function getAccessToken(oAuth2Client) {
+  let authUrl = await oAuth2Client.generateAuthUrl({
+    access_type: 'online',
     scope: SCOPES,
   });
-  logger.info('Authorize this app by visiting this url:', authUrl);
-  let rl = readline.createInterface({
+  await logger.info('Authorize this app by visiting this url: ' + authUrl);
+  let rl = await readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  rl.question('Enter the code from that page here: ', (code) => {
+  await rl.question('Enter the code from that page here: ', (code) => {
     rl.close();
     oAuth2Client.getToken(code, (err, token) => {
-      if (err) return logger.error('Error retrieving access token', err);
+      if (err) return logger.error('Error retrieving access token: ' + err);
       oAuth2Client.setCredentials(token);
       // Store the token to disk for later program executions
       fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
         if (err) logger.error(err);
-        logger.info('Token stored to', TOKEN_PATH);
+        logger.info('Token stored to: ' + TOKEN_PATH);
       });
       return oAuth2Client
     });
@@ -87,7 +87,11 @@ async function uploadFile(auth, fileName) {
   }).catch(err => logger.error(err));
 }
 
-const uploadToGoogleDrive = async (fileName) => {
+/**
+ * Upload .zip file to Google Drive.
+ * @param {String} fileName A string of file's path.
+ */
+async function upload(fileName) {
   let credentials = await promiseReader('credentials.json')
   let oAuth2Client = await authorize(JSON.parse(credentials))
   await logger.info(`Uploading ${fileName}`)
@@ -95,4 +99,6 @@ const uploadToGoogleDrive = async (fileName) => {
   await logger.info(`Upload ${fileName} Complete!`)
 }
 
-module.exports = uploadToGoogleDrive;
+module.exports = {
+  upload
+};

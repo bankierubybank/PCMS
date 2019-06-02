@@ -9,26 +9,44 @@
         <b-col md="6" class="my-1">
           <b-form-group label-cols-sm="3" label="Search" class="mb-0">
             <b-input-group>
-              <b-form-input v-model="filter" placeholder="Search"></b-form-input>
+              <b-form-input
+                v-model="filter"
+                placeholder="Search"
+              ></b-form-input>
               <b-input-group-append>
-                <b-button :disabled="!filter" @click="filter = ''">Clear</b-button>
+                <b-button :disabled="!filter" @click="filter = ''"
+                  >Clear</b-button
+                >
               </b-input-group-append>
             </b-input-group>
           </b-form-group>
         </b-col>
       </b-row>
-      <b-table :items="data" :fields="fields" :filter="filter" @filtered="onFiltered" class="mt-3">
+      <b-table
+        :items="data"
+        :fields="fields"
+        :filter="filter"
+        @filtered="onFiltered"
+        class="mt-3"
+      >
         <template slot="Requestor" slot-scope="data">
-          <p v-if="data.item.Requestor.Student != ''">Student : {{data.item.Requestor.Student}}</p>
-          <p v-if="data.item.Requestor.Lecturer != ''">Prof : {{data.item.Requestor.Lecturer}}</p>
-          <p v-if="data.item.Requestor.Course != ''">Subject : {{data.item.Requestor.Course}}</p>
+          <p v-if="data.item.Requestor.Student != ''">
+            Student : {{ data.item.Requestor.Student }}
+          </p>
+          <p v-if="data.item.Requestor.Lecturer != ''">
+            Prof : {{ data.item.Requestor.Lecturer }}
+          </p>
+          <p v-if="data.item.Requestor.Course != ''">
+            Subject : {{ data.item.Requestor.Course }}
+          </p>
         </template>
         <template slot="Status" slot-scope="data">
           <div v-if="data.item.Status == 'Pending'">
             <b-button
               v-b-modal="data.item.Name"
               v-on:click="getDatastores(data.item)"
-            >Check Resource</b-button>
+              >Check Resource</b-button
+            >
             <b-modal
               :id="data.item.Name"
               :ref="data.item.Name"
@@ -55,8 +73,11 @@
                 <b-button
                   variant="primary"
                   v-on:click="autoCreateVM(data.item.Name)"
-                >Approve (Auto Create)</b-button>
-                <b-button variant="danger" v-b-modal="data.item.Name">Reject</b-button>
+                  >Approve (Auto Create)</b-button
+                >
+                <b-button variant="danger" v-b-modal="data.item.Name"
+                  >Reject</b-button
+                >
                 <b-modal
                   :id="data.item.Name"
                   :ref="data.item.Name"
@@ -69,17 +90,22 @@
                     v-model="Reason"
                     placeholder="Please Input Reason"
                   ></b-form-textarea>
-                  <b-button variant="danger" v-on:click="rejectVM(data.item.Name, Reason)">Reject</b-button>
+                  <b-button
+                    variant="danger"
+                    v-on:click="rejectVM(data.item.Name, Reason)"
+                    >Reject</b-button
+                  >
                 </b-modal>
               </div>
             </b-modal>
           </div>
           <div v-else-if="data.item.Status == 'ExtendPending'">
-            {{data.item.NewEndDate}}
+            {{ data.item.NewEndDate }}
             <b-button
               variant="warning"
               v-on:click="approveExtendVM(data.item.Name)"
-            >Approve Extend VM</b-button>
+              >Approve Extend VM</b-button
+            >
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
             <b-badge variant="danger">Rejected</b-badge>

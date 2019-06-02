@@ -22,7 +22,9 @@
                 data.item.Status == 'Approved'
             "
           >
-            <b-button v-b-modal="data.item.Name" variant="primary" size="sm">Extend VM</b-button>
+            <b-button v-b-modal="data.item.Name" variant="primary" size="sm"
+              >Extend VM</b-button
+            >
 
             <b-modal
               :id="data.item.Name"
@@ -37,7 +39,12 @@
                   :disabledDates="data.item.state.disabledDates"
                 ></datepicker>
               </b-form-group>
-              <b-button type="submit" variant="primary" v-on:click="extendVM(data.item.Name)">Accept</b-button>
+              <b-button
+                type="submit"
+                variant="primary"
+                v-on:click="extendVM(data.item.Name)"
+                >Accept</b-button
+              >
             </b-modal>
           </div>
         </template>
@@ -46,7 +53,7 @@
             <b-badge variant="warning">Pending</b-badge>
           </div>
           <div v-else-if="data.item.Status == 'ExtendPending'">
-            {{data.item.NewEndDate}}
+            {{ data.item.NewEndDate }}
             <b-badge variant="warning">Extend Pending</b-badge>
           </div>
           <div v-else-if="data.item.Status == 'Rejected'">
