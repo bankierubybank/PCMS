@@ -92,6 +92,7 @@ Open Web Browser and go to
 | bootstrap-vue | [bootstrap-vue] | Front-End Framework |
 | vue-apexcharts | [vue-apexcharts] | Chart |
 | moment | [moment] | Date Formatter |
+| vue-swal | [vue-swal] | More Beautiful Alert |
 
 
 ### JS Style Guide
@@ -124,6 +125,7 @@ Strict to Google JS Style Guide: https://google.github.io/styleguide/jsguide.htm
    [bootstrap-vue]: <https://github.com/bootstrap-vue/bootstrap-vue>
    [vue-apexcharts]: <https://github.com/apexcharts/vue-apexcharts>
    [moment]: <https://github.com/moment/moment>
+   [vue-swal]: <https://github.com/anteriovieira/vue-swal>
    
    [winston]: <https://github.com/winstonjs/winston>
    [pm2]: <https://github.com/Unitech/pm2>
