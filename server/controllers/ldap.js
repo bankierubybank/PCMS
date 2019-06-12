@@ -21,7 +21,6 @@ async function authen(username, password) {
     };
 
     let lecturers = await client.search('OU=Lecturer,DC=it,DC=kmitl,DC=ac,DC=th', options);
-    let staffs = await client.search('OU=Staff,DC=it,DC=kmitl,DC=ac,DC=th', options);
     let students = await client.search('OU=Student,DC=it,DC=kmitl,DC=ac,DC=th', options);
 
     let accountData = {
@@ -36,11 +35,6 @@ async function authen(username, password) {
         accountData.username = lecturers[0].sAMAccountName;
         accountData.displayName = lecturers[0].displayName;
         accountData.mail = lecturers[0].mail;
-    } else if (staffs.length != 0) {
-        accountData.type = 'Staff';
-        accountData.username = staffs[0].sAMAccountName;
-        accountData.displayName = staffs[0].displayName;
-        accountData.mail = staffs[0].mail;
     } else if (students.length != 0) {
         accountData.type = 'Student';
         accountData.username = students[0].sAMAccountName;
