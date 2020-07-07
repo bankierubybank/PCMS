@@ -31,7 +31,7 @@
     "node-powershell": "^4.0.0",
     "node-schedule": "^1.3.2",
     "nodemailer": "^6.2.1",
-    "npm": "^6.9.0",
+    "npm": "^6.14.6",
     "winston": "^3.2.1"
   },
   "devDependencies": {
